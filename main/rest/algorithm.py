@@ -1,4 +1,5 @@
-from rest_framework.generics import ListAPIView
+""" Algorithm REST endpoints """
+# pylint: disable=too-many-ancestors
 
 from ..models import Algorithm
 from ..models import database_qs
@@ -6,7 +7,6 @@ from ..schema import AlgorithmListSchema
 from ..schema import parse
 
 from ._base_views import BaseListView
-from ._base_views import BaseDetailView
 from ._permissions import ProjectViewOnlyPermission
 
 class AlgorithmListAPI(BaseListView):
@@ -17,17 +17,17 @@ class AlgorithmListAPI(BaseListView):
         .. _GitHub:
            https://github.com/cvisionai/tator/tree/master/examples/algorithms
     """
+    # pylint: disable=no-member,no-self-use
     schema = AlgorithmListSchema()
     permission_classes = [ProjectViewOnlyPermission]
     http_method_names = ['get']
 
     def _get(self, params):
-        qs = Algorithm.objects.filter(project=params['project'])
-        return database_qs(qs)
+        queryset = Algorithm.objects.filter(project=params['project'])
+        return database_qs(queryset)
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         params = parse(self.request)
-        qs = Algorithm.objects.filter(project__id=params['project'])
-        return qs
-
-
+        queryset = Algorithm.objects.filter(project__id=params['project'])
+        return queryset
