@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from collections import defaultdict
 import logging
 
@@ -8,13 +9,13 @@ from ._attribute_query import get_attribute_query
 
 logger = logging.getLogger(__name__)
 
-def get_annotation_queryset(project, query_params, annotation_type):
+def get_annotation_queryset(project, query_params, annotation_type): #pylint: disable=too-many-locals,too-many-branches
     """Converts annotation query string into a list of IDs and a count.
        annotation_type: Should be one of `localization` or `state`.
     """
-    mediaId = query_params.get('media_id', None)
+    media_id = query_params.get('media_id', None)
     media_query = query_params.get('media_query', None)
-    filterType = query_params.get('type', None)
+    filter_type = query_params.get('type', None)
     version = query_params.get('version', None)
     modified = query_params.get('modified', None)
     start = query_params.get('start', None)
@@ -38,38 +39,38 @@ def get_annotation_queryset(project, query_params, annotation_type):
     else:
         raise ValueError(f"Programming error: invalid annotation type {annotation_type}")
 
-    if media_query != None:
+    if media_query is not None:
         media_ids = query_string_to_media_ids(project, media_query)
         ids = [f'image_{id_}' for id_ in media_ids] + [f'video_{id_}' for id_ in media_ids]
         media_bools.append({'ids': {'values': ids}})
-    elif mediaId != None:
-        ids = [f'image_{id_}' for id_ in mediaId] + [f'video_{id_}' for id_ in mediaId]
+    elif media_id is not None:
+        ids = [f'image_{id_}' for id_ in media_id] + [f'video_{id_}' for id_ in media_id]
         media_bools.append({'ids': {'values': ids}})
 
-    if filterType != None:
-        annotation_bools.append({'match': {'_meta': {'query': int(filterType)}}})
+    if filter_type is not None:
+        annotation_bools.append({'match': {'_meta': {'query': int(filter_type)}}})
 
-    if version != None:
+    if version is not None:
         logger.info(f"version = {version}")
         annotation_bools.append({'terms': {'_annotation_version': version}})
 
-    if start != None:
+    if start is not None:
         query['from'] = int(start)
         if start > 10000:
             raise ValueError("Parameter 'start' must be less than 10000! Try using 'after'.")
 
-    if start == None and stop != None:
+    if start is None and stop is not None:
         query['size'] = int(stop)
         if stop > 10000:
             raise ValueError("Parameter 'stop' must be less than 10000! Try using 'after'.")
 
-    if start != None and stop != None:
+    if start is not None and stop is not None:
         query['size'] = int(stop) - int(start)
         if start + stop > 10000:
             raise ValueError("Parameter 'start' plus 'stop' must be less than 10000! Try using "
                              "'after'.")
 
-    if after != None:
+    if after is not None:
         annotation_bools.append({'range': {'_postgres_id': {'gt': after}}})
 
     query = get_attribute_query(query_params, query, media_bools, project, False,
@@ -78,4 +79,3 @@ def get_annotation_queryset(project, query_params, annotation_type):
     annotation_ids, annotation_count = TatorSearch().search(project, query)
 
     return annotation_ids, annotation_count, query
-
