@@ -17,7 +17,6 @@ class AlgorithmListAPI(BaseListView):
         .. _GitHub:
            https://github.com/cvisionai/tator/tree/master/examples/algorithms
     """
-    # pylint: disable=no-member,no-self-use
     schema = AlgorithmListSchema()
     permission_classes = [ProjectViewOnlyPermission]
     http_method_names = ['get']
