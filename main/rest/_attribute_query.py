@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from collections import defaultdict
 import copy
 import logging
@@ -5,11 +6,15 @@ import logging
 from ..models import LocalizationType
 from ..models import StateType
 
-from ._attributes import kv_separator
+from ._attributes import KV_SEPARATOR
 
 logger = logging.getLogger(__name__)
 
-def get_attribute_query(query_params, query, bools, project, is_media=True, annotation_bools=[], modified=None):
+def get_attribute_query(query_params, query, bools, project,
+                        is_media=True, annotation_bools=None, modified=None):
+    """ TODO: add documentation for this """
+    if annotation_bools is None:
+        annotation_bools = []
 
     # Construct query for media and annotations
     attr_filter_params = {
@@ -38,11 +43,11 @@ def get_attribute_query(query_params, query, bools, project, is_media=True, anno
             'filter': [],
         },
     }
-    for op in attr_filter_params:
-        if attr_filter_params[op] is not None:
-            for kv_pair in attr_filter_params[op].split(','):
-                if op == 'attribute_distance':
-                    key, dist_km, lat, lon = kv_pair.split(kv_separator)
+    for o_p in attr_filter_params: #pylint: disable=too-many-nested-blocks
+        if attr_filter_params[o_p] is not None:
+            for kv_pair in attr_filter_params[o_p].split(','):
+                if o_p == 'attribute_distance':
+                    key, dist_km, lat, lon = kv_pair.split(KV_SEPARATOR)
                     relation = 'annotation' if key in child_attrs else 'media'
                     attr_query[relation]['filter'].append({
                         'geo_distance': {
@@ -51,28 +56,28 @@ def get_attribute_query(query_params, query, bools, project, is_media=True, anno
                         }
                     })
                 else:
-                    key, val = kv_pair.split(kv_separator)
+                    key, val = kv_pair.split(KV_SEPARATOR)
                     relation = 'annotation' if key in child_attrs else 'media'
-                    if op == 'attribute_eq':
+                    if o_p == 'attribute_eq':
                         attr_query[relation]['filter'].append({'match': {key: val}})
-                    elif op == 'attribute_lt':
+                    elif o_p == 'attribute_lt':
                         attr_query[relation]['filter'].append({'range': {key: {'lt': val}}})
-                    elif op == 'attribute_lte':
+                    elif o_p == 'attribute_lte':
                         attr_query[relation]['filter'].append({'range': {key: {'lte': val}}})
-                    elif op == 'attribute_gt':
+                    elif o_p == 'attribute_gt':
                         attr_query[relation]['filter'].append({'range': {key: {'gt': val}}})
-                    elif op == 'attribute_gte':
+                    elif o_p == 'attribute_gte':
                         attr_query[relation]['filter'].append({'range': {key: {'gte': val}}})
-                    elif op == 'attribute_contains':
-                        attr_query[relation]['filter'].append({'wildcard': {key: {'value': f'*{val}*'}}})
-                    elif op == 'attribute_null':
+                    elif o_p == 'attribute_contains':
+                        attr_query[relation]['filter'].append({'wildcard': {key: {'value': f'*{val}*'}}}) #pylint: disable=line-too-long
+                    elif o_p == 'attribute_null':
                         check = {'exists': {'field': key}}
                         if val.lower() == 'false':
                             attr_query[relation]['filter'].append(check)
                         elif val.lower() == 'true':
                             attr_query[relation]['must_not'].append(check)
                         else:
-                            raise Exception("Invalid value for attribute_null operation, must be <field>::<value> where <value> is true or false.")
+                            raise Exception("Invalid value for attribute_null operation, must be <field>::<value> where <value> is true or false.") #pylint: disable=line-too-long
 
     attr_query['media']['filter'] += bools
     attr_query['annotation']['filter'] += annotation_bools
@@ -80,7 +85,7 @@ def get_attribute_query(query_params, query, bools, project, is_media=True, anno
     if is_media:
         # Construct query for media
         has_child = False
-        child_query = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
+        child_query = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))) #pylint: disable=line-too-long
 
         for key in ['must_not', 'filter']:
             if len(attr_query['annotation'][key]) > 0:
@@ -96,13 +101,13 @@ def get_attribute_query(query_params, query, bools, project, is_media=True, anno
                 query['query']['bool'][key] = attr_query['media'][key]
 
         search = query_params.get('search', None)
-        if search != None:
+        if search is not None:
             search_query = {'bool': {
                 'should': [
                     {'query_string': {'query': search}},
                     {'has_child': {
-                            'type': 'annotation',
-                            'query': {'query_string': {'query': search}},
+                        'type': 'annotation',
+                        'query': {'query_string': {'query': search}},
                         },
                     },
                 ],
@@ -112,7 +117,7 @@ def get_attribute_query(query_params, query, bools, project, is_media=True, anno
     else:
         # Construct query for annotations
         has_parent = False
-        parent_query = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
+        parent_query = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict)))) #pylint: disable=line-too-long
 
         for key in ['must_not', 'filter']:
             if len(attr_query['media'][key]) > 0:
@@ -139,13 +144,13 @@ def get_attribute_query(query_params, query, bools, project, is_media=True, anno
                 query['query']['bool'][key] = attr_query['annotation'][key]
 
         search = query_params.get('search', None)
-        if search != None:
+        if search is not None:
             search_query = {'bool': {
                 'should': [
                     {'query_string': {'query': search}},
                     {'has_parent': {
-                            'parent_type': 'media',
-                            'query': {'query_string': {'query': search}},
+                        'parent_type': 'media',
+                        'query': {'query_string': {'query': search}},
                         },
                     },
                 ],
@@ -153,7 +158,7 @@ def get_attribute_query(query_params, query, bools, project, is_media=True, anno
             }}
             query['query']['bool']['filter'].append(search_query)
 
-        if modified != None:
+        if modified is not None:
             # Get modified + null or not modified + null
             modified_query = {'bool': {
                 'should': [
@@ -167,4 +172,3 @@ def get_attribute_query(query_params, query, bools, project, is_media=True, anno
             query['query']['bool']['filter'].append(modified_query)
 
     return query
-
