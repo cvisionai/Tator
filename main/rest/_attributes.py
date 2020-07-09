@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 
 from django.db.models.expressions import Func
@@ -9,16 +10,17 @@ from dateutil.parser import parse as dateutil_parse
 logger = logging.getLogger(__name__)
 
 # Separator for key value pairs in attribute queries
-kv_separator = '::'
+KV_SEPARATOR = '::'
 
-class ReplaceValue(Func):
+class ReplaceValue(Func): #pylint: disable=abstract-method
+    """ TODO: add documentation for this """
     function = 'jsonb_set'
-    template = "%(function)s(%(expressions)s, '{\"%(keyname)s\"}','%(new_value)s', %(create_missing)s)"
+    template = "%(function)s(%(expressions)s, '{\"%(keyname)s\"}','%(new_value)s', %(create_missing)s)" #pylint: disable=line-too-long
     arity = 1
 
     def __init__(
-        self, expression: str, keyname: str, new_value: str,
-        create_missing: bool=False, **extra,
+            self, expression: str, keyname: str, new_value: str,
+            create_missing: bool = False, **extra,
     ):
         super().__init__(
             expression,
@@ -28,7 +30,7 @@ class ReplaceValue(Func):
             **extra,
         )
 
-def convert_attribute(attr_type, attr_val):
+def convert_attribute(attr_type, attr_val): #pylint: disable=too-many-branches
     """Attempts to convert an attribute to its expected datatype. Raises an
        exception if conversion fails.
     """
@@ -43,12 +45,14 @@ def convert_attribute(attr_type, attr_val):
         elif attr_val.lower() == 'true':
             val = True
         else:
-            raise Exception(f"Invalid attribute value {attr_val} for boolean attribute {attr_type['name']}")
+            raise Exception(f"Invalid attribute value {attr_val} for boolean attribute {attr_type['name']}")  #pylint: disable=line-too-long
+
     elif dtype == 'int':
         try:
             val = int(attr_val)
         except:
-            raise Exception(f"Invalid attribute value {attr_val} for integer attribute {attr_type['name']}")
+            raise Exception(f"Invalid attribute value {attr_val} for integer attribute {attr_type['name']}") #pylint: disable=line-too-long
+
         if 'minimum' in attr_type:
             if val < attr_type['minimum']:
                 raise Exception(f"{attr_val} is below minimum {attr_type['minimum']} for "
@@ -59,9 +63,11 @@ def convert_attribute(attr_type, attr_val):
                                 f"int attribute {attr_type['name']}!")
     elif dtype == 'float':
         try:
-            val = float(attr_val)
+            val = float(attr_val) #pylint: disable=line-too-long
+
         except:
-            raise Exception(f"Invalid attribute value {attr_val} for float attribute {attr_type['name']}")
+            raise Exception(f"Invalid attribute value {attr_val} for float attribute {attr_type['name']}") #pylint: disable=line-too-long
+
         if 'minimum' in attr_type:
             if val < attr_type['minimum']:
                 raise Exception(f"{attr_val} is below minimum {attr_type['minimum']} for "
@@ -71,37 +77,53 @@ def convert_attribute(attr_type, attr_val):
                 raise Exception(f"{attr_val} is above maximum {attr_type['maximum']} for "
                                 f"float attribute {attr_type['name']}!")
     elif dtype == 'enum':
-        if attr_val in attr_type['choices']:
+        if attr_val in attr_type['choices']: #pylint: disable=line-too-long
+
             val = attr_val
-        else:
+        else: #pylint: disable=line-too-long
+
             raise Exception(f"Invalid attribute value {attr_val} for enum attribute {attr_type['name']}. Valid choices are: {attr_type['choices']}.")
     elif dtype == 'string':
         val = attr_val
-    elif dtype == 'datetime':
+    elif dtype == 'datetime': #pylint: disable=line-too-long
+
         try:
-            val = dateutil_parse(attr_val)
+            val = dateutil_parse(attr_val) #pylint: disable=line-too-long
+
         except:
-            raise Exception(f"Invalid attribute value {attr_val} for datetime attribute {attr_type['name']}")
+            raise Exception(f"Invalid attribute value {attr_val} for datetime attribute {attr_type['name']}") #pylint: disable=line-too-long
+
     elif dtype == 'geopos':
         try:
-            if isinstance(attr_val, list):
+            if isinstance(attr_val, list): #pylint: disable=line-too-long
+
                 lon, lat = attr_val
             else:
-                lat, lon = attr_val.split('_')
-        except:
+                lat, lon = attr_val.split('_') #pylint: disable=line-too-long
+
+        except: #pylint: disable=line-too-long
+
             raise Exception(f"Invalid lat/lon string {val} for geoposition attribute {attr_type.name}, should be two values separated by underscore")
         try:
-            lat = float(lat)
+            lat = float(lat) #pylint: disable=line-too-long
+
         except:
-            raise Exception(f"Invalid latitude string {val} for geoposition attribute {attr_type.name}, must be convertible to float.")
-        try:
-            lon = float(lon)
-        except:
+            raise Exception(f"Invalid latitude string {val} for geoposition attribute {attr_type.name}, must be convertible to float.") #pylint: disable=line-too-long
+
+        try: #pylint: disable=line-too-long
+
+            lon = float(lon) #pylint: disable=line-too-long
+
+        except: #pylint: disable=line-too-long
+
             raise Exception(f"Invalid longitude string {val} for geoposition attribute {attr_type.name}, must be convertible to float.")
-        if (lat > 90.0) or (lat < -90.0):
-            raise Exception(f"Invalid latitude string {val} for geoposition attribute {attr_type.name}, must be in range (-90.0, 90.0).")
+        if (lat > 90.0) or (lat < -90.0): #pylint: disable=line-too-long
+
+            raise Exception(f"Invalid latitude string {val} for geoposition attribute {attr_type.name}, must be in range (-90.0, 90.0).") #pylint: disable=line-too-long
+
         if (lon > 180.0) or (lon < -180.0):
-            raise Exception(f"Invalid longitude string {val} for geoposition attribute {attr_type.name}, must be in range (-180.0, 180.0).")
+            raise Exception(f"Invalid longitude string {val} for geoposition attribute {attr_type.name}, must be in range (-180.0, 180.0).") #pylint: disable=line-too-long
+
         val = Point(lon, lat) # Lon goes first in postgis
     return val
 
@@ -109,22 +131,24 @@ def extract_attribute(kv_pair, meta, filter_op):
     """Parses a key/value pair and finds the attribute type associated with
        the attribute name.
     """
-    vals = kv_pair.split(kv_separator)
+    vals = kv_pair.split(KV_SEPARATOR)
     attr_name = vals.pop(0)
 
     # If we are checking for non-existence of attribute,
     if filter_op == 'attribute_null':
         attr_type = {'dtype': 'bool', 'name': attr_name}
-        typeOk = True
+        type_ok = True
         meta = 'dummy'
     elif attr_name == 'tator_user_sections':
         attr_type = {'dtype': 'string', 'name': attr_name}
-        typeOk = True
+        type_ok = True
         meta = 'dummy'
     else:
 
         # If meta is none, we treat this as a string/enum type.
         found = False
+        attr_type = None
+        type_ok = True
         if meta is not None:
             for attr_type in meta.attribute_types:
                 if attr_type['name'] == attr_name:
@@ -133,25 +157,28 @@ def extract_attribute(kv_pair, meta, filter_op):
             if not found:
                 raise Exception(f"Invalid attribute {attr_name} for entity type {meta.name}")
 
-        # Do we want to convert this type based on the filter op?
-        typeOk = attr_type['dtype'] in AttributeFilterMixin.allowed_types[filter_op]
+            # Do we want to convert this type based on the filter op?
+            type_ok = attr_type['dtype'] in AttributeFilterMixin.allowed_types[filter_op]
 
-    def check_length(v, length):
-        if len(v) < length:
+    def check_length(value, length):
+        if len(value) < length:
             raise Exception(f"Invalid filter param {kv_pair} for attribute {attr_name}!")
 
     # Type is geopos and the filter op is appropriate.
-    if typeOk and attr_type['dtype'] == 'geopos':
+    if type_ok and attr_type['dtype'] == 'geopos':
         check_length(vals, 3)
+
         distance_km, lat, lon = vals
         point = convert_attribute(attr_type, f"{lat}_{lon}")
-        filter_value = (convert_attribute(attr_type, f"{lat}_{lon}"),
-                        GisDistance(km=float(distance_km)))
-    elif not typeOk:
-        raise Exception(f"Invalid attribute {attr_name} has incompatible type {attr_type['dtype']} for operation {filter_op}")
+        filter_value = (point, GisDistance(km=float(distance_km)))
+    elif not type_ok:
+
+        raise Exception(f"Invalid attribute {attr_name} has incompatible type "
+                        f"{attr_type['dtype']} for operation {filter_op}")
+
     # We don't have a type, don't have a type suited to this filter op, or
     # the type is string/enum.
-    elif (meta is None) or (not typeOk) or (attr_type['dtype'] in ('string', 'enum')):
+    elif (meta is None) or (not type_ok) or (attr_type['dtype'] in ('string', 'enum')):
         check_length(vals, 1)
         filter_value = vals[0]
         attr_type = {'dtype': 'string', 'name': attr_name} # We are skipping annotation
@@ -163,7 +190,7 @@ def extract_attribute(kv_pair, meta, filter_op):
     if filter_op == 'attribute_null':
         attr_type = attr_name
 
-    return filter_value, attr_type, typeOk
+    return filter_value, attr_type, type_ok
 
 def validate_attributes(params, obj):
     """Validates attributes by looking up attribute type and attempting
@@ -195,7 +222,7 @@ def patch_attributes(new_attrs, obj):
                 obj.attributes[attr_name] = new_attrs[attr_name]
     return obj
 
-def bulk_patch_attributes(new_attrs, qs):
+def bulk_patch_attributes(new_attrs, q_s):
     """Updates attribute values.
     """
     for key in new_attrs:
@@ -205,7 +232,7 @@ def bulk_patch_attributes(new_attrs, qs):
             val = f"{str(new_attrs[key]).lower()}"
         else:
             val = new_attrs[key]
-        qs.update(attributes=ReplaceValue(
+        q_s.update(attributes=ReplaceValue(
             'attributes',
             keyname=key,
             new_value=val,
@@ -255,7 +282,7 @@ class AttributeFilterMixin:
         self.meta = None
 
         # Check if type required for this query.
-        requiresType = any([
+        requires_type = any([
             (attr not in ['attribute_eq', 'attribute_contains', 'attribute_null']) and
             (self.attr_filter_params[attr] is not None)
             for attr in self.attr_filter_params
@@ -263,7 +290,7 @@ class AttributeFilterMixin:
 
         meta_id = query_params.get('type', None)
         if meta_id is None:
-            if requiresType:
+            if requires_type:
                 raise Exception("Parameter 'type' is required for numerical attribute filtering!")
         else:
             self.meta = get_object_or_404(self.entity_type, pk=meta_id)
@@ -271,13 +298,13 @@ class AttributeFilterMixin:
         # and filter value.
         self.filter_type_and_vals = []
         for filter_op in self.attr_filter_params:
-            if self.attr_filter_params[filter_op] != None:
+            if self.attr_filter_params[filter_op] is not None:
                 for kv_pair in self.attr_filter_params[filter_op].split(","):
                     # Check if we should use type for this filter op.
-                    filter_value, attr_type, typeOk = extract_attribute(kv_pair, self.meta, filter_op)
-                    if requiresType and not typeOk:
+                    filter_value, attr_type, type_ok = extract_attribute(kv_pair, self.meta,
+                                                                         filter_op)
+                    if requires_type and not type_ok:
                         raise Exception(f"Invalid operator {filter_op} on attribute {attr_type}")
                     self.filter_type_and_vals.append((attr_type, filter_value, filter_op))
         # Check for operations on the data.
         self.operation = query_params.get('operation', None)
-
