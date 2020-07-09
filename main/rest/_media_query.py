@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from collections import defaultdict
 
 from urllib import parse as urllib_parse
@@ -11,8 +12,8 @@ from ._attributes import AttributeFilterMixin
 def get_media_queryset(project, query_params, dry_run=False):
     """Converts raw media query string into a list of IDs and a count.
     """
-    mediaId = query_params.get('media_id', None)
-    filterType = query_params.get('type', None)
+    media_id = query_params.get('media_id', None)
+    filter_type = query_params.get('type', None)
     name = query_params.get('name', None)
     md5 = query_params.get('md5', None)
     start = query_params.get('start', None)
@@ -29,36 +30,36 @@ def get_media_queryset(project, query_params, dry_run=False):
         'minimum_should_match': 1,
     }}]
 
-    if mediaId != None:
-        ids = [f'image_{id_}' for id_ in mediaId] + [f'video_{id_}' for id_ in mediaId]
+    if media_id is not None:
+        ids = [f'image_{id_}' for id_ in media_id] + [f'video_{id_}' for id_ in media_id]
         bools.append({'ids': {'values': ids}})
 
-    if filterType != None:
-        bools.append({'match': {'_meta': {'query': int(filterType)}}})
+    if filter_type is not None:
+        bools.append({'match': {'_meta': {'query': int(filter_type)}}})
 
-    if name != None:
+    if name is not None:
         bools.append({'match': {'_exact_name': {'query': name}}})
 
-    if md5 != None:
+    if md5 is not None:
         bools.append({'match': {'_md5': {'query': md5}}})
 
-    if start != None:
+    if start is not None:
         query['from'] = int(start)
         if start > 10000:
             raise ValueError("Parameter 'start' must be less than 10000! Try using 'after'.")
 
-    if start == None and stop != None:
+    if start is None and stop is not None:
         query['size'] = int(stop)
         if stop > 10000:
             raise ValueError("Parameter 'stop' must be less than 10000! Try using 'after'.")
 
-    if start != None and stop != None:
+    if start is not None and stop is not None:
         query['size'] = int(stop) - int(start)
         if start + stop > 10000:
             raise ValueError("Parameter 'start' plus 'stop' must be less than 10000! Try using "
                              "'after'.")
 
-    if after != None:
+    if after is not None:
         bools.append({'range': {'_exact_name': {'gt': after}}})
 
     query = get_attribute_query(query_params, query, bools, project)
@@ -71,9 +72,9 @@ def get_media_queryset(project, query_params, dry_run=False):
     return media_ids, media_count, query
 
 def query_string_to_media_ids(project_id, url):
+    """ TODO: add documentation for this """
     query_params = dict(urllib_parse.parse_qsl(urllib_parse.urlsplit(url).query))
     attribute_filter = AttributeFilterMixin()
     attribute_filter.validate_attribute_filter(query_params)
     media_ids, _, _ = get_media_queryset(project_id, query_params)
     return media_ids
-
