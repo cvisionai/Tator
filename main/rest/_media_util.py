@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 import os
 import json
@@ -14,6 +15,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 class MediaUtil:
+    """ TODO: add documentation for this """
     def __init__(self, video, temp_dir, quality=None):
         self._temp_dir = temp_dir
         # Do this for testing:
@@ -27,7 +29,7 @@ class MediaUtil:
                 quality_idx = 0
             else:
                 max_delta = sys.maxsize
-                for idx,media_info in enumerate(video.media_files["streaming"]):
+                for idx, media_info in enumerate(video.media_files["streaming"]):
                     delta = abs(quality-media_info['resolution'][0])
                     if delta < max_delta:
                         quality_idx = idx
@@ -37,9 +39,10 @@ class MediaUtil:
             segment_file = video.media_files["streaming"][quality_idx]["segment_info"]
             segment_file = os.path.relpath(segment_file, settings.MEDIA_URL)
             segment_file = os.path.join(settings.MEDIA_ROOT, segment_file)
-            with open(segment_file, 'r') as fp:
-                self._segment_info = json.load(fp)
-                self._moof_data = [(i,x) for i,x in enumerate(self._segment_info['segments']) if x['name'] == 'moof']
+            with open(segment_file, 'r') as f_p:
+                self._segment_info = json.load(f_p)
+                self._moof_data = [(i, x) for i, x in enumerate(self._segment_info['segments']
+                                                                ) if x['name'] == 'moof']
         elif video.original:
             video_file = video.original
             self._height = video.height
@@ -60,14 +63,15 @@ class MediaUtil:
 
         self._fps = video.fps
 
-    def _getImpactedSegments(self, frames):
+    def get_impacted_segments(self, frames):
+        """ TODO: add documentation for this """
         if self._segment_info is None:
             return None
 
 
-        segment_list=[]
+        segment_list = []
         for frame_str in frames:
-            frame_seg=set()
+            frame_seg = set()
             frame_seg.add(0)
             frame_seg.add(1)
             # We already load the header so ignore those segments
@@ -107,16 +111,17 @@ class MediaUtil:
         logger.info(f"Given {frames}, we need {segment_list}")
         return segment_list
 
-    def _getImpactedSegmentsFromRanges(self, frameRanges):
-        segment_list=[]
-        logger.info(f"Frame Ranges = {frameRanges}")
-        for frameRange in frameRanges:
-            begin = frameRange[0]
-            end = frameRange[1]
+    def get_impacted_segments_from_ranges(self, frame_ranges):
+        """ TODO: add documentation for this """
+        segment_list = []
+        logger.info(f"Frame Ranges = {frame_ranges}")
+        for frame_range in frame_ranges:
+            begin = frame_range[0]
+            end = frame_range[1]
             begin_segments = self._getImpactedSegments([begin])
             end_segments = self._getImpactedSegments([end])
             range_segment_set = set()
-            for frame,frame_seg in [*begin_segments, *end_segments]:
+            for frame, frame_seg in [*begin_segments, *end_segments]:
                 for segment in frame_seg:
                     range_segment_set.add(segment)
             start_missing = begin_segments[0][1][-1]
@@ -125,24 +130,24 @@ class MediaUtil:
                 range_segment_set.add(frame_seg)
             range_segment = list(range_segment_set)
             range_segment.sort()
-            segment_list.append((frameRange, range_segment))
+            segment_list.append((frame_range, range_segment))
         logger.info(f"Range-based segment list: {segment_list}")
         return segment_list
 
-    def makeTemporaryVideos(self, segmentList):
+    def make_temporary_videos(self, segment_list):
         """ Return a temporary mp4 for each impacted segment to limit IO to
             cloud storage """
         lookup = {}
-        for frame,segments in segmentList:
+        for frame, segments in segment_list:
             temp_video = os.path.join(self._temp_dir, f"{frame}.mp4")
             preferred_block_size = 16*1024
-            sc_graph = [(0,0)]
+            sc_graph = [(0, 0)]
             segment_frame_start = sys.maxsize
             # create a scatter/gather
             for segment_idx in segments:
                 segment = self._segment_info['segments'][segment_idx]
                 last_io = sc_graph[len(sc_graph)-1]
-                if segment.get('frame_start',sys.maxsize) < segment_frame_start:
+                if segment.get('frame_start', sys.maxsize) < segment_frame_start:
                     segment_frame_start = segment['frame_start']
                 if last_io[0] + last_io[1] == segment['offset']:
                     # merge contigous blocks
@@ -155,37 +160,38 @@ class MediaUtil:
 
             logger.info(f"Scatter gather graph = {sc_graph}")
             with open(self._video_file, "r+b") as vid_fp:
-                mm = mmap.mmap(vid_fp.fileno(),0)
+                m_m = mmap.mmap(vid_fp.fileno(), 0)
                 with open(temp_video, "wb") as out_fp:
                     for scatter in sc_graph:
-                        out_fp.write(mm[scatter[0]:scatter[0]+scatter[1]])
+                        out_fp.write(m_m[scatter[0]:scatter[0]+scatter[1]])
 
         return lookup
 
 
-    def _frameToTimeStr(self, frame, relativeTo=None):
-        if relativeTo:
-            frame -= relativeTo
+    def frame_to_time_str(self, frame, relative_to=None):
+        """ TODO: add documentation for this """
+        if relative_to:
+            frame -= relative_to
         total_seconds = frame / self._fps
         hours = math.floor(total_seconds / 3600)
         minutes = math.floor((total_seconds % 3600) / 60)
         seconds = total_seconds % 60
         return f"{hours}:{minutes}:{seconds}"
 
-    def _generateFrameImages(self, frames, rois=None, render_format="jpg", force_scale=None):
+    def generate_frame_images(self, frames, rois=None, render_format="jpg", force_scale=None):
         """ Generate a jpg for each requested frame and store in the working directory """
-        frames=[int(frame) for frame in frames]
+        frames = [int(frame) for frame in frames]
         crop_filter = None
         if rois:
-            crop_filter=[]
-            for c in rois:
-                w = max(0,min(round(c[0]*self._width),self._width))
-                h = max(0,min(round(c[1]*self._height),self._height))
-                x = max(0,min(round(c[2]*self._width),self._width))
-                y = max(0,min(round(c[3]*self._height),self._height))
+            crop_filter = []
+            for c in rois: #pylint: disable=invalid-name
+                w = max(0, min(round(c[0]*self._width), self._width)) #pylint: disable=invalid-name
+                h = max(0, min(round(c[1]*self._height), self._height)) #pylint: disable=invalid-name
+                x = max(0, min(round(c[2]*self._width), self._width)) #pylint: disable=invalid-name
+                y = max(0, min(round(c[3]*self._height), self._height)) #pylint: disable=invalid-name
                 if force_scale:
-                    scale_w=force_scale[0]
-                    scale_h=force_scale[1]
+                    scale_w = force_scale[0]
+                    scale_h = force_scale[1]
                     crop_filter.append(f"crop={w}:{h}:{x}:{y},scale={scale_w}:{scale_h}")
                 else:
                     crop_filter.append(f"crop={w}:{h}:{x}:{y}")
@@ -196,19 +202,20 @@ class MediaUtil:
         outputs = []
 
         # attempt to make a temporary file in a fast manner to speed up AWS access
-        impactedSegments = self._getImpactedSegments(frames)
+        impacted_segments = self._getImpactedSegments(frames)
         lookup = {}
-        if impactedSegments:
-            lookup = self.makeTemporaryVideos(impactedSegments)
+        if impacted_segments:
+            lookup = self.makeTemporaryVideos(impacted_segments)
 
-        for frame_idx,frame in enumerate(frames):
-            outputs.extend(["-map", f"{frame_idx}:v","-frames:v", "1", "-q:v", "3"])
+        for frame_idx, frame in enumerate(frames):
+            outputs.extend(["-map", f"{frame_idx}:v", "-frames:v", "1", "-q:v", "3"])
             if crop_filter:
                 outputs.extend(["-vf", crop_filter[frame_idx]])
 
-            outputs.append(os.path.join(self._temp_dir,f"{frame_idx}.{render_format}"))
+            outputs.append(os.path.join(self._temp_dir, f"{frame_idx}.{render_format}"))
             if frame in lookup:
-                inputs.extend(["-ss", self._frameToTimeStr(frame, lookup[frame][0]), "-i", lookup[frame][1]])
+                inputs.extend(["-ss", self._frameToTimeStr(frame, lookup[frame][0]
+                                                           ), "-i", lookup[frame][1]])
             else:
                 # If we didn't make per segment mp4s, use the big one
                 inputs.extend(["-ss", self._frameToTimeStr(frame), "-i", self._video_file])
@@ -220,24 +227,25 @@ class MediaUtil:
         proc = subprocess.run(args, check=True, capture_output=True)
         return proc.returncode == 0
 
-    def getClip(self, frameRanges):
+    def get_clip(self, frame_ranges):
         """ Given a list of frame ranges generate a temporary mp4
 
-            :param frameRanges: tuple or list of tuples representing (begin,end) -- range is inclusive!
+            :param frameRanges: tuple or list of tuples representing (begin,
+                                                                      end) -- range is inclusive!
         """
-        if type(frameRanges) is tuple:
-            frameRanges = [frameRanges]
+        if isinstance(frame_ranges, tuple):
+            frame_ranges = [frame_ranges]
 
-        impactedSegments=self._getImpactedSegmentsFromRanges(frameRanges)
-        assert not impactedSegments is None, "Unable to calculate impacted video segments"
-        lookup = self.makeTemporaryVideos(impactedSegments)
+        impacted_segments = self._getImpactedSegmentsFromRanges(frame_ranges)
+        assert not impacted_segments is None, "Unable to calculate impacted video segments"
+        lookup = self.makeTemporaryVideos(impacted_segments)
 
         logger.info(f"Lookup = {lookup}")
         with open(os.path.join(self._temp_dir, "vid_list.txt"), "w") as vid_list:
-            for idx,(_,fp) in enumerate(lookup.values()):
+            for idx, (_, f_p) in enumerate(lookup.values()):
                 mux_0 = os.path.join(self._temp_dir, f"{idx}_0.mp4")
                 args = ["ffmpeg",
-                        "-i", fp,
+                        "-i", f_p,
                         "-c", "copy",
                         "-muxpreload", "0",
                         "-muxdelay", "0",
@@ -255,25 +263,25 @@ class MediaUtil:
         proc = subprocess.run(args, check=True, capture_output=True)
         return output_file
 
-    def isVideo(self) -> bool:
+    def is_video(self) -> bool:
         """ Returns true if the media is video or not
         """
 
         return self._fps is not None
 
-    def getWidth(self) -> int:
+    def get_width(self) -> int:
         """ Gets the width of the video/image in pixels
         """
 
         return self._width
 
-    def getHeight(self) -> int:
+    def get_height(self) -> int:
         """ Gets the height of the video/image in pixels
         """
 
         return self._height
 
-    def getCroppedImage(self, roi, render_format="jpg", force_scale=None) -> str:
+    def get_cropped_image(self, roi, render_format="jpg", force_scale=None) -> str:
         """ Generate an image of the given ROI
 
         Args:
@@ -308,13 +316,14 @@ class MediaUtil:
             img.save(img_buf, "png", quality=95)
         return img_buf.getvalue()
 
-    def getTileImage(self, frames, rois=None, tile_size=None, render_format="jpg", force_scale=None):
+    def get_tile_image(self, frames, rois=None, tile_size=None,
+                       render_format="jpg", force_scale=None):
         """ Generate a tile jpeg of the given frame/rois """
         # Compute tile size if not supplied explicitly
         try:
-            if tile_size != None:
+            if tile_size is not None:
                 # check supplied tile size makes sense
-                comps=tile_size.split('x')
+                comps = tile_size.split('x')
                 if len(comps) != 2:
                     raise Exception("Bad Tile Size")
                 if int(comps[0])*int(comps[1]) < len(frames):
@@ -322,12 +331,13 @@ class MediaUtil:
         except:
             tile_size = None
             # compute the required tile size
-        if tile_size == None:
+        if tile_size is None:
             width = math.ceil(math.sqrt(len(frames)))
             height = math.ceil(len(frames) / width)
             tile_size = f"{width}x{height}"
 
-        if self._generateFrameImages(frames, rois, render_format=render_format, force_scale=force_scale) == False:
+        if self._generateFrameImages(frames, rois, render_format=render_format,
+                                     force_scale=force_scale) == False:
             return None
 
         output_file = None
@@ -337,18 +347,20 @@ class MediaUtil:
                          "-i", os.path.join(self._temp_dir, f"%d.{render_format}"),
                          "-vf", f"tile={tile_size}",
                          "-q:v", "3",
-                         os.path.join(self._temp_dir,f"tile.{render_format}")]
+                         os.path.join(self._temp_dir, f"tile.{render_format}")]
             logger.info(tile_args)
             proc = subprocess.run(tile_args, check=True, capture_output=True)
             if proc.returncode == 0:
-                output_file = os.path.join(self._temp_dir,f"tile.{render_format}")
+                output_file = os.path.join(self._temp_dir, f"tile.{render_format}")
         else:
-            output_file = os.path.join(self._temp_dir,f"0.{render_format}")
+            output_file = os.path.join(self._temp_dir, f"0.{render_format}")
 
         return output_file
 
-    def getAnimation(self,frames, roi, fps, render_format, force_scale):
-        if self._generateFrameImages(frames, roi, render_format="jpg", force_scale=force_scale) == False:
+    def get_animation(self, frames, roi, fps, render_format, force_scale):
+        """ TODO: add documentation for this """
+        if self._generateFrameImages(frames, roi, render_format="jpg",
+                                     force_scale=force_scale) == False:
             return None
 
         mp4_args = ["ffmpeg",
@@ -364,35 +376,36 @@ class MediaUtil:
             gif_args = ["ffmpeg",
                         "-i", os.path.join(self._temp_dir, "temp.mp4"),
                         "-filter_complex", f"[0:v] split [a][b];[a] palettegen [p];[b][p] paletteuse",
-                        os.path.join(self._temp_dir,"animation.gif")]
+                        os.path.join(self._temp_dir, "animation.gif")]
             logger.info(gif_args)
             proc = subprocess.run(gif_args, check=True, capture_output=True)
-            return os.path.join(self._temp_dir,"animation.gif")
+            return os.path.join(self._temp_dir, "animation.gif")
 
     def generate_error_image(code, message, img_format="png"):
+        """ TODO: add documentation for this """
         font_bold = ImageFont.truetype("DejaVuSans-Bold.ttf", 32)
         font = ImageFont.truetype("DejaVuSans.ttf", 28)
         img = Image.open(os.path.join(settings.STATIC_ROOT,
                                       f"images/computer.jpg"))
         draw = ImageDraw.Draw(img)
-        W, H = img.size
+        W, H = img.size #pylint: disable=invalid-name
 
         x_bias = 60
-        header=f"Error {code}"
-        w, h = draw.textsize(header)
+        header = f"Error {code}"
+        w, h = draw.textsize(header) #pylint: disable=invalid-name
         logger.info(f"{W}-{w}/2; {H}-{h}/2")
         offset = font.getoffset(header)
         logger.info(f"Offset = {offset}")
 
-        draw.text((W/2-((w/2)+x_bias),80), header, (255,62,29), font=font_bold)
+        draw.text((W/2-((w/2)+x_bias), 80), header, (255, 62, 29), font=font_bold)
 
 
         _, line_height = draw.textsize(message)
         line_height *= 3
         start_height = 200-line_height
-        lines = textwrap.wrap(message,17)
+        lines = textwrap.wrap(message, 17)
         for line_idx, line in enumerate(lines):
-            draw.text((100,start_height+(line_height*line_idx)), line, (255,62,29), font=font)
+            draw.text((100, start_height+(line_height*line_idx)), line, (255, 62, 29), font=font)
 
         img_buf = io.BytesIO()
         if img_format == "jpg":
