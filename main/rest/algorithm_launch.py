@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 from uuid import uuid1
 
@@ -13,13 +14,13 @@ from ..consumers import ProgressProducer
 from ..schema import AlgorithmLaunchSchema
 
 from ._base_views import BaseListView
-from ._base_views import BaseDetailView
 from ._media_query import query_string_to_media_ids
 from ._permissions import ProjectExecutePermission
 
 logger = logging.getLogger(__name__)
 
 def media_batches(media_list, files_per_job):
+    """ TODO: add documentation for this """
     for i in range(0, len(media_list), files_per_job):
         yield media_list[i:i + files_per_job]
 
@@ -28,11 +29,11 @@ class AlgorithmLaunchAPI(BaseListView):
 
         This will create one or more Argo workflows that execute the named algorithm
         registration. To get a list of available algorithms, use the `Algorithms` endpoint.
-        A media list will be submitted for processing using either a query string or 
+        A media list will be submitted for processing using either a query string or
         a list of media IDs. If neither are included, the algorithm will be launched on
-        all media in the project. 
+        all media in the project.
 
-        Media is divided into batches for based on the `files_per_job` field of the 
+        Media is divided into batches for based on the `files_per_job` field of the
         `Algorithm` object. One batch is submitted to each Argo workflow.
 
         Submitted algorithm jobs may be cancelled via the `Job` or `JobGroup` endpoints.
@@ -42,7 +43,6 @@ class AlgorithmLaunchAPI(BaseListView):
     http_method_names = ['post']
 
     def _post(self, params):
-        entityType=None
 
         # Find the algorithm
         project_id = params['project']
@@ -76,10 +76,10 @@ class AlgorithmLaunchAPI(BaseListView):
             batch_str = ','.join(batch)
             batch_int = [int(pk) for pk in batch]
             batch_order = Case(*[When(pk=pk, then=pos) for pos, pk in enumerate(batch_int)])
-            qs = Media.objects.filter(pk__in=batch_int).order_by(batch_order)
-            sections = qs.values_list('attributes__tator_user_sections', flat=True)
+            q_s = Media.objects.filter(pk__in=batch_int).order_by(batch_order)
+            sections = q_s.values_list('attributes__tator_user_sections', flat=True)
             sections = ','.join(list(sections))
-            alg_response = submitter.start_algorithm(
+            submitter.start_algorithm(
                 media_ids=batch_str,
                 sections=sections,
                 gid=gid,
@@ -104,4 +104,3 @@ class AlgorithmLaunchAPI(BaseListView):
         return {'message': f"Algorithm {alg_name} started successfully!",
                 'run_uids': uids,
                 'group_id': gid}
-
