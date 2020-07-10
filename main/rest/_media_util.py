@@ -5,11 +5,11 @@ import json
 import subprocess
 import math
 import io
-from PIL import Image, ImageDraw, ImageFont
 import textwrap
 import mmap
 import sys
 
+from PIL import Image, ImageDraw, ImageFont
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -121,7 +121,7 @@ class MediaUtil:
             begin_segments = self._getImpactedSegments([begin])
             end_segments = self._getImpactedSegments([end])
             range_segment_set = set()
-            for frame, frame_seg in [*begin_segments, *end_segments]:
+            for frame_seg in [*begin_segments, *end_segments]:
                 for segment in frame_seg:
                     range_segment_set.add(segment)
             start_missing = begin_segments[0][1][-1]
@@ -140,7 +140,6 @@ class MediaUtil:
         lookup = {}
         for frame, segments in segment_list:
             temp_video = os.path.join(self._temp_dir, f"{frame}.mp4")
-            preferred_block_size = 16*1024
             sc_graph = [(0, 0)]
             segment_frame_start = sys.maxsize
             # create a scatter/gather
@@ -250,7 +249,7 @@ class MediaUtil:
                         "-muxpreload", "0",
                         "-muxdelay", "0",
                         mux_0]
-                proc = subprocess.run(args, check=True, capture_output=True)
+                subprocess.run(args, check=True, capture_output=True)
                 vid_list.write(f"file '{mux_0}'\n")
 
         output_file = os.path.join(self._temp_dir, "concat.mp4")
@@ -260,7 +259,7 @@ class MediaUtil:
                 "-i", os.path.join(self._temp_dir, "vid_list.txt"),
                 "-c", "copy",
                 output_file]
-        proc = subprocess.run(args, check=True, capture_output=True)
+        subprocess.run(args, check=True, capture_output=True)
         return output_file
 
     def is_video(self) -> bool:
@@ -325,10 +324,10 @@ class MediaUtil:
                 # check supplied tile size makes sense
                 comps = tile_size.split('x')
                 if len(comps) != 2:
-                    raise Exception("Bad Tile Size")
+                    raise ValueError("Bad Tile Size")
                 if int(comps[0])*int(comps[1]) < len(frames):
-                    raise Exception("Bad Tile Size")
-        except:
+                    raise ValueError("Bad Tile Size")
+        except ValueError:
             tile_size = None
             # compute the required tile size
         if tile_size is None:
@@ -336,8 +335,8 @@ class MediaUtil:
             height = math.ceil(len(frames) / width)
             tile_size = f"{width}x{height}"
 
-        if self._generateFrameImages(frames, rois, render_format=render_format,
-                                     force_scale=force_scale) == False:
+        if not self._generateFrameImages(frames, rois, render_format=render_format,
+                                         force_scale=force_scale):
             return None
 
         output_file = None
@@ -359,34 +358,37 @@ class MediaUtil:
 
     def get_animation(self, frames, roi, fps, render_format, force_scale):
         """ TODO: add documentation for this """
-        if self._generateFrameImages(frames, roi, render_format="jpg",
-                                     force_scale=force_scale) == False:
+        if not self._generateFrameImages(frames, roi, render_format="jpg",
+                                         force_scale=force_scale):
             return None
 
         mp4_args = ["ffmpeg",
                     "-framerate", str(fps),
-                    "-i", os.path.join(self._temp_dir, f"%d.jpg"),
+                    "-i", os.path.join(self._temp_dir, "%d.jpg"),
                     os.path.join(self._temp_dir, "temp.mp4")]
-        proc = subprocess.run(mp4_args, check=True, capture_output=True)
+        subprocess.run(mp4_args, check=True, capture_output=True)
 
         if render_format == 'mp4':
-            return os.path.join(self._temp_dir, "temp.mp4")
+            temp_path = os.path.join(self._temp_dir, "temp.mp4")
         else:
             # Convert temporary mp4 into a gif
             gif_args = ["ffmpeg",
                         "-i", os.path.join(self._temp_dir, "temp.mp4"),
-                        "-filter_complex", f"[0:v] split [a][b];[a] palettegen [p];[b][p] paletteuse",
+                        "-filter_complex",
+                        "[0:v] split [a][b];[a] palettegen [p];[b][p] paletteuse",
                         os.path.join(self._temp_dir, "animation.gif")]
             logger.info(gif_args)
-            proc = subprocess.run(gif_args, check=True, capture_output=True)
-            return os.path.join(self._temp_dir, "animation.gif")
+            subprocess.run(gif_args, check=True, capture_output=True)
+            temp_path = os.path.join(self._temp_dir, "animation.gif")
+        return temp_path
 
+    @staticmethod
     def generate_error_image(code, message, img_format="png"):
         """ TODO: add documentation for this """
         font_bold = ImageFont.truetype("DejaVuSans-Bold.ttf", 32)
         font = ImageFont.truetype("DejaVuSans.ttf", 28)
         img = Image.open(os.path.join(settings.STATIC_ROOT,
-                                      f"images/computer.jpg"))
+                                      "images/computer.jpg"))
         draw = ImageDraw.Draw(img)
         W, H = img.size #pylint: disable=invalid-name
 
