@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from ..models import Analysis
 from ..models import Project
 from ..models import database_qs
@@ -31,7 +32,7 @@ class AnalysisListAPI(BaseListView):
         return {'message': 'Analysis created successfully!', 'id': obj.id}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         params = parse(self.request)
-        qs = Analysis.objects.filter(project__id=params['project'])
-        return qs
-
+        q_s = Analysis.objects.filter(project__id=params['project'])
+        return q_s
