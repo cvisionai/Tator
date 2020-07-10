@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 import os
 import json
@@ -13,20 +14,17 @@ from redis import Redis
 from ..models import Permission
 from ..models import Project
 from ..models import Membership
-from ..models import Algorithm
-from ..kube import TatorTranscode
-from ..kube import TatorAlgorithm
 
 logger = logging.getLogger(__name__)
 
 def _for_schema_view(request, view):
-    """ Returns true if permission is being requested for the schema view. This is 
+    """ Returns true if permission is being requested for the schema view. This is
         necessary since there is no way to check project based permissions when
         no URL parameters are given.
     """
     return (
         view.kwargs == {}
-        and type(request.authenticators[0]) == SessionAuthentication
+        and isinstance(request.authenticators[0]) == SessionAuthentication
         and request.META['HTTP_HOST'] == f"{os.getenv('MAIN_HOST')}"
         and request.META['RAW_URI'].startswith('/schema/')
     )
@@ -40,8 +38,8 @@ class ProjectPermissionBase(BasePermission):
             project_id = view.kwargs['project']
             project = get_object_or_404(Project, pk=int(project_id))
         elif 'id' in view.kwargs:
-            pk = view.kwargs['id']
-            obj = get_object_or_404(view.get_queryset(), pk=pk)
+            p_k = view.kwargs['id']
+            obj = get_object_or_404(view.get_queryset(), p_k=p_k)
             project = self._project_from_object(obj)
             if project is None:
                 raise Http404
@@ -69,7 +67,7 @@ class ProjectPermissionBase(BasePermission):
         return self._validate_project(request, project)
 
     def _project_from_object(self, obj):
-        project=None
+        project = None
         if hasattr(obj, 'project'):
             project = obj.project
         # Object is a project
@@ -162,12 +160,11 @@ class UserPermission(BasePermission):
             return True
 
         # find out if user is a cousin
-        user_projects=Membership.objects.filter(user=user).values('project')
-        cousins=Membership.objects.filter(project__in = user_projects).values('user').distinct()
+        user_projects = Membership.objects.filter(user=user).values('project')
+        cousins = Membership.objects.filter(project__in=user_projects).values('user').distinct()
         is_cousin = cousins.filter(user=finger_user).count() > 0
         if is_cousin and request.method == 'GET':
             # Cousins have read-only permission
             return True
 
         return False
-
