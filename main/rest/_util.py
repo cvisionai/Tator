@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import datetime
 import logging
 
@@ -16,7 +17,7 @@ class Array(Subquery):
     """ Class to expose ARRAY SQL function to ORM """
     template = 'ARRAY(%(subquery)s)'
 
-def reverse_queryArgs(viewname, kwargs=None, queryargs=None):
+def reverse_query_args(viewname, kwargs=None, queryargs=None):
     """
     Regular reverse doesn't handle query args
     """
@@ -27,25 +28,27 @@ def reverse_queryArgs(viewname, kwargs=None, queryargs=None):
         return url
 
 class BadQuery(APIException):
-    status_code=403
-    default_detail="A bad query argument was supplied to the service."
-    default_code="bad_query"
+    """ TODO: add documentation for this """
+    status_code = 403
+    default_detail = "A bad query argument was supplied to the service."
+    default_code = "bad_query"
 
-def computeRequiredFields(typeObj):
+def compute_required_fields(type_obj):
     """Given an entity type object, compute the required fields to construct a new entity object,
-       returns a tuple where the first are the required 1st order fields, and the 2nd are attributes. """
-    newObjType=type_to_obj(type(typeObj))
+       returns a tuple where the first are the required 1st order fields,
+       and the 2nd are attributes. """
+    new_obj_type = type_to_obj(type(type_obj))
 
-    datafields={}
-    for field in newObjType._meta.get_fields(include_parents=False):
+    datafields = {}
+    for field in new_obj_type._meta.get_fields(include_parents=False):
         if not field.is_relation and not field.blank:
             datafields[field.name] = field.description
 
-    attributes={}
-    for column in typeObj.attribute_types:
+    attributes = {}
+    for column in type_obj.attribute_types:
         attributes[column['name']] = column.get('description', None)
 
-    return (datafields, attributes, typeObj.attribute_types)
+    return (datafields, attributes, type_obj.attribute_types)
 
 def check_required_fields(datafields, attr_types, body):
     """ Given the output of computeRequiredFields and a request body, assert that required
@@ -63,7 +66,7 @@ def check_required_fields(datafields, attr_types, body):
         field = attr_type['name']
         if field in body:
             convert_attribute(attr_type, body[field]) # Validates attr value
-            attrs[field] = body[field];
+            attrs[field] = body[field]
         elif attr_type['dtype'] == 'datetime':
             if attr_type['use_current']:
                 # Fill in current datetime.
@@ -83,18 +86,18 @@ def check_required_fields(datafields, attr_types, body):
     return attrs
 
 def paginate(query_params, queryset):
+    """ TODO: add documentation for this """
     start = query_params.get('start', None)
     stop = query_params.get('stop', None)
-    qs = queryset
+    q_s = queryset
     if start is None and stop is not None:
         stop = int(stop)
-        qs = queryset[:stop]
+        q_s = queryset[:stop]
     elif start is not None and stop is None:
         start = int(start)
-        qs = queryset[start:]
+        q_s = queryset[start:]
     elif start is not None and stop is not None:
         start = int(start)
         stop = int(stop)
-        qs = queryset[start:stop]
-    return qs
-
+        q_s = queryset[start:stop]
+    return q_s
