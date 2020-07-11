@@ -1,10 +1,10 @@
+""" TODO: add documentation for this """
 import logging
 from django.db.models import Subquery
 
 from ..models import Localization
 from ..models import LocalizationType
 from ..models import Media
-from ..models import MediaType
 from ..models import State
 from ..models import User
 from ..models import Project
@@ -46,7 +46,8 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
 
     def _get(self, params):
         self.validate_attribute_filter(params)
-        postgres_params = ['project', 'media_id', 'type', 'version', 'modified', 'operation', 'format', 'excludeParents','frame']
+        postgres_params = ['project', 'media_id', 'type', 'version', 'modified',
+                           'operation', 'format', 'excludeParents', 'frame']
         use_es = any([key not in postgres_params for key in params])
 
         # Get the localization list.
@@ -61,48 +62,48 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
                 response_data = {'count': len(annotation_ids)}
             elif len(annotation_ids) > 0:
                 if params['excludeParents']:
-                    qs = Localization.objects.filter(pk__in=annotation_ids)
+                    q_s = Localization.objects.filter(pk__in=annotation_ids)
                     parent_set = Localization.objects.filter(pk__in=Subquery(
-                        qs.values('parent')))
-                    result_set = qs.difference(parent_set).order_by('id')
+                        q_s.values('parent')))
+                    result_set = q_s.difference(parent_set).order_by('id')
                     response_data = database_qs(result_set)
                 else:
                     response_data = database_query_ids('main_localization',
                                                        annotation_ids,
                                                        'id')
         else:
-            qs = Localization.objects.filter(project=params['project'])
+            q_s = Localization.objects.filter(project=params['project'])
             if 'media_id' in params:
-                qs = qs.filter(media__in=params['media_id'])
+                q_s = q_s.filter(media__in=params['media_id'])
             if 'type' in params:
-                qs = qs.filter(meta=params['type'])
+                q_s = q_s.filter(meta=params['type'])
             if 'version' in params:
-                qs = qs.filter(version__in=params['version'])
+                q_s = q_s.filter(version__in=params['version'])
             if 'frame' in params:
-                qs = qs.filter(frame=params['frame'])
+                q_s = q_s.filter(frame=params['frame'])
             if 'modified' in params:
-                qs = qs.exclude(modified=(not params['modified']))
+                q_s = q_s.exclude(modified=(not params['modified']))
             if self.operation == 'count':
-                response_data = {'count': qs.count()}
+                response_data = {'count': q_s.count()}
             else:
                 if params['excludeParents']:
-                    parent_set = Localization.objects.filter(pk__in=Subquery(qs.values('parent')))
-                    result_set = qs.difference(parent_set).order_by('id')
+                    parent_set = Localization.objects.filter(pk__in=Subquery(q_s.values('parent')))
+                    result_set = q_s.difference(parent_set).order_by('id')
                 else:
-                    result_set = qs.order_by('id')
+                    result_set = q_s.order_by('id')
                 response_data = database_qs(result_set)
 
         # Adjust fields for csv output.
         if self.request.accepted_renderer.format == 'csv' and self.operation != 'count':
             # CSV creation requires a bit more
             user_ids = set([d['user'] for d in response_data])
-            users = list(User.objects.filter(id__in=user_ids).values('id','email'))
+            users = list(User.objects.filter(id__in=user_ids).values('id', 'email'))
             email_dict = {}
             for user in users:
                 email_dict[user['id']] = user['email']
 
             media_ids = set([d['media'] for d in response_data])
-            medias = list(Media.objects.filter(id__in=media_ids).values('id','name'))
+            medias = list(Media.objects.filter(id__in=media_ids).values('id', 'name'))
             filename_dict = {}
             for media in medias:
                 filename_dict[media['id']] = media['name']
@@ -164,7 +165,7 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
                                             required_fields[loc['type']][2],
                                             loc)
                       for loc in loc_specs]
-       
+
         # Create the localization objects.
         localizations = []
         create_buffer = []
@@ -196,14 +197,14 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
         localizations += Localization.objects.bulk_create(create_buffer)
 
         # Build ES documents.
-        ts = TatorSearch()
+        t_s = TatorSearch()
         documents = []
         for loc in localizations:
-            documents += ts.build_document(loc)
+            documents += t_s.build_document(loc)
             if len(documents) > 1000:
-                ts.bulk_add_documents(documents)
+                t_s.bulk_add_documents(documents)
                 documents = []
-        ts.bulk_add_documents(documents)
+        t_s.bulk_add_documents(documents)
 
         # Return created IDs.
         ids = [loc.id for loc in localizations]
@@ -222,8 +223,8 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
             state_qs._raw_delete(state_qs.db)
 
             # Delete the localizations.
-            qs = Localization.objects.filter(pk__in=annotation_ids)
-            qs._raw_delete(qs.db)
+            q_s = Localization.objects.filter(pk__in=annotation_ids)
+            q_s._raw_delete(q_s.db)
             TatorSearch().delete(self.kwargs['project'], query)
         return {'message': f'Successfully deleted {len(annotation_ids)} localizations!'}
 
@@ -235,14 +236,15 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
             'localization',
         )
         if len(annotation_ids) > 0:
-            qs = Localization.objects.filter(pk__in=annotation_ids)
-            new_attrs = validate_attributes(params, qs[0])
-            bulk_patch_attributes(new_attrs, qs)
-            qs.update(modified_by=self.request.user)
+            q_s = Localization.objects.filter(pk__in=annotation_ids)
+            new_attrs = validate_attributes(params, q_s[0])
+            bulk_patch_attributes(new_attrs, q_s)
+            q_s.update(modified_by=self.request.user)
             TatorSearch().update(self.kwargs['project'], query, new_attrs)
         return {'message': f'Successfully updated {len(annotation_ids)} localizations!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         params = parse(self.request)
         self.validate_attribute_filter(params)
         annotation_ids, annotation_count, _ = get_annotation_queryset(
@@ -273,8 +275,8 @@ class LocalizationDetailAPI(BaseDetailView):
 
         # Patch common attributes.
         frame = params.get("frame", None)
-        x = params.get("x", None)
-        y = params.get("y", None)
+        x = params.get("x", None) #pylint: disable=invalid-name
+        y = params.get("y", None) #pylint: disable=invalid-name
         if frame is not None:
             obj.frame = frame
         if x is not None:
@@ -304,8 +306,8 @@ class LocalizationDetailAPI(BaseDetailView):
                 except:
                     logger.error("Bad thumbnail reference given")
         elif obj.meta.dtype == 'line':
-            u = params.get("u", None)
-            v = params.get("v", None)
+            u = params.get("u", None) #pylint: disable=invalid-name
+            v = params.get("v", None) #pylint: disable=invalid-name
             if u:
                 obj.u = u
             if v:
@@ -335,5 +337,5 @@ class LocalizationDetailAPI(BaseDetailView):
         return {'message': f'Localization {params["id"]} successfully deleted!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Localization.objects.all()
-
