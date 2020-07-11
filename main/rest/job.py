@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import os
 import json
 import logging
@@ -6,7 +7,6 @@ from django.http import Http404
 from redis import Redis
 
 from ..models import Algorithm
-from ..consumers import ProgressProducer
 from ..kube import TatorTranscode
 from ..kube import TatorAlgorithm
 from ..schema import JobDetailSchema
@@ -41,12 +41,11 @@ class JobDetailAPI(BaseDetailView):
             msg = json.loads(rds.hget('uids', run_uid))
 
             # Attempt to cancel.
-            cancelled = False
             if msg['prefix'] == 'upload':
-                cancelled = TatorTranscode().cancel_jobs(f'uid={run_uid}')
+                TatorTranscode().cancel_jobs(f'uid={run_uid}')
             elif msg['prefix'] == 'algorithm':
                 alg = Algorithm.objects.get(project=msg['project_id'], name=msg['name'])
-                cancelled = TatorAlgorithm(alg).cancel_jobs(f'uid={run_uid}')
+                TatorAlgorithm(alg).cancel_jobs(f'uid={run_uid}')
         else:
             raise Http404
 
