@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import os
 import json
 import logging
@@ -6,7 +7,6 @@ from django.http import Http404
 from redis import Redis
 
 from ..models import Algorithm
-from ..consumers import ProgressProducer
 from ..kube import TatorTranscode
 from ..kube import TatorAlgorithm
 from ..schema import JobGroupDetailSchema
@@ -24,7 +24,7 @@ class JobGroupDetailAPI(BaseDetailView):
         Jobs that are submitted together have the same group id, but each workflow
         has a unique run id.
 
-        This endpoint allows the user to cancel a group of jobs using the `group_id` 
+        This endpoint allows the user to cancel a group of jobs using the `group_id`
         returned by either the `AlgorithmLaunch` or `Transcode` endpoints.
     """
     schema = JobGroupDetailSchema()
@@ -41,12 +41,11 @@ class JobGroupDetailAPI(BaseDetailView):
             msg = json.loads(rds.hget('gids', group_id))
 
             # Attempt to cancel.
-            cancelled = False
             if msg['prefix'] == 'upload':
-                cancelled = TatorTranscode().cancel_jobs(f'gid={group_id}')
+                TatorTranscode().cancel_jobs(f'gid={group_id}')
             elif msg['prefix'] == 'algorithm':
                 alg = Algorithm.objects.get(project=msg['project_id'], name=msg['name'])
-                cancelled = TatorAlgorithm(alg).cancel_jobs(f'gid={group_id}')
+                TatorAlgorithm(alg).cancel_jobs(f'gid={group_id}')
         else:
             raise Http404
 
