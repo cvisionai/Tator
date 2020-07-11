@@ -1,5 +1,5 @@
+""" TODO: add documentation for this """
 from ..models import LeafType
-from ..models import Leaf
 from ..models import Project
 from ..schema import LeafTypeListSchema
 from ..schema import LeafTypeDetailSchema
@@ -62,5 +62,5 @@ class LeafTypeDetailAPI(BaseDetailView):
         return {'message': f'Leaf type {params["id"]} deleted successfully!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return LeafType.objects.all()
-
