@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 from collections import defaultdict
 
@@ -19,7 +20,6 @@ from ._attributes import AttributeFilterMixin
 from ._attributes import patch_attributes
 from ._attributes import bulk_patch_attributes
 from ._attributes import validate_attributes
-from ._util import computeRequiredFields
 from ._util import check_required_fields
 from ._permissions import ProjectViewOnlyPermission
 from ._permissions import ProjectFullControlPermission
@@ -36,27 +36,27 @@ class LeafSuggestionAPI(BaseDetailView):
     http_method_names = ['get']
 
     def _get(self, params):
-        minLevel=int(params.get('minLevel', 1))
-        startsWith=params.get('query', None)
-        ancestor=params['ancestor']
+        min_level = int(params.get('minLevel', 1))
+        starts_with = params.get('query', None)
+        ancestor = params['ancestor']
         query = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
         query['size'] = 10
         query['sort']['_exact_treeleaf_name'] = 'asc'
         query['query']['bool']['filter'] = [
             {'match': {'_dtype': {'query': 'leaf'}}},
-            {'range': {'_treeleaf_depth': {'gte': minLevel}}},
-            {'query_string': {'query': f'{startsWith}* AND _treeleaf_path:{ancestor}*'}},
+            {'range': {'_treeleaf_depth': {'gte': min_level}}},
+            {'query_string': {'query': f'{starts_with}* AND _treeleaf_path:{ancestor}*'}},
         ]
         ids, _ = TatorSearch().search(params['project'], query)
         queryset = list(Leaf.objects.filter(pk__in=ids))
 
-        suggestions=[]
-        for idx,match in enumerate(queryset):
+        suggestions = []
+        for match in enumerate(queryset):
             group = params['ancestor']
             if match.parent:
                 group = match.parent.name
 
-            suggestion={
+            suggestion = {
                 "value": match.name,
                 "group": group,
                 "data": {}
@@ -65,15 +65,15 @@ class LeafSuggestionAPI(BaseDetailView):
             if 'alias' in match.attributes:
                 suggestion["data"]["alias"] = match.attributes['alias']
 
-            catAlias=None
+            cat_alias = None
             if match.parent:
                 if match.parent.attributes:
-                    catAlias=match.parent.attributes.get("alias",None)
-                if catAlias != None:
-                    suggestion["group"] = f'{suggestion["group"]} ({catAlias})'
+                    cat_alias = match.parent.attributes.get("alias", None)
+                if cat_alias is not None:
+                    suggestion["group"] = f'{suggestion["group"]} ({cat_alias})'
 
 
-            suggestions.append(suggestion);
+            suggestions.append(suggestion)
 
         def functor(elem):
             return elem["group"]
@@ -106,13 +106,13 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
             elif len(leaf_ids) > 0:
                 response_data = database_query_ids('main_leaf', leaf_ids, 'id')
         else:
-            qs = Leaf.objects.filter(project=params['project'])
+            q_s = Leaf.objects.filter(project=params['project'])
             if 'type' in params:
-                qs = qs.filter(meta=params['type'])
+                q_s = q_s.filter(meta=params['type'])
             if self.operation == 'count':
-                response_data = {'count': qs.count()}
+                response_data = {'count': q_s.count()}
             else:
-                response_data = database_qs(qs.order_by('id'))
+                response_data = database_qs(q_s.order_by('id'))
         return response_data
 
     def _post(self, params):
@@ -133,12 +133,12 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
         metas = {obj.id:obj for obj in meta_qs.iterator()}
 
         # Get required fields for attributes.
-        required_fields = {id_:computeRequiredFields(metas[id_]) for id_ in meta_ids}
+        required_fields = {id_:(metas[id_]) for id_ in meta_ids}
         attr_specs = [check_required_fields(required_fields[leaf['type']][0],
                                             required_fields[leaf['type']][2],
                                             leaf)
                       for leaf in leaf_specs]
-       
+
         # Create the leaf objects.
         leaves = []
         create_buffer = []
@@ -155,14 +155,14 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
         leaves += Leaf.objects.bulk_create(create_buffer)
 
         # Build ES documents.
-        ts = TatorSearch()
+        t_s = TatorSearch()
         documents = []
         for leaf in leaves:
-            documents += ts.build_document(leaf)
+            documents += t_s.build_document(leaf)
             if len(documents) > 1000:
-                ts.bulk_add_documents(documents)
+                t_s.bulk_add_documents(documents)
                 documents = []
-        ts.bulk_add_documents(documents)
+        t_s.bulk_add_documents(documents)
 
         # Return created IDs.
         ids = [leaf.id for leaf in leaves]
@@ -172,8 +172,8 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
         self.validate_attribute_filter(params)
         leaf_ids, leaf_count, query = get_leaf_queryset(params)
         if len(leaf_ids) > 0:
-            qs = Leaf.objects.filter(pk__in=leaf_ids)
-            qs._raw_delete(qs.db)
+            q_s = Leaf.objects.filter(pk__in=leaf_ids)
+            q_s._raw_delete(q_s.db)
             TatorSearch().delete(self.kwargs['project'], query)
         return {'message': f'Successfully deleted {len(leaf_ids)} leaves!'}
 
@@ -181,13 +181,14 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
         self.validate_attribute_filter(params)
         leaf_ids, leaf_count, query = get_leaf_queryset(params)
         if len(leaf_ids) > 0:
-            qs = Leaf.objects.filter(pk__in=leaf_ids)
-            new_attrs = validate_attributes(params, qs[0])
-            bulk_patch_attributes(new_attrs, qs)
+            q_s = Leaf.objects.filter(pk__in=leaf_ids)
+            new_attrs = validate_attributes(params, q_s[0])
+            bulk_patch_attributes(new_attrs, q_s)
             TatorSearch().update(self.kwargs['project'], query, new_attrs)
         return {'message': f'Successfully updated {len(leaf_ids)} leaves!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         params = parse(self.request)
         self.validate_attribute_filter(params)
         leaf_ids, leaf_count, _ = get_leaf_queryset(params)
@@ -225,5 +226,5 @@ class LeafDetailAPI(BaseDetailView):
         return {'message': 'Leaf {params["id"]} successfully deleted!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Leaf.objects.all()
-
