@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import tempfile
 import logging
 import traceback
@@ -12,7 +13,6 @@ from ..renderers import JpegRenderer
 from ..renderers import GifRenderer
 from ..renderers import Mp4Renderer
 from ..schema import GetFrameSchema
-from ..schema import parse
 from ._base_views import BaseDetailView
 from ._media_util import MediaUtil
 from ._permissions import ProjectViewOnlyPermission
@@ -31,12 +31,13 @@ class GetFrameAPI(BaseDetailView):
     http_method_names = ['get']
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Media.objects.all()
 
-    def handle_exception(self,exc):
+    def handle_exception(self, exc):
         logger.error(f"Exception in request: {traceback.format_exc()}")
         status_obj = status.HTTP_400_BAD_REQUEST
-        if type(exc) is response.Http404:
+        if isinstance(exc, response.Http404):
             status_obj = status.HTTP_404_NOT_FOUND
         return Response(
             MediaUtil.generate_error_image(
@@ -66,7 +67,6 @@ class GetFrameAPI(BaseDetailView):
         # compute the crop argument
         roi_arg = []
         if roi:
-            crop_filter = [None] * len(frames)
             roi_list = roi.split(',')
             logger.info(roi_list)
             if len(roi_list) == 1:
@@ -75,21 +75,21 @@ class GetFrameAPI(BaseDetailView):
                 if len(comps) == 4:
                     box_width = float(comps[0])
                     box_height = float(comps[1])
-                    x = float(comps[2])
-                    y = float(comps[3])
-                    roi_arg = [(box_width,box_height,x,y)]*len(frames)
+                    x = float(comps[2]) #pylint: disable=invalid-name
+                    y = float(comps[3]) #pylint: disable=invalid-name
+                    roi_arg = [(box_width, box_height, x, y)]*len(frames)
             else:
                 # If each individual roi is supplied manually set each one
                 if len(roi_list) != len(frames):
                     raise Exception(f'Explicit roi list{len(roi_list)} is different length than frame list{len(frames)}')
-                for idx,frame_roi in enumerate(roi_list):
+                for frame_roi in enumerate(roi_list):
                     comps = frame_roi.split(':')
                     if len(comps) == 4:
                         box_width = float(comps[0])
                         box_height = float(comps[1])
-                        x = float(comps[2])
-                        y = float(comps[3])
-                        roi_arg.append((box_width,box_height,x,y))
+                        x = float(comps[2]) #pylint: disable=invalid-name
+                        y = float(comps[3]) #pylint: disable=invalid-name
+                        roi_arg.append((box_width, box_height, x, y))
 
 
 
@@ -97,18 +97,20 @@ class GetFrameAPI(BaseDetailView):
             media_util = MediaUtil(video, temp_dir, quality)
             if len(frames) > 1 and animate:
                 # Default to gif for animate, but mp4 is also supported
-                if any(x is self.request.accepted_renderer.format for x in ['mp4','gif']):
+                if any(x is self.request.accepted_renderer.format for x in ['mp4', 'gif']):
                     pass
                 else:
                     self.request.accepted_renderer = GifRenderer()
                 gif_fp = media_util.getAnimation(frames, roi_arg, fps=animate,
-                                                 render_format=self.request.accepted_renderer.format)
+                                                 render_format=self.request.
+                                                 accepted_renderer.format)
                 with open(gif_fp, 'rb') as data_file:
                     response_data = data_file.read()
             else:
                 logger.info(f"Accepted format = {self.request.accepted_renderer.format}")
                 tiled_fp = media_util.getTileImage(frames, roi_arg, tile_size,
-                                                   render_format=self.request.accepted_renderer.format)
+                                                   render_format=self.request.
+                                                   accepted_renderer.format)
                 with open(tiled_fp, 'rb') as data_file:
                     response_data = data_file.read()
         return response_data
