@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from rest_framework.exceptions import PermissionDenied
 
 from ..models import Project
@@ -24,13 +25,13 @@ class ProjectListAPI(BaseListView):
     schema = ProjectListSchema()
     http_method_names = ['get', 'post']
 
-    def _get(self, params):
+    def _get(self):
         projects = self.get_queryset()
         return ProjectSerializer(projects, many=True, context=self.get_renderer_context()).data
 
     def _post(self, params):
         if Project.objects.filter(
-            membership__user=self.request.user).filter(name=params['name']).exists():
+                membership__user=self.request.user).filter(name=params['name']).exists():
             raise Exception("Project with this name already exists!")
 
         project = Project.objects.create(
@@ -50,6 +51,7 @@ class ProjectListAPI(BaseListView):
         return {'message': f"Project {params['name']} created!", 'id': project.id}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         memberships = Membership.objects.filter(user=self.request.user)
         project_ids = memberships.values_list('project', flat=True)
         projects = Project.objects.filter(pk__in=project_ids).order_by("created")
@@ -74,7 +76,7 @@ class ProjectDetailAPI(BaseDetailView):
                                  context=self.get_renderer_context()).data
 
     def _patch(self, params):
-        project = Project.objects.get(pk=params['id']) 
+        project = Project.objects.get(pk=params['id'])
         if 'name' in params:
             project.name = params['name']
         if 'summary' in params:
@@ -89,10 +91,11 @@ class ProjectDetailAPI(BaseDetailView):
             raise PermissionDenied
 
         # Mark media for deletion rather than actually deleting it.
-        qs = Media.objects.filter(project=params['id'])
-        qs.update(project=None)
+        q_s = Media.objects.filter(project=params['id'])
+        q_s.update(project=None)
         project.delete()
         return {'message': f'Project {params["id"]} deleted successfully!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Project.objects.all()
