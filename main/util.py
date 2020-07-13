@@ -254,20 +254,26 @@ def makeSections(project):
     query['size'] = 0
     query['query']['bool']['should'] = [{'match': {'_dtype': {'query': 'video'}}},
                                         {'match': {'_dtype': {'query': 'image'}}}]
-    result = TatorSearch().search_raw(project, query)
-    result = num_elements['aggregations']['section_counts']['buckets']
+    results = TatorSearch().search_raw(project, query)
+    results = results['aggregations']['section_counts']['buckets']
 
     # Create sections.
     section_ids = {}
-    for key in result:
-        if not Section.objects.exists(name=key):
+    num_created = 0
+    for result in results:
+        key = result['key']
+        if not Section.objects.filter(project=project, name=key).exists():
             section = Section.objects.create(project=Project.objects.get(pk=project), name=key)
             section_ids[key] = section.pk
+            num_created += 1
+    logger.info(f"Created {num_created} sections for project {project}...")
 
     # Create many to many relations.
     relations = []
     num_created = 0
     for obj in Media.objects.filter(project=project):
+        if not obj.attributes['tator_user_sections'] in section_ids:
+            continue
         relation = Media.sections.through(
             media_id=obj.id,
             section_id=section_ids[obj.attributes['tator_user_sections']],
