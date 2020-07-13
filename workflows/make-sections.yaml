@@ -1,0 +1,126 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: make-sections-
+spec:
+  entrypoint: build-all
+  templates:
+
+  # Top level template
+  - name: build-all
+    steps:
+    - - name: getprojects
+        template: get-projects
+    - - name: build-projects
+        template: build-projects
+        arguments:
+          parameters:
+          - name: projects
+            value: "{{steps.getprojects.outputs.parameters.projects}}"
+
+  # Gets project IDs in a list and uses them as input to parallel for loop
+  - name: get-projects
+    container:
+      image: "{{workflow.parameters.dockerRegistry}}/tator_online:{{workflow.parameters.version}}"
+      command: [sh, -c]
+      args: ["python3 manage.py getprojects > /projects.txt"]
+      env:
+      - name: DJANGO_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: tator-secrets
+            key: djangoSecretKey
+      - name: POSTGRES_HOST
+        value: "{{workflow.parameters.postgresHost}}"
+      - name: POSTGRES_USERNAME
+        value: "{{workflow.parameters.postgresUsername}}"
+      - name: POSTGRES_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: tator-secrets
+            key: postgresPassword
+      - name: REDIS_HOST
+        value: "{{workflow.parameters.redisHost}}"
+      - name: ELASTICSEARCH_HOST
+        value: "{{workflow.parameters.elasticsearchHost}}"
+      - name: MAIN_HOST
+        value: "{{workflow.parameters.domain}}"
+      - name: TATOR_DEBUG
+        value: "{{workflow.parameters.tatorDebug}}"
+      - name: TATOR_USE_MIN_JS
+        value: "{{workflow.parameters.useMinJs}}"
+    outputs:
+      parameters:
+      - name: projects
+        valueFrom:
+          path: /projects.txt
+
+  # Executes parallel for loop for list of projects
+  - name: build-projects
+    inputs:
+      parameters:
+      - name: projects
+    steps:
+    - - name: build-project
+        template: build-project
+        arguments:
+          parameters:
+          - name: project
+            value: "{{item}}"
+        withParam: "{{inputs.parameters.projects}}"
+
+  # Builds indices for a given project
+  - name: build-project
+    retryStrategy:
+      limit: 10
+    inputs:
+      parameters:
+      - name: project
+    container:
+      image: "{{workflow.parameters.dockerRegistry}}/tator_online:{{workflow.parameters.version}}"
+      command: ["python3"]
+      args: ["manage.py", "makesections", "{{inputs.parameters.project}}"]
+      resources:
+        requests:
+          cpu: 250m
+          memory: 500Mi
+        limits:
+          cpu: 1000m
+          memory: 32Gi
+      env:
+      - name: DJANGO_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: tator-secrets
+            key: djangoSecretKey
+      - name: POSTGRES_HOST
+        value: "{{workflow.parameters.postgresHost}}"
+      - name: POSTGRES_USERNAME
+        value: "{{workflow.parameters.postgresUsername}}"
+      - name: POSTGRES_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: tator-secrets
+            key: postgresPassword
+      - name: REDIS_HOST
+        value: "{{workflow.parameters.redisHost}}"
+      - name: ELASTICSEARCH_HOST
+        value: "{{workflow.parameters.elasticsearchHost}}"
+      - name: MAIN_HOST
+        value: "{{workflow.parameters.domain}}"
+      - name: TATOR_DEBUG
+        value: "{{workflow.parameters.tatorDebug}}"
+      - name: TATOR_USE_MIN_JS
+        value: "{{workflow.parameters.useMinJs}}"
+      volumeMounts:
+        - mountPath: /data/media
+          name: media-pv-claim
+        - mountPath: /data/raw
+          name: raw-pv-claim
+  volumes:
+    - name: media-pv-claim
+      persistentVolumeClaim:
+        claimName: media-pv-claim
+    - name: raw-pv-claim
+      persistentVolumeClaim:
+        claimName: raw-pv-claim
