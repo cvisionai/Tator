@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 import datetime
 
@@ -21,43 +22,43 @@ class ProgressAPI(BaseListView):
     http_method_names = ['post']
 
     def _post(self, params):
-        for reqObject in params['body']:
+        for req_object in params['body']:
             aux = {}
-            if reqObject['job_type'] == 'upload':
-                if 'swid' in reqObject:
-                    aux['swid'] = str(reqObject['swid'])
+            if req_object['job_type'] == 'upload':
+                if 'swid' in req_object:
+                    aux['swid'] = str(req_object['swid'])
 
-                if 'section' in reqObject:
-                    aux['section'] = reqObject['section']
+                if 'section' in req_object:
+                    aux['section'] = req_object['section']
 
                 aux['updated'] = str(datetime.datetime.now(datetime.timezone.utc))
 
-            if reqObject['job_type'] == 'algorithm':
-                if 'sections' in reqObject:
-                    aux['sections'] = reqObject['sections']
-                if 'media_ids' in reqObject:
-                    aux['media_ids'] = reqObject['media_ids']
+            if req_object['job_type'] == 'algorithm':
+                if 'sections' in req_object:
+                    aux['sections'] = req_object['sections']
+                if 'media_ids' in req_object:
+                    aux['media_ids'] = req_object['media_ids']
 
             prog = ProgressProducer(
-                reqObject['job_type'],
+                req_object['job_type'],
                 params['project'],
-                str(reqObject['gid']),
-                reqObject['uid'],
-                reqObject['name'],
+                str(req_object['gid']),
+                req_object['uid'],
+                req_object['name'],
                 self.request.user,
                 aux,
             )
 
-            if reqObject['state'] == 'failed':
-                prog.failed(reqObject['message'])
-            elif reqObject['state'] == 'queued':
-                prog.queued(reqObject['message'])
-            elif reqObject['state'] == 'started':
-                prog.progress(reqObject['message'], float(reqObject['progress']))
-            elif reqObject['state'] == 'finished':
-                prog.finished(reqObject['message'])
+            if req_object['state'] == 'failed':
+                prog.failed(req_object['message'])
+            elif req_object['state'] == 'queued':
+                prog.queued(req_object['message'])
+            elif req_object['state'] == 'started':
+                prog.progress(req_object['message'], float(req_object['progress']))
+            elif req_object['state'] == 'finished':
+                prog.finished(req_object['message'])
             else:
-                logger.info(f"Received invalid progress state {reqObject['state']}")
-                raise Exception(f"Invalid progress state {reqObject['state']}")
+                logger.info(f"Received invalid progress state {req_object['state']}")
+                raise Exception(f"Invalid progress state {req_object['state']}")
 
         return {'message': "Progress sent successfully!"}
