@@ -53,7 +53,7 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
         # Get the localization list.
         if use_es:
             response_data = []
-            annotation_ids, annotation_count, _ = get_annotation_queryset(
+            annotation_ids, _, _ = get_annotation_queryset(
                 params['project'],
                 params,
                 'localization',
@@ -96,13 +96,13 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
         # Adjust fields for csv output.
         if self.request.accepted_renderer.format == 'csv' and self.operation != 'count':
             # CSV creation requires a bit more
-            user_ids = set([d['user'] for d in response_data])
+            user_ids = {d['user'] for d in response_data}
             users = list(User.objects.filter(id__in=user_ids).values('id', 'email'))
             email_dict = {}
             for user in users:
                 email_dict[user['id']] = user['email']
 
-            media_ids = set([d['media'] for d in response_data])
+            media_ids = {d['media'] for d in response_data}
             medias = list(Media.objects.filter(id__in=media_ids).values('id', 'name'))
             filename_dict = {}
             for media in medias:
@@ -111,9 +111,9 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
             for element in response_data:
                 del element['meta']
 
-                oldAttributes = element['attributes']
+                old_attributes = element['attributes']
                 del element['attributes']
-                element.update(oldAttributes)
+                element.update(old_attributes)
 
                 user_id = element['user']
                 media_id = element['media']
@@ -143,9 +143,9 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
             )
 
         # Find unique foreign keys.
-        meta_ids = set([loc['type'] for loc in loc_specs])
-        media_ids = set([loc['media_id'] for loc in loc_specs])
-        version_ids = set([loc.get('version', None) for loc in loc_specs])
+        meta_ids = {loc['type'] for loc in loc_specs}
+        media_ids = {loc['media_id'] for loc in loc_specs}
+        version_ids = {loc.get('version', None) for loc in loc_specs}
 
         # Make foreign key querysets.
         meta_qs = LocalizationType.objects.filter(pk__in=meta_ids)
@@ -212,7 +212,7 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
 
     def _delete(self, params):
         self.validate_attribute_filter(params)
-        annotation_ids, annotation_count, query = get_annotation_queryset(
+        annotation_ids, _, query = get_annotation_queryset(
             params['project'],
             params,
             'localization',
@@ -220,17 +220,17 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
         if len(annotation_ids) > 0:
             # Delete any state many to many relations to these localizations.
             state_qs = State.localizations.through.objects.filter(localization__in=annotation_ids)
-            state_qs._raw_delete(state_qs.db)
+            state_qs._raw_delete(state_qs.db) #pylint: disable=protected-access
 
             # Delete the localizations.
             q_s = Localization.objects.filter(pk__in=annotation_ids)
-            q_s._raw_delete(q_s.db)
+            q_s._raw_delete(q_s.db) #pylint: disable=protected-access
             TatorSearch().delete(self.kwargs['project'], query)
         return {'message': f'Successfully deleted {len(annotation_ids)} localizations!'}
 
     def _patch(self, params):
         self.validate_attribute_filter(params)
-        annotation_ids, annotation_count, query = get_annotation_queryset(
+        annotation_ids, _, query = get_annotation_queryset(
             params['project'],
             params,
             'localization',
@@ -247,7 +247,7 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
         """ TODO: add documentation for this """
         params = parse(self.request)
         self.validate_attribute_filter(params)
-        annotation_ids, annotation_count, _ = get_annotation_queryset(
+        annotation_ids, _, _ = get_annotation_queryset(
             params['project'],
             params,
             'localization',
