@@ -4,6 +4,7 @@ import time
 import subprocess
 import json
 import datetime
+from collections import defaultdict
 
 from progressbar import progressbar,ProgressBar
 from dateutil.parser import parse
@@ -268,7 +269,7 @@ def makeSections(project):
     num_created = 0
     for obj in Media.objects.filter(project=project):
         relation = Media.sections.through(
-            media_id=obj.id,,
+            media_id=obj.id,
             section_id=section_ids[obj.attributes['tator_user_sections']],
         )
         relations.append(relation)
