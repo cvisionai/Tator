@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import copy
 import logging
 from collections import defaultdict
@@ -23,20 +24,21 @@ class SectionAnalysisAPI(BaseDetailView):
     http_method_names = ['get']
 
     def _get(self, params):
-        mediaId = params.get('media_id', None)
+        media_id = params.get('media_id', None)
         analyses = list(Analysis.objects.filter(project=self.kwargs['project']))
         response_data = {}
         for analysis in analyses:
-            media_query = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
+            media_query = defaultdict(lambda:
+                                      defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
             media_query['query']['bool']['filter'] = []
             media_query = get_attribute_query(params, media_query, [], self.kwargs['project'])
             query_str = f'{analysis.data_query}'
-            if mediaId is not None:
+            if media_id is not None:
                 if not media_query['query']['bool']['filter']:
                     media_query['query']['bool']['filter'] = []
                 media_query['query']['bool']['filter'].append(
-                    {'ids': {'values': [f'video_{id_}' for id_ in mediaId] + 
-                                       [f'image_{id_}' for id_ in mediaId]}}
+                    {'ids': {'values': [f'video_{id_}' for id_ in media_id] +
+                                       [f'image_{id_}' for id_ in media_id]}}
                 )
 
             # Do the search on all media.
