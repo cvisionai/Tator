@@ -13,7 +13,7 @@ from ._attributes import convert_attribute
 
 logger = logging.getLogger(__name__)
 
-class Array(Subquery):
+class Array(Subquery): #pylint: disable=abstract-method
     """ Class to expose ARRAY SQL function to ORM """
     template = 'ARRAY(%(subquery)s)'
 
@@ -23,9 +23,8 @@ def reverse_query_args(viewname, kwargs=None, queryargs=None):
     """
     url = reverse(viewname, kwargs=kwargs)
     if queryargs:
-        return '{}?{}'.format(url, urlencode(queryargs))
-    else:
-        return url
+        url = '{}?{}'.format(url, urlencode(queryargs))
+    return url
 
 class BadQuery(APIException):
     """ TODO: add documentation for this """
