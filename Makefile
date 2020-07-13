@@ -432,9 +432,9 @@ cleanup-evicted:
 build-search-indices:
 	argo submit workflows/build-search-indices.yaml --parameter-file helm/tator/values.yaml -p version="$(GIT_VERSION)" -p dockerRegistry="$(DOCKERHUB_USER)"
 
-.PHONY: migrate-flat
-migrate-flat:
-	argo submit workflows/migrate-flat.yaml --parameter-file helm/tator/values.yaml -p version="$(GIT_VERSION)" -p dockerRegistry="$(DOCKERHUB_USER)"
+.PHONY: make-sections
+make-sections:
+	argo submit workflows/make-sections.yaml --parameter-file helm/tator/values.yaml -p version="$(GIT_VERSION)" -p dockerRegistry="$(DOCKERHUB_USER)"
 
 .PHONY: clean_js
 clean_js:
