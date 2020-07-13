@@ -204,6 +204,13 @@ def project_save(sender, instance, created, **kwargs):
 def delete_index_project(sender, instance, **kwargs):
     TatorSearch().delete_index(instance.pk)
 
+class Section(Model):
+    """ Section for organizing media.
+    """
+    project = ForeignKey(Project, on_delete=CASCADE)
+    name = CharField(max_length=256)
+    archived = BooleanField(default=False)
+
 class Membership(Model):
     """Stores a user and their access level for a project.
     """
@@ -577,6 +584,7 @@ class Media(Model):
     segment_info = FilePathField(path=settings.MEDIA_ROOT, null=True,
                                  blank=True)
     media_files = JSONField(null=True, blank=True)
+    sections = ManyToManyField(Section)
 
 @receiver(post_save, sender=Media)
 def media_save(sender, instance, created, **kwargs):
