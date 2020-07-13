@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 import os
 
@@ -5,7 +6,6 @@ from redis import Redis
 
 from ._base_views import BaseListView
 from ..schema import ProgressSummarySchema
-from ..schema import parse
 
 logger = logging.getLogger(__name__)
 
