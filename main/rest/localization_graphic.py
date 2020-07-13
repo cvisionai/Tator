@@ -1,4 +1,5 @@
-from typing import Tuple, List
+""" TODO: add documentation for this """
+from typing import Tuple
 from types import SimpleNamespace
 import logging
 import tempfile
@@ -8,17 +9,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.http import response
 
-from ..models import Localization, Media
+from ..models import Localization
 from ..renderers import PngRenderer
 from ..renderers import JpegRenderer
 from ..renderers import GifRenderer
 from ..renderers import Mp4Renderer
 from ..schema import LocalizationGraphicSchema
-from ..schema import parse
 from ._base_views import BaseDetailView
 from ._media_util import MediaUtil
 from ._permissions import ProjectViewOnlyPermission
-from .temporary_file import TemporaryFileDetailAPI
 
 logger = logging.getLogger(__name__)
 
@@ -39,12 +38,12 @@ class LocalizationGraphicAPI(BaseDetailView):
 
         return Localization.objects.all()
 
-    def handle_exception(self,exc):
+    def handle_exception(self, exc):
         """ Overridden method. Please refer to parent's documentation.
         """
         logger.error(f"Exception in request: {traceback.format_exc()}")
         status_obj = status.HTTP_400_BAD_REQUEST
-        if type(exc) is response.Http404:
+        if isinstance(exc, response.Http404):
             status_obj = status.HTTP_404_NOT_FOUND
         return Response(
             MediaUtil.generate_error_image(
@@ -53,7 +52,7 @@ class LocalizationGraphicAPI(BaseDetailView):
                 self.request.accepted_renderer.format),
             status=status_obj)
 
-    def _getMargins(self, localization_type: str, params: dict):
+    def get_margins(self, localization_type: str, params: dict):
         """ Returns x/y margins to use based on the provided parameters and localization object
 
         Private helper method used by _get()
@@ -92,7 +91,7 @@ class LocalizationGraphicAPI(BaseDetailView):
 
         return margins
 
-    def _getRoi(
+    def get_roi(
             self,
             obj: str,
             params: dict,
@@ -128,7 +127,8 @@ class LocalizationGraphicAPI(BaseDetailView):
 
         # The roi input is done with normalized arguments. But the margins provided
         # are in pixels. So we've got to convert.
-        margins_rel = SimpleNamespace(x=margins_pixels.x / media_width, y=margins_pixels.y / media_height)
+        SimpleNamespace(x=margins_pixels.x / media_width,
+                        y=margins_pixels.y / media_height)
 
         # Take the position information available and apply the margin.
         # The stored position information is normalized, so we will set it to the
@@ -154,10 +154,10 @@ class LocalizationGraphicAPI(BaseDetailView):
 
         elif localization_type == 'line':
 
-            x = obj.x * media_width
-            y = obj.y * media_height
-            u = obj.u * media_width
-            v = obj.v * media_height
+            x = obj.x * media_width #pylint: disable=invalid-name
+            y = obj.y * media_height #pylint: disable=invalid-name
+            u = obj.u * media_width #pylint: disable=invalid-name
+            v = obj.v * media_height #pylint: disable=invalid-name
 
             point_a = SimpleNamespace(x=x, y=y)
             point_b = SimpleNamespace(x=x+u, y=y+v)
@@ -216,7 +216,8 @@ class LocalizationGraphicAPI(BaseDetailView):
         # Get the localization associated with the given ID
         obj = Localization.objects.get(pk=params['id'])
 
-        # Extract the force image size argument and assert if there's a problem with the provided inputs
+        # Extract the force image size argument
+        # assert if there's a problem with the provided inputs
         force_image_size = params.get(self.schema.PARAMS_IMAGE_SIZE, None)
         if force_image_size is not None:
             img_width_height = force_image_size.split('x')
