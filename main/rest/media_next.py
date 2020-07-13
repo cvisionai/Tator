@@ -1,4 +1,4 @@
-from collections import defaultdict
+""" TODO: add documentation for this """
 
 from ..models import Media
 from ..search import TatorSearch
@@ -20,7 +20,7 @@ class MediaNextAPI(BaseDetailView):
     http_method_names = ['get']
 
     def _get(self, params):
-        
+
         # Find this object.
         media_id = params['id']
         media = Media.objects.get(pk=media_id)
@@ -44,5 +44,5 @@ class MediaNextAPI(BaseDetailView):
         return response_data
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Media.objects.all()
-
