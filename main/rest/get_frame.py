@@ -81,7 +81,8 @@ class GetFrameAPI(BaseDetailView):
             else:
                 # If each individual roi is supplied manually set each one
                 if len(roi_list) != len(frames):
-                    raise Exception(f'Explicit roi list{len(roi_list)} is different length than frame list{len(frames)}')
+                    raise Exception(f'Explicit roi list{len(roi_list)} is '
+                                    f'different length than frame list{len(frames)}')
                 for frame_roi in enumerate(roi_list):
                     comps = frame_roi.split(':')
                     if len(comps) == 4:
