@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 import os
 from uuid import uuid1
@@ -19,7 +20,7 @@ class MoveVideoAPI(BaseListView):
 
         This endpoint creates an Argo workflow that moves an uploaded video file into the
         appropriate project directory. When the move is complete, the workflow will make
-        a PATCH request to the Media endpoint for the given media ID using the given 
+        a PATCH request to the Media endpoint for the given media ID using the given
         `media_files` definitions.
 
         Videos in Tator must be transcoded to a multi-resolution streaming format before they
@@ -94,6 +95,7 @@ class MoveVideoAPI(BaseListView):
                                     f"{response['metadata']['name']}!",
                          'id': params['id']}
         return response_data
-        
+
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Media.objects.all()
