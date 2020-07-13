@@ -242,3 +242,42 @@ def clearOldFilebeatIndices():
         if delta.days > 7:
             logger.info(f"Deleting old filebeat index {index}")
             es.indices.delete(str(index))
+
+def makeSections(project):
+    """ Creates sections and many to many relations.
+    """
+    # Search for sections in ES.
+    query = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: defaultdict(dict))))
+    query['aggs']['section_counts']['terms']['field'] = 'tator_user_sections'
+    query['aggs']['section_counts']['terms']['size'] = 1000 # Return up to 1000 sections
+    query['size'] = 0
+    query['query']['bool']['should'] = [{'match': {'_dtype': {'query': 'video'}}},
+                                        {'match': {'_dtype': {'query': 'image'}}}]
+    result = TatorSearch().search_raw(project, query)
+    result = num_elements['aggregations']['section_counts']['buckets']
+
+    # Create sections.
+    section_ids = {}
+    for key in result:
+        if not Section.objects.exists(name=key):
+            section = Section.objects.create(project=Project.objects.get(pk=project), name=key)
+            section_ids[key] = section.pk
+
+    # Create many to many relations.
+    relations = []
+    num_created = 0
+    for obj in Media.objects.filter(project=project):
+        relation = Media.sections.through(
+            media_id=obj.id,,
+            section_id=section_ids[obj.attributes['tator_user_sections']],
+        )
+        relations.append(relation)
+        if len(relations) > 1000:
+            Media.sections.through.objects.bulk_create(relations)
+            num_created += len(relations)
+            logger.info(f"Created {num_created} many-to-many relations from Media to Section...")
+            relations = []
+    Media.sections.through.objects.bulk_create(relations)
+    num_created += len(relations)
+    logger.info(f"Created {num_created} many-to-many relations from Media to Section...")
+
