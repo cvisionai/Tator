@@ -1,9 +1,9 @@
+""" TODO: add documentation for this """
 from django.contrib.postgres.aggregates import ArrayAgg
 
 from ..models import Media
 from ..models import MediaType
 from ..models import LocalizationType
-from ..models import Localization
 from ..models import Project
 from ..schema import LocalizationTypeListSchema
 from ..schema import LocalizationTypeDetailSchema
@@ -28,7 +28,7 @@ class LocalizationTypeListAPI(BaseListView):
 
     def _get(self, params):
         media_id = params.get('media_id', None)
-        if media_id != None:
+        if media_id is not None:
             if len(media_id) != 1:
                 raise Exception('Entity type list endpoints expect only one media ID!')
             media_element = Media.objects.get(pk=media_id[0])
@@ -38,11 +38,12 @@ class LocalizationTypeListAPI(BaseListView):
                     raise Exception('Localization not in project!')
             response_data = localizations.values(*fields)
         else:
-            response_data = LocalizationType.objects.filter(project=params['project']).values(*fields)
+            response_data = LocalizationType.objects.filter(project=
+                                                            params['project']).values(*fields)
         # Get many to many fields.
         loc_ids = [loc['id'] for loc in response_data]
-        media = {obj['localizationtype_id']:obj['media'] for obj in 
-            LocalizationType.media.through.objects\
+        media = {obj['localizationtype_id']:obj['media'] for obj in
+                 LocalizationType.media.through.objects\
             .filter(localizationtype__in=loc_ids)\
             .values('localizationtype_id').order_by('localizationtype_id')\
             .annotate(media=ArrayAgg('mediatype_id')).iterator()}
@@ -65,7 +66,6 @@ class LocalizationTypeListAPI(BaseListView):
         media_qs = MediaType.objects.filter(project=params['project'], pk__in=media_types)
         if media_qs.count() != len(media_types):
             obj.delete()
-            raise ObjectDoesNotExist(f"Could not find media IDs {media_types} when creating localization type!")
         for media in media_qs:
             obj.media.add(media)
         obj.save()
@@ -135,5 +135,5 @@ class LocalizationTypeDetailAPI(BaseDetailView):
         return {'message': f'Localization type {params["id"]} deleted successfully!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return LocalizationType.objects.all()
-
