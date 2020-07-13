@@ -1,5 +1,5 @@
+""" TODO: add documentation for this """
 import logging
-import datetime
 import os
 import shutil
 from uuid import uuid1
@@ -63,9 +63,9 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
             A media may be an image or a video. Media are a type of entity in Tator,
             meaning they can be described by user defined attributes.
         """
-        use_es = self.validate_attribute_filter(params)
+        self.validate_attribute_filter(params)
         response_data = []
-        media_ids, media_count, _ = get_media_queryset(
+        media_ids, _, _ = get_media_queryset(
             self.kwargs['project'],
             params,
         )
@@ -171,7 +171,7 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
 
             # Save the image.
             media_base = os.path.relpath(media_path, settings.MEDIA_ROOT)
-            with open(upload_path, 'rb') as f:
+            with open(upload_path, 'rb') as f: #pylint: disable=invalid-name
                 media_obj.file.save(media_base, f, save=False)
             media_obj.save()
 
@@ -221,11 +221,11 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
             A media may be an image or a video. Media are a type of entity in Tator,
             meaning they can be described by user defined attributes.
 
-            This method performs a bulk delete on all media matching a query. It is 
+            This method performs a bulk delete on all media matching a query. It is
             recommended to use a GET request first to check what is being deleted.
         """
         self.validate_attribute_filter(params)
-        media_ids, media_count, query = get_media_queryset(
+        media_ids, _, query = get_media_queryset(
             params['project'],
             params,
         )
@@ -233,22 +233,22 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
         if count > 0:
             # Delete any state many-to-many relations to this media.
             state_media_qs = State.media.through.objects.filter(media__in=media_ids)
-            state_media_qs._raw_delete(state_media_qs.db)
+            state_media_qs._raw_delete(state_media_qs.db) #pylint: disable=protected-access
 
             # Delete any states that now have null media many-to-many.
             state_qs = State.objects.filter(project=params['project'], media__isnull=True)
-            state_qs._raw_delete(state_qs.db)
+            state_qs._raw_delete(state_qs.db) #pylint: disable=protected-access
 
             # Delete any localizations associated to this media
             loc_qs = Localization.objects.filter(media__in=media_ids)
             # Delete any state many to many relations to these localizations.
             state_loc_qs = State.localizations.through.objects.filter(localization__in=loc_qs)
-            state_loc_qs._raw_delete(state_loc_qs.db)
-            loc_qs._raw_delete(loc_qs.db)
+            state_loc_qs._raw_delete(state_loc_qs.db) #pylint: disable=protected-access
+            loc_qs._raw_delete(loc_qs.db) #pylint: disable=protected-access
 
             # Mark media for deletion by setting project to null.
-            qs = Media.objects.filter(pk__in=media_ids)
-            qs.update(project=None)
+            q_s = Media.objects.filter(pk__in=media_ids)
+            q_s.update(project=None)
 
             # Clear elasticsearch entries for both media and its children.
             # Note that clearing children cannot be done using has_parent because it does
@@ -258,7 +258,7 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
                     + [f'line_{id_}' for id_ in loc_qs.iterator()] \
                     + [f'dot_{id_}' for id_ in loc_qs.iterator()]
             TatorSearch().delete(self.kwargs['project'], {'query': {'ids': {'values': loc_ids}}})
-            state_ids = [f'state_{_id}' for id_ in state_qs.iterator()]
+            state_ids = [f'state_{id_}' for id_ in state_qs.iterator()]
             TatorSearch().delete(self.kwargs['project'], {'query': {'ids': {'values': state_ids}}})
         return {'message': f'Successfully deleted {count} medias!'}
 
@@ -268,27 +268,28 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
             A media may be an image or a video. Media are a type of entity in Tator,
             meaning they can be described by user defined attributes.
 
-            This method performs a bulk update on all media matching a query. It is 
+            This method performs a bulk update on all media matching a query. It is
             recommended to use a GET request first to check what is being updated.
             Only attributes are eligible for bulk patch operations.
         """
         self.validate_attribute_filter(params)
-        media_ids, media_count, query = get_media_queryset(
+        media_ids, _, query = get_media_queryset(
             params['project'],
             params,
         )
         count = len(media_ids)
         if count > 0:
-            qs = Media.objects.filter(pk__in=media_ids)
-            new_attrs = validate_attributes(params, qs[0])
-            bulk_patch_attributes(new_attrs, qs)
+            q_s = Media.objects.filter(pk__in=media_ids)
+            new_attrs = validate_attributes(params, q_s[0])
+            bulk_patch_attributes(new_attrs, q_s)
             TatorSearch().update(self.kwargs['project'], query, new_attrs)
         return {'message': f'Successfully patched {count} medias!'}
-        
+
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         params = parse(self.request)
-        media_ids, media_count, _ = get_media_queryset(
+        media_ids, _, _ = get_media_queryset(
             params['project'],
             params,
         )
@@ -319,7 +320,7 @@ class MediaDetailAPI(BaseDetailView):
     def _patch(self, params):
         """ Update individual media.
 
-            Updates to `media_files` (video only) may append video definitions, but 
+            Updates to `media_files` (video only) may append video definitions, but
             cannot replace or delete them. To delete media, the DELETE method must
             be used.
 
@@ -359,7 +360,7 @@ class MediaDetailAPI(BaseDetailView):
             upload_path = os.path.join(settings.UPLOAD_ROOT, upload_uid)
             save_path = os.path.join(project_dir, str(uuid1()) + '.jpg')
             media_base = os.path.relpath(save_path, settings.MEDIA_ROOT)
-            with open(upload_path, 'rb') as f:
+            with open(upload_path, 'rb') as f: #pylint: disable=invalid-name
                 obj.thumbnail.save(media_base, f, save=False)
 
         if 'thumbnail_gif_url' in params:
@@ -368,7 +369,7 @@ class MediaDetailAPI(BaseDetailView):
             upload_path = os.path.join(settings.UPLOAD_ROOT, upload_uid)
             save_path = os.path.join(project_dir, str(uuid1()) + '.gif')
             media_base = os.path.relpath(save_path, settings.MEDIA_ROOT)
-            with open(upload_path, 'rb') as f:
+            with open(upload_path, 'rb') as f: #pylint: disable=invalid-name
                 obj.thumbnail_gif.save(media_base, f, save=False)
 
         # Media definitions may be appended but not replaced or deleted.
@@ -376,7 +377,7 @@ class MediaDetailAPI(BaseDetailView):
             # Handle null existing value.
             if obj.media_files is None:
                 obj.media_files = {}
- 
+
             # Append to existing definitions.
             new_streaming = params['media_files'].get('streaming', [])
             old_streaming = obj.media_files.get('streaming', [])
@@ -442,11 +443,11 @@ class MediaDetailAPI(BaseDetailView):
             A media may be an image or a video. Media are a type of entity in Tator,
             meaning they can be described by user defined attributes.
         """
-        qs = Media.objects.filter(pk=params['id'])
-        TatorSearch().delete_document(qs[0])
-        qs.update(project=None)
+        q_s = Media.objects.filter(pk=params['id'])
+        TatorSearch().delete_document(q_s[0])
+        q_s.update(project=None)
         return {'message': f'Media {params["id"]} successfully deleted!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Media.objects.all()
-
