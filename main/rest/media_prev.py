@@ -1,4 +1,4 @@
-from collections import defaultdict
+""" TODO: add documentation for this """
 
 from ..models import Media
 from ..search import TatorSearch
@@ -12,8 +12,8 @@ class MediaPrevAPI(BaseDetailView):
     """ Retrieve ID of previous media in a media list.
 
         This endpoint accepts the same query parameters as a GET request to the `Medias` endpoint,
-        but only returns the previous media ID from the media passed as a path parameter. This 
-        allows iteration through a media list without serializing the entire list, which may be 
+        but only returns the previous media ID from the media passed as a path parameter. This
+        allows iteration through a media list without serializing the entire list, which may be
         large.
     """
     schema = MediaPrevSchema()
@@ -46,5 +46,5 @@ class MediaPrevAPI(BaseDetailView):
         return response_data
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Media.objects.all()
-
