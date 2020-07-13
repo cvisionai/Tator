@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from collections import defaultdict
 import copy
 
@@ -34,14 +35,14 @@ class MediaSectionsAPI(BaseDetailView):
     http_method_names = ['get']
 
     def _get(self, params):
-        
+
         # Get query associated with media filters.
         _, _, query = get_media_queryset(params['project'], params, True)
 
         # Update query with aggregations.
         query['aggs']['section_counts']['terms']['field'] = 'tator_user_sections'
         query['aggs']['section_counts']['terms']['size'] = 1000 # Return up to 1000 sections
-        query['aggs']['section_counts']['aggs']['download_size'] = {'sum': {'field': '_download_size'}}
+        query['aggs']['section_counts']['aggs']['download_size'] = {'sum': {'field': '_download_size'}} #pylint: disable=line-too-long
         query['aggs']['section_counts']['aggs']['total_size'] = {'sum': {'field': '_total_size'}}
         query['size'] = 0
 
@@ -58,4 +59,3 @@ class MediaSectionsAPI(BaseDetailView):
                     response_data[section][key] = 0
 
         return response_data
-
