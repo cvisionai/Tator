@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from ..models import MediaType
 from ..models import Media
 from ..models import Project
@@ -8,7 +9,8 @@ from ._base_views import BaseListView
 from ._base_views import BaseDetailView
 from ._permissions import ProjectFullControlPermission
 
-fields = ['id', 'project', 'name', 'description', 'dtype', 'attribute_types', 'file_format', 'default_volume', 'visible']
+fields = ['id', 'project', 'name', 'description', 'dtype',
+          'attribute_types', 'file_format', 'default_volume', 'visible']
 
 class MediaTypeListAPI(BaseListView):
     """ Create or retrieve media types.
@@ -30,7 +32,7 @@ class MediaTypeListAPI(BaseListView):
             types associated with it.
         """
         media_id = params.get('media_id', None)
-        if media_id != None:
+        if media_id is not None:
             if len(media_id) != 1:
                 raise Exception('Entity type list endpoints expect only one media ID!')
             media_element = Media.objects.get(pk=media_id[0])
@@ -110,5 +112,5 @@ class MediaTypeDetailAPI(BaseDetailView):
         return {'message': f'Media type {params["id"]} deleted successfully!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return MediaType.objects.all()
-
