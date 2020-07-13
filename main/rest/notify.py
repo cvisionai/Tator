@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import traceback
 
 from rest_framework.views import APIView
@@ -17,9 +18,10 @@ class NotifyAPI(APIView):
     """
     schema = NotifySchema()
 
-    def post(self, request, format=None, **kwargs):
-        response=Response({'message' : str("Not Found")},
-                              status=status.HTTP_404_NOT_FOUND)
+    def post(self, request):
+        """ TODO: add documentation for this """
+        response = Response({'message' : str("Not Found")},
+                            status=status.HTTP_404_NOT_FOUND)
         try:
             params = parse(request)
 
@@ -27,18 +29,19 @@ class NotifyAPI(APIView):
 
             response = None
             if send_as_file == 1:
-                response = Notify.notify_admin_file(f"Message from {request.user}", params['message'])
+                response = Notify.notify_admin_file(f"Message from {request.user}",
+                                                    params['message'])
             else:
                 response = Notify.notify_admin_msg(f"_{request.user}_ : {params['message']}")
 
             if response == True:
-                response=Response({'message' : "Processed"},
-                                  status=status.HTTP_200_OK)
+                response = Response({'message' : "Processed"},
+                                    status=status.HTTP_200_OK)
             else:
-                response=Response({'message': "Not Processed"},
-                                  status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except Exception as e:
-            response=Response({'message' : str(e),
-                               'details': traceback.format_exc()}, status=status.HTTP_400_BAD_REQUEST)
+                response = Response({'message': "Not Processed"},
+                                    status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        except Exception as e: #pylint: disable=invalid-name
+            response = Response({'message' : str(e),
+                                 'details': traceback.format_exc()},
+                                status=status.HTTP_400_BAD_REQUEST)
         return response
-
