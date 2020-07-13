@@ -100,7 +100,7 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
         # Get the leaf list.
         if use_es:
             response_data = []
-            leaf_ids, leaf_count, _ = get_leaf_queryset(params)
+            leaf_ids, _, _ = get_leaf_queryset(params)
             if self.operation == 'count':
                 response_data = {'count': len(leaf_ids)}
             elif len(leaf_ids) > 0:
@@ -123,7 +123,7 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
             raise Exception('Leaf creation requires list of leaves!')
 
         # Find unique foreign keys.
-        meta_ids = set([leaf['type'] for leaf in leaf_specs])
+        meta_ids = {leaf['type'] for leaf in leaf_specs}
 
         # Make foreign key querysets.
         meta_qs = LeafType.objects.filter(pk__in=meta_ids)
@@ -170,16 +170,16 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
 
     def _delete(self, params):
         self.validate_attribute_filter(params)
-        leaf_ids, leaf_count, query = get_leaf_queryset(params)
+        leaf_ids, _, query = get_leaf_queryset(params)
         if len(leaf_ids) > 0:
             q_s = Leaf.objects.filter(pk__in=leaf_ids)
-            q_s._raw_delete(q_s.db)
+            q_s._raw_delete(q_s.db) #pylint: disable=protected-access
             TatorSearch().delete(self.kwargs['project'], query)
         return {'message': f'Successfully deleted {len(leaf_ids)} leaves!'}
 
     def _patch(self, params):
         self.validate_attribute_filter(params)
-        leaf_ids, leaf_count, query = get_leaf_queryset(params)
+        leaf_ids, _, query = get_leaf_queryset(params)
         if len(leaf_ids) > 0:
             q_s = Leaf.objects.filter(pk__in=leaf_ids)
             new_attrs = validate_attributes(params, q_s[0])
@@ -191,7 +191,7 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
         """ TODO: add documentation for this """
         params = parse(self.request)
         self.validate_attribute_filter(params)
-        leaf_ids, leaf_count, _ = get_leaf_queryset(params)
+        leaf_ids, _, _ = get_leaf_queryset(params)
         queryset = Leaf.objects.filter(pk__in=leaf_ids)
         return queryset
 
