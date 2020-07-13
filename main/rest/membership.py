@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from ..models import Membership
 from ..models import Project
 from ..models import User
@@ -31,9 +32,9 @@ class MembershipListAPI(BaseListView):
         project = params['project']
         user = params['user']
         permission = params['permission']
-        
+
         project = Project.objects.get(pk=project)
-        user = User.objects.get(pk=user) 
+        user = User.objects.get(pk=user)
         membership = Membership.objects.create(
             project=project,
             user=user,
@@ -44,6 +45,7 @@ class MembershipListAPI(BaseListView):
                 'id': membership.id}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         project_id = self.kwargs['project']
         members = Membership.objects.filter(project__id=project_id)
         return members
@@ -68,7 +70,7 @@ class MembershipDetailAPI(BaseDetailView):
         return MembershipSerializer(member).data
 
     def _patch(self, params):
-        membership = Membership.objects.get(pk=params['id']) 
+        membership = Membership.objects.get(pk=params['id'])
         if 'permission' in params:
             membership.permission = params['permission']
         membership.save()
@@ -80,4 +82,5 @@ class MembershipDetailAPI(BaseDetailView):
         return {'message': f'Membership {params["id"]} successfully deleted!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return Membership.objects.all()
