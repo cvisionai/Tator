@@ -15,6 +15,7 @@ from ..models import MediaType
 from ..models import Localization
 from ..models import State
 from ..models import Project
+from ..models import Section
 from ..models import database_qs
 from ..models import database_query_ids
 from ..search import TatorSearch
@@ -80,10 +81,20 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
 
         # Get common parameters (between video/image).
         entity_type = params['type']
-        section = params['section']
+        section_name = params['section']
         name = params['name']
         md5 = params['md5']
         project = params['project']
+
+        # Get the section. If it does not exist, create it.
+        section_qs = Section.objects.filter(project=project, name=section_name)
+        if not section_qs.exists():
+            section = Section.objects.create(
+                project=Project.objects.get(pk=project),
+                name=section_name,
+            )
+        else:
+            section = section_qs[0]
 
         # Get the media type.
         if int(entity_type) == -1:
@@ -133,7 +144,7 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
                 uid,
                 progress_name,
                 self.request.user,
-                {'section': section},
+                {'section': section.name},
             )
 
             # Make sure uploaded file exists
@@ -150,7 +161,6 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
                 meta=MediaType.objects.get(pk=entity_type),
                 name=name,
                 md5=md5,
-                attributes={'tator_user_sections': section},
                 created_by=self.request.user,
                 modified_by=self.request.user,
             )
@@ -183,6 +193,7 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
             with open(upload_path, 'rb') as f:
                 media_obj.file.save(media_base, f, save=False)
             media_obj.save()
+            media_obj.sections.add(section)
 
             # Send info to consumer.
             info = {
@@ -190,7 +201,7 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
                 "url": media_obj.file.url,
                 "thumbnail": str(media_obj.thumbnail),
                 "name": media_obj.name,
-                "section": section,
+                "section": section.name,
             }
             prog.finished("Uploaded successfully!", {**info})
 
@@ -212,10 +223,10 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
                 meta=MediaType.objects.get(pk=entity_type),
                 name=name,
                 md5=md5,
-                attributes={'tator_user_sections': section},
                 created_by=self.request.user,
                 modified_by=self.request.user,
             )
+            media_obj.sections.add(section)
             msg = (f"Media object {media_obj.id} created for video "
                    f"{name} on project {media_type.project.name}")
             response = {'message': msg, 'id': media_obj.id}
@@ -431,14 +442,14 @@ class MediaDetailAPI(BaseDetailView):
                 params['uid'],
                 obj.name,
                 self.request.user,
-                {'section': obj.attributes['tator_user_sections']},
+                {'section': obj.sections.first().name},
             )
             info = {
                 'id': obj.id,
                 'thumbnail': str(obj.thumbnail),
                 'thumbnail_gif': str(obj.thumbnail_gif),
                 'name': obj.name,
-                'section': obj.attributes['tator_user_sections'],
+                'section': obj.sections.first().name,
             }
             prog.finished("Uploaded successfully!", info)
 
