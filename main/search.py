@@ -130,6 +130,7 @@ class TatorSearch:
                 '_postgres_id': {'type': 'long'},
                 '_download_size': {'type': 'long'},
                 '_total_size': {'type': 'long'},
+                '_section': {'type': 'long'},
             }},
         )
 
@@ -199,10 +200,10 @@ class TatorSearch:
             aux['_total_size'] = total_size
             aux['_download_size'] = download_size
 
-            # Copy section name.
-            if entity.attributes is not None:
-                if 'tator_user_sections' in entity.attributes:
-                    aux['tator_user_sections'] = entity.attributes['tator_user_sections']
+            # Copy section name and ID.
+            aux['tator_user_sections'] = [section.name for section in
+                                          entity.sections.all().iterator()]
+            aux['_section'] = [section.id for section in entity.sections.all().iterator()]
         elif entity.meta.dtype in ['box', 'line', 'dot']:
             aux['_media_relation'] = {
                 'name': 'annotation',
