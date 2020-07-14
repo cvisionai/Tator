@@ -159,7 +159,10 @@ class CanvasDrag
     this._mouseUpBound=this.onMouseUp.bind(this)
   }
 
-
+  magnitude(start,end)
+  {
+    return Math.sqrt(Math.pow(start.x-end.x,2)+Math.pow(start.y-end.y,2));
+  }
 
   onMouseDown(event)
   {
@@ -205,6 +208,8 @@ class CanvasDrag
     this._event.current = {};
     this._event.current.x = x
     this._event.current.y = y;
+    this._event.length = this.magnitude(this._event.start,
+                                        this._event.current);
     this._event.current.time = now;
     this._event.duration = this._event.current.time -
       this._event.start.time;
@@ -235,6 +240,8 @@ class CanvasDrag
     }
     this._event.end.time = Date.now();
     this._event.duration = this._event.end.time - this._event.start.time;
+    this._event.length = this.magnitude(this._event.start,
+                                        this._event.end);
     if (this._cb &&
         this._event.duration > this.dragLimiter &&
         ! (this._event.end.x == this._event.start.x &&
@@ -1419,6 +1426,7 @@ class AnnotationCanvas extends TatorElement
   // If the user clicked an annotation, bring up an edit form if they clicked nothing, reset
   mouseDownHandler(clickEvent)
   {
+    this._clickTime = performance.now();
     if (document.body.classList.contains("shortcuts-disabled")) {
       document.body.classList.remove("shortcuts-disabled");
       document.activeElement.blur();
@@ -2556,9 +2564,20 @@ class AnnotationCanvas extends TatorElement
       //We are moving or resizing
       if (this._mouseMode == MouseMode.SELECT)
       {
-        if (!this._clipboard.isCutting(this.activeLocalization))
+        let now = performance.now();
+        let delta = now - this._clickTime;
+        let length = dragEvent.length;
+        // Debounce accidental moves
+        if (delta > 250 || length > 100)
         {
-          this._mouseMode = MouseMode.MOVE;
+          if (!this._clipboard.isCutting(this.activeLocalization))
+          {
+            this._mouseMode = MouseMode.MOVE;
+          }
+        }
+        else
+        {
+          console.info(`Blocked quick move of ${delta}ms and ${length}px`);
         }
       }
       if (this._mouseMode == MouseMode.MOVE)
