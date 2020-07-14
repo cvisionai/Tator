@@ -28,6 +28,13 @@ media_filter_parameter_schema = [
         'schema': {'type': 'string'},
     },
     {
+        'name': 'section',
+        'in': 'query',
+        'required': False,
+        'description': 'Name of the media section.',
+        'schema': {'type': 'string'},
+    },
+    {
         'name': 'md5',
         'in': 'query',
         'required': False,
