@@ -162,6 +162,10 @@ media_update = {
                            'progress message will be sent for this media.',
             'type': 'string',
         },
+        'section': {
+            'description': 'Media section name.',
+            'type': 'string',
+        },
         'thumbnail_url': {
             'description': 'Upload URL for the thumbnail.',
             'type': 'string',

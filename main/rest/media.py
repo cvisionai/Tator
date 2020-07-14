@@ -367,6 +367,18 @@ class MediaDetailAPI(BaseDetailView):
         if 'name' in params:
             obj.name = params['name']
 
+        if 'section' in params:
+            # Get the section. If it does not exist, create it.
+            section_qs = Section.objects.filter(project=project, name=params['section'])
+            if not section_qs.exists():
+                section = Section.objects.create(
+                    project=Project.objects.get(pk=project),
+                    name=params['section'],
+                )
+            else:
+                section = section_qs[0]
+            obj.sections.add(section)
+
         if 'last_edit_start' in params:
             obj.last_edit_start = params['last_edit_start']
 
