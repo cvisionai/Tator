@@ -14,6 +14,7 @@ def get_media_queryset(project, query_params, dry_run=False):
     mediaId = query_params.get('media_id', None)
     filterType = query_params.get('type', None)
     name = query_params.get('name', None)
+    section = query_params.get('section', None)
     md5 = query_params.get('md5', None)
     start = query_params.get('start', None)
     stop = query_params.get('stop', None)
@@ -41,6 +42,9 @@ def get_media_queryset(project, query_params, dry_run=False):
 
     if md5 != None:
         bools.append({'match': {'_md5': {'query': md5}}})
+
+    if section is not None:
+        bools.append({'match': {'tator_user_sections': {'query': section}}})
 
     if start != None:
         query['from'] = int(start)
