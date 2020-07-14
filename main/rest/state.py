@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import logging
 import datetime
 import itertools
@@ -26,7 +27,6 @@ from ._attributes import AttributeFilterMixin
 from ._attributes import patch_attributes
 from ._attributes import bulk_patch_attributes
 from ._attributes import validate_attributes
-from ._util import computeRequiredFields
 from ._util import check_required_fields
 from ._permissions import ProjectEditPermission
 
@@ -48,7 +48,7 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
         attribute types associated with it named time and position, the JSON object must have
         them specified as keys.
     """
-    schema=StateListSchema()
+    schema = StateListSchema()
     permission_classes = [ProjectEditPermission]
     http_method_names = ['get', 'post', 'patch', 'delete']
     entity_type = StateType # Needed by attribute filter mixin
@@ -59,10 +59,10 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
         use_es = any([key not in postgres_params for key in params])
 
         # Get the state list.
-        t0 = datetime.datetime.now()
+        t_0 = datetime.datetime.now()
         if use_es:
             response_data = []
-            annotation_ids, annotation_count, _ = get_annotation_queryset(
+            annotation_ids, _, _ = get_annotation_queryset(
                 params['project'],
                 params,
                 'state',
@@ -86,17 +86,17 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
                 response_data = {'count': qs.count()}
             else:
                 response_data = database_qs(qs.order_by('id'))
-        t1 = datetime.datetime.now()
+        t_1 = datetime.datetime.now()
         if self.operation != 'count':
             # Get many to many fields.
             state_ids = [state['id'] for state in response_data]
             localizations = {obj['state_id']:obj['localizations'] for obj in
-                State.localizations.through.objects\
+                             State.localizations.through.objects\
                 .filter(state__in=state_ids)\
                 .values('state_id').order_by('state_id')\
                 .annotate(localizations=ArrayAgg('localization_id')).iterator()}
             media = {obj['state_id']:obj['media'] for obj in
-                State.media.through.objects\
+                     State.media.through.objects\
                 .filter(state__in=state_ids)\
                 .values('state_id').order_by('state_id')\
                 .annotate(media=ArrayAgg('media_id')).iterator()}
@@ -105,27 +105,27 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
                 state['localizations'] = localizations.get(state['id'], [])
                 state['media'] = media.get(state['id'], [])
         if (self.request.accepted_renderer.format == 'csv'
-            and self.operation != 'count'
-            and 'type' in params):
-            type_object=StateType.objects.get(pk=params['type'])
+                and self.operation != 'count'
+                and 'type' in params):
+            type_object = StateType.objects.get(pk=params['type'])
             if type_object.association == 'Frame' and type_object.interpolation == InterpolationMethods.LATEST:
-                for idx,el in enumerate(response_data):
-                    mediaEl=Media.objects.get(pk=el['media'])
-                    endFrame=0
+                for idx, e_l in enumerate(response_data):
+                    media_el = Media.objects.get(pk=e_l['media'])
+                    end_frame = 0
                     if idx + 1 < len(response_data):
-                        next_element=response_data[idx+1]
-                        endFrame=next_element['frame']
+                        next_element = response_data[idx+1]
+                        end_frame = next_element['frame']
                     else:
-                        endFrame=mediaEl.num_frames
-                    el['media']=mediaEl.name
+                        end_frame = media_el.num_frames
+                    e_l['media'] = media_el.name
 
-                    el['endFrame'] = endFrame
-                    el['startSeconds'] = int(el['frame']) * mediaEl.fps
-                    el['endSeconds'] = int(el['endFrame']) * mediaEl.fps
-        t2 = datetime.datetime.now()
+                    e_l['endFrame'] = end_frame
+                    e_l['startSeconds'] = int(e_l['frame']) * media_el.fps
+                    e_l['endSeconds'] = int(e_l['end_frame']) * media_el.fps
+        t_2 = datetime.datetime.now()
         logger.info(f"Number of states: {len(response_data)}")
-        logger.info(f"Time to get states: {t1-t0}")
-        logger.info(f"Time to get states many to many fields: {t2-t1}")
+        logger.info(f"Time to get states: {t_1-t_0}")
+        logger.info(f"Time to get states many to many fields: {t_2-t_1}")
         return response_data
 
     def _post(self, params):
@@ -149,8 +149,8 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
             )
 
         # Find unique foreign keys.
-        meta_ids = set([state['type'] for state in state_specs])
-        version_ids = set([state.get('version', None) for state in state_specs])
+        meta_ids = {state['type'] for state in state_specs}
+        version_ids = {state.get('version', None) for state in state_specs}
 
         # Make foreign key querysets.
         meta_qs = StateType.objects.filter(pk__in=meta_ids)
@@ -163,7 +163,7 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
         versions[None] = default_version
 
         # Get required fields for attributes.
-        required_fields = {id_:computeRequiredFields(metas[id_]) for id_ in meta_ids}
+        required_fields = {id_:(metas[id_]) for id_ in meta_ids}
         attr_specs = [check_required_fields(required_fields[state['type']][0],
                                             required_fields[state['type']][2],
                                             state)
@@ -231,14 +231,14 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
         State.objects.bulk_update(states, ['segments'])
 
         # Build ES documents.
-        ts = TatorSearch()
+        t_s = TatorSearch()
         documents = []
         for state in states:
-            documents += ts.build_document(state)
+            documents += t_s.build_document(state)
             if len(documents) > 1000:
-                ts.bulk_add_documents(documents)
+                t_s.bulk_add_documents(documents)
                 documents = []
-        ts.bulk_add_documents(documents)
+        t_s.bulk_add_documents(documents)
 
         # Return created IDs.
         ids = [state.id for state in states]
@@ -246,7 +246,7 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
 
     def _delete(self, params):
         self.validate_attribute_filter(params)
-        annotation_ids, annotation_count, query = get_annotation_queryset(
+        annotation_ids, _, query = get_annotation_queryset(
             params['project'],
             params,
             'state',
@@ -254,21 +254,21 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
         if len(annotation_ids) > 0:
             # Delete media many to many
             media_qs = State.media.through.objects.filter(state__in=annotation_ids)
-            media_qs._raw_delete(media_qs.db)
+            media_qs._raw_delete(media_qs.db) #pylint: disable=protected-access
 
             # Delete localization many to many
             loc_qs = State.localizations.through.objects.filter(state__in=annotation_ids)
-            loc_qs._raw_delete(loc_qs.db)
+            loc_qs._raw_delete(loc_qs.db) #pylint: disable=protected-access
 
             # Delete states.
             qs = State.objects.filter(pk__in=annotation_ids)
-            qs._raw_delete(qs.db)
+            qs._raw_delete(qs.db) #pylint: disable=protected-access
             TatorSearch().delete(self.kwargs['project'], query)
         return {'message': f'Successfully deleted {len(annotation_ids)} states!'}
 
     def _patch(self, params):
         self.validate_attribute_filter(params)
-        annotation_ids, annotation_count, query = get_annotation_queryset(
+        annotation_ids, _, query = get_annotation_queryset(
             params['project'],
             params,
             'state',
@@ -282,9 +282,10 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
         return {'message': f'Successfully updated {len(annotation_ids)} states!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         params = parse(self.request)
         self.validate_attribute_filter(params)
-        annotation_ids, annotation_count, _ = get_annotation_queryset(
+        annotation_ids, _, _ = get_annotation_queryset(
             params['project'],
             params,
             'state',
@@ -349,4 +350,5 @@ class StateDetailAPI(BaseDetailView):
         return {'message': f'State {params["id"]} successfully deleted!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return State.objects.all()
