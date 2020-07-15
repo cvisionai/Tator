@@ -1,8 +1,7 @@
+""" TODO: add documentaion for this """
 import datetime
 import os
 import logging
-import uuid
-import shutil
 
 from django.conf import settings
 
@@ -30,12 +29,12 @@ class TemporaryFileListAPI(BaseListView):
     permission_classes = [ProjectEditPermission]
     http_method_names = ['get', 'post', 'delete']
 
-    def _get(self, params):
+    def _get(self):
         return TemporaryFileSerializer(self.get_queryset(),
                                        many=True,
                                        context=self.get_renderer_context()).data
 
-    def _delete(self, params):
+    def _delete(self):
         qs = self.get_queryset()
         qs.delete()
         return {'message': 'Delete successful'}
@@ -45,16 +44,16 @@ class TemporaryFileListAPI(BaseListView):
         project = params['project']
         name = params['name']
         hours = params['hours']
-        if hours == None:
+        if hours is None:
             hours = 24
 
-        local_file_path = os.path.join(settings.UPLOAD_ROOT,url.split('/')[-1])
+        local_file_path = os.path.join(settings.UPLOAD_ROOT, url.split('/')[-1])
         temp_file = TemporaryFile.from_local(path=local_file_path,
                                              name=params['name'],
                                              project=Project.objects.get(pk=project),
                                              user=self.request.user,
                                              lookup=params['lookup'],
-                                             hours = hours)
+                                             hours=hours)
         response = {'message': f"Temporary file of {name} created!",
                     'id': temp_file.id}
 
@@ -70,6 +69,7 @@ class TemporaryFileListAPI(BaseListView):
         return response
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         params = parse(self.request)
         qs = TemporaryFile.objects.filter(project__id=params['project'])
         if params['expired'] is None:
@@ -101,5 +101,5 @@ class TemporaryFileDetailAPI(BaseDetailView):
         return {'message': f'Temporary file {params["id"]} successfully deleted!'}
 
     def get_queryset(self):
+        """ TODO: add documenation for this """
         return TemporaryFile.objects.all()
-
