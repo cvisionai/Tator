@@ -1,9 +1,10 @@
+""" TODO: add documentation for this """
 import logging
 import os
+from urllib import parse as urllib_parse
 
 from rest_framework.authtoken.models import Token
 from django.conf import settings
-from urllib import parse as urllib_parse
 
 from ..kube import TatorTranscode
 from ..consumers import ProgressProducer
@@ -22,12 +23,12 @@ class TranscodeAPI(BaseListView):
         Videos in Tator must be transcoded to a multi-resolution streaming format before they
         can be viewed or annotated. This endpoint launches a transcode on raw uploaded video by
         creating an Argo workflow. The workflow will download the uploaded raw video, transcode
-        it to the proper format, upload the transcoded video, and save the video using the 
-        `SaveVideo` endpoint. Optionally, depending on the `keep_original` field of the video 
+        it to the proper format, upload the transcoded video, and save the video using the
+        `SaveVideo` endpoint. Optionally, depending on the `keep_original` field of the video
         type specified by the `type` parameter, the originally uploaded file may also be saved.
-        Note that the raw video must be uploaded first via tus, which is a separate mechanism 
-        from the REST API. This endpoint requires a group and run UUID associated with this 
-        upload. If no progress messages were generated during upload, then the group and run 
+        Note that the raw video must be uploaded first via tus, which is a separate mechanism
+        from the REST API. This endpoint requires a group and run UUID associated with this
+        upload. If no progress messages were generated during upload, then the group and run
         UUIDs can be newly generated.
     """
     schema = TranscodeSchema()
@@ -58,14 +59,14 @@ class TranscodeAPI(BaseListView):
         type_objects = MediaType.objects.filter(project=project)
         if entity_type != -1:
             #If we are transcoding and not unpacking we know its a video type we need
-            type_objects = type_objects.filter(pk=entity_type,dtype="video")
+            type_objects = type_objects.filter(pk=entity_type, dtype="video")
 
         # For tar/zip uploads, we can still get an error after this
         # because the tar may contain images or video.
         logger.info(f"Count of type {type_objects.count()}")
         if type_objects.count() == 0:
             raise Exception(f"For project {project} given type {entity_type}, can not find a "
-                             "destination media type")
+                            "destination media type")
 
         # Get the file size of the uploaded blob if local
         netloc = urllib_parse.urlsplit(url).netloc
@@ -92,17 +93,17 @@ class TranscodeAPI(BaseListView):
                 upload_size)
         else:
             TatorTranscode().start_transcode(
-            project,
-            entity_type,
-            token,
-            url,
-            name,
-            section,
-            md5,
-            gid,
-            uid,
-            self.request.user.pk,
-            upload_size)
+                project,
+                entity_type,
+                token,
+                url,
+                name,
+                section,
+                md5,
+                gid,
+                uid,
+                self.request.user.pk,
+                upload_size)
 
         prog.progress("Transcoding...", 60)
 
