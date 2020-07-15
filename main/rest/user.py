@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 from ..models import User
 from ..serializers import UserSerializerBasic
 from ..schema import UserDetailSchema
@@ -40,5 +41,5 @@ class CurrentUserAPI(BaseDetailView):
     schema = CurrentUserSchema()
     http_method_names = ['get']
 
-    def _get(self, params):
+    def _get(self):
         return UserSerializerBasic(self.request.user).data
