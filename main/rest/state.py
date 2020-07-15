@@ -108,7 +108,8 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
                 and self.operation != 'count'
                 and 'type' in params):
             type_object = StateType.objects.get(pk=params['type'])
-            if type_object.association == 'Frame' and type_object.interpolation == InterpolationMethods.LATEST:
+            if (type_object.association == 'Frame'
+                    and type_object.interpolation == InterpolationMethods.LATEST):
                 for idx, e_l in enumerate(response_data):
                     media_el = Media.objects.get(pk=e_l['media'])
                     end_frame = 0
@@ -144,7 +145,7 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
             default_version = Version.objects.create(
                 name="Baseline",
                 description="Initial version",
-                project=project,
+                project=Project.objects.get(pk=params['project']),
                 number=0,
             )
 
