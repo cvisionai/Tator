@@ -1,6 +1,7 @@
 """ TODO: add documentation for this """
 import logging
 from django.db.models import Subquery
+from django.core.exceptions import ObjectDoesNotExist
 
 from ..models import Localization
 from ..models import LocalizationType
@@ -23,7 +24,7 @@ from ._attributes import AttributeFilterMixin
 from ._attributes import patch_attributes
 from ._attributes import bulk_patch_attributes
 from ._attributes import validate_attributes
-from ._util import computeRequiredFields
+from ._util import compute_required_fields
 from ._util import check_required_fields
 from ._permissions import ProjectEditPermission
 
@@ -138,7 +139,7 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
             default_version = Version.objects.create(
                 name="Baseline",
                 description="Initial version",
-                project=project,
+                project=Project.objects.get(pk=params['project']),
                 number=0,
             )
 
@@ -160,7 +161,7 @@ class LocalizationListAPI(BaseListView, AttributeFilterMixin):
         versions[None] = default_version
 
         # Get required fields for attributes.
-        required_fields = {id_:computeRequiredFields(metas[id_]) for id_ in meta_ids}
+        required_fields = {id_:compute_required_fields(metas[id_]) for id_ in meta_ids}
         attr_specs = [check_required_fields(required_fields[loc['type']][0],
                                             required_fields[loc['type']][2],
                                             loc)
@@ -303,7 +304,7 @@ class LocalizationDetailAPI(BaseDetailView):
                 try:
                     thumbnail_obj = Media.objects.get(pk=thumbnail_image)
                     obj.thumbnail_image = thumbnail_obj
-                except:
+                except ObjectDoesNotExist:
                     logger.error("Bad thumbnail reference given")
         elif obj.meta.dtype == 'line':
             u = params.get("u", None) #pylint: disable=invalid-name
