@@ -1,9 +1,9 @@
+""" TODO: add documentation for this """
 from django.contrib.postgres.aggregates import ArrayAgg
 
 from ..models import Media
 from ..models import MediaType
 from ..models import StateType
-from ..models import State
 from ..models import Project
 from ..schema import StateTypeListSchema
 from ..schema import StateTypeDetailSchema
@@ -34,7 +34,7 @@ class StateTypeListAPI(BaseListView):
             types associated with it.
         """
         media_id = params.get('media_id', None)
-        if media_id != None:
+        if media_id is not None:
             if len(media_id) != 1:
                 raise Exception('Entity type list endpoints expect only one media ID!')
             media_element = Media.objects.get(pk=media_id[0])
@@ -47,8 +47,8 @@ class StateTypeListAPI(BaseListView):
             response_data = StateType.objects.filter(project=self.kwargs['project']).values(*fields)
         # Get many to many fields.
         state_ids = [state['id'] for state in response_data]
-        media = {obj['statetype_id']:obj['media'] for obj in 
-            StateType.media.through.objects\
+        media = {obj['statetype_id']:obj['media'] for obj in
+                 StateType.media.through.objects\
             .filter(statetype__in=state_ids)\
             .values('statetype_id').order_by('statetype_id')\
             .annotate(media=ArrayAgg('mediatype_id')).iterator()}
@@ -71,7 +71,8 @@ class StateTypeListAPI(BaseListView):
         media_qs = MediaType.objects.filter(project=params['project'], pk__in=media_types)
         if media_qs.count() != len(media_types):
             obj.delete()
-            raise ObjectDoesNotExist(f"Could not find media IDs {media_types} when creating state type!")
+            raise (f"Could not find media IDs {media_types}"
+                   f"when creating state type!")
         for media in media_qs:
             obj.media.add(media)
         obj.save()
@@ -133,5 +134,5 @@ class StateTypeDetailAPI(BaseDetailView):
         return {'message': f'State type {params["id"]} deleted successfully!'}
 
     def get_queryset(self):
+        """ TODO: add documentation for this """
         return StateType.objects.all()
-
