@@ -1,14 +1,13 @@
+""" TODO: add documenation for this """
 import logging
-from collections import defaultdict
-from django.utils import timezone
 import datetime
+from django.utils import timezone
 
 from ..models import Version
 from ..models import Project
 from ..models import State
 from ..models import Localization
 from ..serializers import VersionSerializer
-from ..search import TatorSearch
 from ..schema import VersionListSchema
 from ..schema import VersionDetailSchema
 
@@ -56,7 +55,6 @@ class VersionListAPI(BaseListView):
             qs = Version.objects.filter(pk__in=params['bases'])
             if qs.count() < len(params['bases']):
                 obj.delete()
-                raise ObjectDoesNotExist
             else:
                 obj.bases.set(qs)
 
@@ -75,7 +73,7 @@ class VersionListAPI(BaseListView):
 
         # We augment each version with 'num_created', 'created_datetime'
         # 'num_modified', 'modified_datetime', 'modified_by'
-        response=[]
+        response = []
         type_objects = [State, Localization]
         for datum in data:
             datum['num_created'] = 0
@@ -83,8 +81,9 @@ class VersionListAPI(BaseListView):
             earliest_ctime = timezone.now()
             latest_mtime = timezone.make_aware(datetime.datetime.fromtimestamp(0))
             for obj in type_objects:
-                created_qs = obj.objects.filter(project=project,version=datum['id'])
-                modified_qs = obj.objects.filter(project=project,version=datum['id'], modified=True)
+                created_qs = obj.objects.filter(project=project, version=datum['id'])
+                modified_qs = obj.objects.filter(project=project,
+                                                 version=datum['id'], modified=True)
                 if media:
                     created_qs = created_qs.filter(media=media)
                     modified_qs = modified_qs.filter(media=media)
@@ -150,9 +149,7 @@ class VersionDetailAPI(BaseDetailView):
         if 'bases' in params:
             qs = Version.objects.filter(pk__in=params['bases'])
             if qs.count() < len(params['bases']):
-                raise ObjectDoesNotExist
-            else:
-                version.bases.set(qs)
+                raise version.bases.set(qs)
         return {'message': f'Version {params["id"]} updated successfully!'}
 
     def _delete(self, params):
@@ -160,4 +157,5 @@ class VersionDetailAPI(BaseDetailView):
         return {'message': f'Version {params["id"]} deleted successfully!'}
 
     def get_queryset(self):
+        """ TODO: add documenation for this """
         return Version.objects.all()
