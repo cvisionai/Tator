@@ -34,14 +34,14 @@ class NotifyAPI(APIView):
             else:
                 response = Notify.notify_admin_msg(f"_{request.user}_ : {params['message']}")
 
-            if response == True:
+            if response is True:
                 response = Response({'message' : "Processed"},
                                     status=status.HTTP_200_OK)
             else:
                 response = Response({'message': "Not Processed"},
                                     status=status.HTTP_503_SERVICE_UNAVAILABLE)
-        except Exception as e: #pylint: disable=invalid-name
-            response = Response({'message' : str(e),
+        except Exception as exc: #pylint: disable=broad-except
+            response = Response({'message' : str(exc),
                                  'details': traceback.format_exc()},
                                 status=status.HTTP_400_BAD_REQUEST)
         return response
