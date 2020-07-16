@@ -1,21 +1,25 @@
-import redis
+""" TODO: add documentation for this """
 import json
 import os
 import logging
+import redis
 
 logger = logging.getLogger(__name__)
 
 def get_media_list_hash(project_id, query_params):
+    """ TODO: add documentation for this """
     group = f"media_{project_id}"
     key = json.dumps(query_params, sort_keys=True)
     return (group, key)
 
 def get_localization_list_hash(media_id, entity_type_id, query_params):
+    """ TODO: add documentation for this """
     group = f"localization_{media_id}_{entity_type_id}"
     key = json.dumps(query_params, sort_keys=True)
     return (group, key)
 
 def get_treeleaf_list_hash(ancestor, query_params):
+    """ TODO: add documentation for this """
     group = f"treeleaf_{ancestor}"
     key = json.dumps(query_params, sort_keys=True)
     return (group, key)
@@ -25,6 +29,7 @@ class TatorCache:
     """
     @classmethod
     def setup_redis(cls):
+        """ TODO: add documentation for this """
         cls.rds = redis.Redis(
             host=os.getenv('REDIS_HOST'),
             health_check_interval=30,
@@ -94,11 +99,12 @@ class TatorCache:
         self.rds.delete(group)
 
     def get_cred_cache(self, user_id, project_id):
+        """ TODO: add documentation for this """
         group = f'creds_{project_id}'
         key = f'creds_{project_id}_{user_id}'
         val = None
         if self.rds.hexists(group, key):
-            val = self.rds.hget(group,key)
+            val = self.rds.hget(group, key)
             if val == 'True':
                 val = True
             else:
@@ -106,30 +112,35 @@ class TatorCache:
         return val
 
     def set_cred_cache(self, user_id, project_id, val):
+        """ TODO: add documentation for this """
         group = f'creds_{project_id}'
         key = f'creds_{project_id}_{user_id}'
         self.rds.hset(group, key, str(val))
 
     def invalidate_cred_cache(self, project_id):
+        """ TODO: add documentation for this """
         group = f'creds_{project_id}'
         self.rds.delete(group)
 
     def get_project_cache(self, project_id):
+        """ TODO: add documentation for this """
         group = f'project_{project_id}'
         key = f'project_{project_id}'
         val = None
         if self.rds.hexists(group, key):
-            val = self.rds.hget(group,key)
+            val = self.rds.hget(group, key)
         if val:
-            val=eval(val)
+            val = eval(val)
         return val
 
     def set_project_cache(self, project_id, val):
+        """ TODO: add documenation for this """
         group = f'project_{project_id}'
         key = f'project_{project_id}'
         self.rds.hset(group, key, str(val))
 
     def invalidate_project_cache(self, project_id):
+        """ TODO: add documentation for this """
         group = f'project_{project_id}'
         self.rds.delete(group)
 
