@@ -1,7 +1,6 @@
-from django.forms import ModelForm
+""" TODO: add documentation for this """
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.gis.db import models
 from rest_framework.authtoken.admin import TokenAdmin
 
 from .models import Organization
