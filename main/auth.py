@@ -1,10 +1,11 @@
+""" TODO: add documenation for this """
+from datetime import datetime, timezone, timedelta
+import logging
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 
 from .notify import Notify
-from datetime import datetime,timezone,timedelta
 
-import logging
 logger = logging.getLogger(__name__)
 
 UserModel = get_user_model()
@@ -23,7 +24,7 @@ class TatorAuth(ModelBackend):
         if username is None or password is None:
             return
         try:
-            user = UserModel._default_manager.get_by_natural_key(username)
+            user = UserModel._default_manager.get_by_natural_key(username) #pylint: disable=protected-access
         except UserModel.DoesNotExist:
             # Run the default password hasher once to reduce the timing
             # difference between an existing and a nonexistent user (#20760).
@@ -31,16 +32,16 @@ class TatorAuth(ModelBackend):
             return
 
         if user.failed_login_count >= LOCKOUT_LIMIT:
-            now=datetime.now(timezone.utc)
-            last_failed=user.last_failed_login
-            since_last_fail=now - last_failed
+            now = datetime.now(timezone.utc)
+            last_failed = user.last_failed_login
+            since_last_fail = now - last_failed
             if since_last_fail <= LOCKOUT_TIME:
                 user.last_failed_login = now
                 user.failed_login_count += 1
                 user.save()
-                lockout_lifted=user.last_failed_login+LOCKOUT_TIME
-                time_left=lockout_lifted-now
-                msg = f" *SECURITY ALERT:* Attempt to login during lockout"
+                lockout_lifted = user.last_failed_login+LOCKOUT_TIME
+                time_left = lockout_lifted-now
+                msg = " *SECURITY ALERT:* Attempt to login during lockout"
                 msg += f" User={user}/{user.id}"
                 msg += f" Attempt count = {user.failed_login_count}"
                 msg += f" Lockout will be lifted in '{time_left}' at '{lockout_lifted}'"
