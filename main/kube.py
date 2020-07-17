@@ -19,7 +19,7 @@ from .version import Git
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-NUM_WORK_PACKETS=20
+NUM_WORK_PACKETS = 20
 
 def bytes_to_mi_str(num_bytes):
     num_megabytes = int(math.ceil(float(num_bytes)/1024/1024))
@@ -138,7 +138,7 @@ class TatorTranscode(JobManagerMixin):
             },
             'spec': {
                 'storageClassName': 'nfs-client',
-                'accessModes': [ 'ReadWriteOnce' ],
+                'accessModes': ['ReadWriteOnce'],
                 'resources': {
                     'requests': {
                         'storage': os.getenv("TRANSCODER_PVC_SIZE"),
@@ -205,14 +205,17 @@ class TatorTranscode(JobManagerMixin):
         # Unpacks a tarball and sets up the work products for follow up
         # dags or steps
         unpack_params = [{'name': f'videos-{x}',
-                          'valueFrom': {'path': f'/work/videos_{x}.json'}} for x in range(NUM_WORK_PACKETS)]
+                          'valueFrom': {'path': f'/work/videos_{x}.json'}}
+                         for x in range(NUM_WORK_PACKETS)]
 
         # TODO: Don't make work packets for localizations / states
         unpack_params.extend([{'name': f'localizations-{x}',
-                               'valueFrom': {'path': f'/work/localizations_{x}.json'}} for x in range(NUM_WORK_PACKETS)])
+                               'valueFrom': {'path': f'/work/localizations_{x}.json'}}
+                              for x in range(NUM_WORK_PACKETS)])
 
         unpack_params.extend([{'name': f'states-{x}',
-                               'valueFrom': {'path': f'/work/states_{x}.json'}} for x in range(NUM_WORK_PACKETS)])
+                               'valueFrom': {'path': f'/work/states_{x}.json'}}
+                              for x in range(NUM_WORK_PACKETS)])
         self.unpack_task = {
             'name': 'unpack',
             'inputs': {'parameters' : spell_out_params(['original'])},
@@ -370,7 +373,8 @@ class TatorTranscode(JobManagerMixin):
         self.thumbnail_task = {
             'name': 'thumbnail',
             'nodeSelector' : {'cpuWorker' : 'yes'},
-            'inputs': {'parameters' : spell_out_params(['original','thumbnail', 'thumbnail_gif', 'media'])},
+            'inputs': {'parameters' : spell_out_params(['original', 'thumbnail',
+                                                        'thumbnail_gif', 'media'])},
             'container': {
                 'image': '{{workflow.parameters.transcoder_image}}',
                 'imagePullPolicy': 'IfNotPresent',
@@ -540,7 +544,7 @@ class TatorTranscode(JobManagerMixin):
                                        {'name': 'message', 'value': 'Media Import Complete'},
                                        {'name': 'progress', 'value': '100'},
                                    ]
-                    }
+                }
                 }
             ]],
         }
@@ -606,10 +610,11 @@ class TatorTranscode(JobManagerMixin):
                                              'template': 'transcode-pipeline',
                                              'arguments' : item_parameters,
                                              'withParam' : f'{{{{tasks.unpack-task.outputs.parameters.videos-{x}}}}}',
-                                             'dependencies' : ['unpack-task']} for x in range(NUM_WORK_PACKETS)])
+                                             'dependencies' : ['unpack-task']}
+                                            for x in range(NUM_WORK_PACKETS)])
         unpack_task['dag']['tasks'].append({'name': f'image-upload-task',
-                                             'template': 'image-upload',
-                                             'dependencies' : ['unpack-task']})
+                                            'template': 'image-upload',
+                                            'dependencies' : ['unpack-task']})
 
         deps = [f'transcode-task-{x}' for x in range(NUM_WORK_PACKETS)]
         deps.append('image-upload-task')
@@ -617,13 +622,15 @@ class TatorTranscode(JobManagerMixin):
                                              'template': 'data-import',
                                              'arguments' : state_import_parameters,
                                              'dependencies' : deps,
-                                             'withParam': f'{{{{tasks.unpack-task.outputs.parameters.states-{x}}}}}'} for x in range(NUM_WORK_PACKETS)])
+                                             'withParam': f'{{{{tasks.unpack-task.outputs.parameters.states-{x}}}}}'}
+                                            for x in range(NUM_WORK_PACKETS)])
 
         unpack_task['dag']['tasks'].extend([{'name': f'localization-import-task-{x}',
                                              'template': 'data-import',
                                              'arguments' : localization_import_parameters,
                                              'dependencies' : deps,
-                                             'withParam': f'{{{{tasks.unpack-task.outputs.parameters.localizations-{x}}}}}'}  for x in range(NUM_WORK_PACKETS)])
+                                             'withParam': f'{{{{tasks.unpack-task.outputs.parameters.localizations-{x}}}}}'}
+                                            for x in range(NUM_WORK_PACKETS)])
         return unpack_task
 
     def get_transcode_dag(self):
@@ -709,7 +716,7 @@ class TatorTranscode(JobManagerMixin):
                 'tasks' : [{'name': 'download-task',
                             'template': 'download',
                             'arguments': parameters},
-                            {'name': 'transcode-task',
+                           {'name': 'transcode-task',
                             'template': 'transcode-pipeline',
                             'arguments' : parameters,
                             'dependencies' : ['download-task']}]
@@ -767,7 +774,7 @@ class TatorTranscode(JobManagerMixin):
                        'user': str(user),
                        'transcoder_image' : f"{docker_registry}/tator_transcoder:{Git.sha}",
                        'marshal_image': get_marshal_image_name()}
-        global_parameters=[{"name": x, "value": global_args[x]} for x in global_args]
+        global_parameters = [{"name": x, "value": global_args[x]} for x in global_args]
 
         pipeline_task = self.get_unpack_and_transcode_tasks(args, url)
         # Define the workflow spec.
@@ -857,7 +864,7 @@ class TatorTranscode(JobManagerMixin):
                        'user': str(user),
                        'transcoder_image' : f"{docker_registry}/tator_transcoder:{Git.sha}",
                        'marshal_image': get_marshal_image_name()}
-        global_parameters=[{"name": x, "value": global_args[x]} for x in global_args]
+        global_parameters = [{"name": x, "value": global_args[x]} for x in global_args]
 
         pipeline_task = self.get_transcode_task(args, url)
         # Define the workflow spec.
@@ -943,7 +950,7 @@ class TatorAlgorithm(JobManagerMixin):
 
             if 'volumeClaimTemplates' in self.manifest['spec']:
                 for claim in self.manifest['spec']['volumeClaimTemplates']:
-                    storage_class_name = claim['spec'].get('storageClassName',None)
+                    storage_class_name = claim['spec'].get('storageClassName', None)
                     if storage_class_name is None:
                         claim['storageClassName'] = 'nfs-client'
                         logger.warning(f"Implicitly sc to pvc of Algo:{alg.pk}")
