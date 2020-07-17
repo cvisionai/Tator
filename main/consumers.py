@@ -1,13 +1,14 @@
+""" TODO: add documentation for this """
 import os
 import json
 import logging
 import datetime
 import redis
+from asgiref.sync import async_to_sync
 from channels.generic.websocket import JsonWebsocketConsumer
-from channels.consumer import SyncConsumer
 from channels.layers import get_channel_layer
 from channels.exceptions import StopConsumer
-from asgiref.sync import async_to_sync
+
 from .models import Project
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ class ProgressProducer:
     """
     @classmethod
     def setup_redis(cls):
+        """ TODO: add documentation for this """
         cls.rds = redis.Redis(
             host=os.getenv('REDIS_HOST'),
             health_check_interval=30,
@@ -64,8 +66,8 @@ class ProgressProducer:
             msg = {**msg, **aux}
         try:
             async_to_sync(self.channel_layer.group_send)(self.prog_grp, msg)
-        except Exception as e:
-            logger.info(f"Failed to send individual progress message! {str(e)}")
+        except Exception as exc:
+            logger.info(f"Failed to send individual progress message! {str(exc)}")
         json_msg = json.dumps(msg)
         self.rds.hset('uids', self.uid, json_msg)
         if 'swid' in msg:
@@ -99,7 +101,7 @@ class ProgressProducer:
             try:
                 async_to_sync(self.channel_layer.group_send)(self.prog_grp, msg)
             except:
-                logger.info(f"Failed to send summary progress message! {str(e)}")
+                logger.info(f"Failed to send summary progress message! {str(exc)}")
 
     def _increment_summary(self, msg):
         if self.rds.hexists('num_complete', self.gid):
@@ -120,7 +122,7 @@ class ProgressProducer:
     def progress(self, msg, progress, aux=None):
         """Broadcast a progress message.
         """
-        self._broadcast('started', msg, progress,aux)
+        self._broadcast('started', msg, progress, aux)
 
     def failed(self, msg):
         """Broadcast a failure message.
@@ -151,6 +153,7 @@ class ProgressConsumer(JsonWebsocketConsumer):
 
     @classmethod
     def setup_redis(cls):
+        """ TODO: add documentation for this """
         cls.rds = redis.Redis(
             host=os.getenv('REDIS_HOST'),
             health_check_interval=30,
@@ -161,6 +164,7 @@ class ProgressConsumer(JsonWebsocketConsumer):
         super().__init__(*args, **kwargs)
 
     def connect(self):
+        """ TODO: add documentation for this """
         self.accept()
         logger.info("Connecting to progress consumer.")
         # Join all project groups that this user is a member of
@@ -170,9 +174,11 @@ class ProgressConsumer(JsonWebsocketConsumer):
                 self._join_and_update(prefix, project.id)
 
     def progress(self, content):
+        """ TODO: add documentation for this """
         self.send_json(content)
 
     def disconnect(self, close_code):
+        """ TODO: add documentation for this """
         logger.info("Progress consumer closed with code {}".format(close_code))
         raise StopConsumer
 
@@ -186,5 +192,3 @@ class ProgressConsumer(JsonWebsocketConsumer):
 
 # Initialize global redis connection
 ProgressConsumer.setup_redis()
-
-
