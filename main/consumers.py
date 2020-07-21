@@ -24,9 +24,11 @@ class ProgressProducer:
             health_check_interval=30,
         )
 
-    def __init__(self, prefix, project_id, gid, uid, name, user, aux={}):
+    def __init__(self, prefix, project_id, gid, uid, name, user, aux=None):
         """Store uid, name, user in a dict. Store project id.
         """
+        if aux is None:
+            aux = {}
         self.channel_layer = get_channel_layer()
         self.prog_grp = prefix + '_prog_' + str(project_id)
         self.prefix = prefix
@@ -66,7 +68,7 @@ class ProgressProducer:
             msg = {**msg, **aux}
         try:
             async_to_sync(self.channel_layer.group_send)(self.prog_grp, msg)
-        except Exception as exc:
+        except Exception as exc: #pylint: disable=broad-except
             logger.info(f"Failed to send individual progress message! {str(exc)}")
         json_msg = json.dumps(msg)
         self.rds.hset('uids', self.uid, json_msg)
@@ -100,7 +102,7 @@ class ProgressProducer:
         if num_procs >= num_complete:
             try:
                 async_to_sync(self.channel_layer.group_send)(self.prog_grp, msg)
-            except:
+            except Exception as exc: #pylint: disable=broad-except
                 logger.info(f"Failed to send summary progress message! {str(exc)}")
 
     def _increment_summary(self, msg):
@@ -162,6 +164,7 @@ class ProgressConsumer(JsonWebsocketConsumer):
     def __init__(self, *args, **kwargs):
         logger.info("Creating progress consumer.")
         super().__init__(*args, **kwargs)
+        self.prog_grp = ""
 
     def connect(self):
         """ TODO: add documentation for this """
