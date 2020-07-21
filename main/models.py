@@ -1,3 +1,4 @@
+""" TODO: add documentaion for this """
 import os
 import traceback
 
@@ -53,6 +54,7 @@ import uuid
 logger = logging.getLogger(__name__)
 
 class Depth(Transform):
+    """ TODO: add documentation for this """
     lookup_name = "depth"
     function = "nlevel"
 
@@ -62,27 +64,32 @@ class Depth(Transform):
 
 PathField.register_lookup(Depth)
 
-FileFormat= [('mp4','mp4'), ('webm','webm'), ('mov', 'mov')]
-ImageFileFormat= [('jpg','jpg'), ('png','png'), ('bmp', 'bmp'), ('raw', 'raw')]
+FileFormat = [('mp4', 'mp4'), ('webm', 'webm'), ('mov', 'mov')]
+ImageFileFormat = [('jpg', 'jpg'), ('png', 'png'), ('bmp', 'bmp'), ('raw', 'raw')]
 
 ## Describes different association models in the database
-AssociationTypes = [('Media','Relates to one or more media items'),
-                    ('Frame', 'Relates to a specific frame in a video'), #Relates to one or more frames in a video
-                    ('Localization', 'Relates to localization(s)')] #Relates to one-to-many localizations
+AssociationTypes = [('Media', 'Relates to one or more media items'),
+                    ('Frame', 'Relates to a specific frame in a video'),
+                    #Relates to one or more frames in a video
+                    ('Localization', 'Relates to localization(s)')]
+#Relates to one-to-many localizations
 
 class MediaAccess(Enum):
+    """ TODO: add documentation for this """
     VIEWABLE = 'viewable'
     DOWNLOADABLE = 'downloadable'
     ARCHIVAL = 'archival'
     REMOVE = 'remove'
 
 class Marker(Enum):
+    """ TODO: add documentation for this """
     NONE = 'none'
     CROSSHAIR = 'crosshair'
     SQUARE = 'square'
     CIRCLE = 'circle'
 
 class InterpolationMethods(Enum):
+    """ TODO: add documentation for this """
     NONE = 'none'
     LATEST = 'latest'
     NEAREST = 'nearest'
@@ -90,16 +97,18 @@ class InterpolationMethods(Enum):
     SPLINE = 'spline'
 
 class JobResult(Enum):
+    """ TODO: add documentation for this """
     FINISHED = 'finished'
     FAILED = 'failed'
 
-class JobStatus(Enum): # Keeping for migration compatiblity
-    pass
+class JobStatus(Enum): # Keeping for migration compatibility
+    """ TODO: add documentation for this """
 
-class JobChannel(Enum): # Keeping for migration compatiblity
-    pass
+class JobChannel(Enum): # Keeping for migration compatibility
+    """ TODO: add documentation for this """
 
 class Permission(Enum):
+    """ TODO: add documentation for this """
     VIEW_ONLY = 'r'
     CAN_EDIT = 'w'
     CAN_TRANSFER = 't'
@@ -107,19 +116,23 @@ class Permission(Enum):
     FULL_CONTROL = 'a'
 
 class HistogramPlotType(Enum):
+    """ TODO: add documentation for this """
     PIE = 'pie'
     BAR = 'bar'
 
 class TwoDPlotType(Enum):
+    """ TODO: add documentation for this """
     LINE = 'line'
     SCATTER = 'scatter'
 
 class Organization(Model):
+    """ TODO: add documentation for this """
     name = CharField(max_length=128)
     def __str__(self):
         return self.name
 
 class User(AbstractUser):
+    """ TODO: add documentation for this """
     middle_initial = CharField(max_length=1)
     initials = CharField(max_length=3)
     organization = ForeignKey(Organization, on_delete=SET_NULL, null=True, blank=True)
@@ -134,6 +147,7 @@ class User(AbstractUser):
             return "---"
 
 class Project(Model):
+    """ TODO: add documentation for this """
     name = CharField(max_length=128)
     creator = ForeignKey(User, on_delete=PROTECT, related_name='creator')
     created = DateTimeField(auto_now_add=True)
@@ -144,8 +158,10 @@ class Project(Model):
     summary = CharField(max_length=1024)
     filter_autocomplete = JSONField(null=True, blank=True)
     def has_user(self, user_id):
+        """ TODO: add documentation for this """
         return self.membership_set.filter(user_id=user_id).exists()
     def user_permission(self, user_id):
+        """ TODO: add documentation for this """
         permission = None
         qs = self.membership_set.filter(user_id=user_id)
         if qs.exists():
@@ -163,12 +179,14 @@ class Project(Model):
         super().delete(*args, **kwargs)
 
 class Version(Model):
+    """ TODO: add documentation for this """
     name = CharField(max_length=128)
     description = CharField(max_length=1024, blank=True)
     number = PositiveIntegerField()
     project = ForeignKey(Project, on_delete=CASCADE)
     created_datetime = DateTimeField(auto_now_add=True, null=True, blank=True)
-    created_by = ForeignKey(User, on_delete=SET_NULL, null=True, blank=True, related_name='version_created_by')
+    created_by = ForeignKey(User, on_delete=SET_NULL, null=True,
+                            blank=True, related_name='version_created_by')
     show_empty = BooleanField(default=True)
     """ Tells the UI to show this version even if the current media does not
         have any annotations.
@@ -186,6 +204,7 @@ class Version(Model):
         return out
 
 def make_default_version(instance):
+    """ TODO: add documentation for this """
     return Version.objects.create(
         name="Baseline",
         description="Initial version",
@@ -195,13 +214,15 @@ def make_default_version(instance):
     )
 
 @receiver(post_save, sender=Project)
-def project_save(sender, instance, created, **kwargs):
+def project_save(instance, created):
+    """ TODO: add documentation for this """
     TatorSearch().create_index(instance.pk)
     if created:
         make_default_version(instance)
 
 @receiver(pre_delete, sender=Project)
-def delete_index_project(sender, instance, **kwargs):
+def delete_index_project(instance):
+    """ TODO: add documentation for this """
     TatorSearch().delete_index(instance.pk)
 
 class Membership(Model):
@@ -213,7 +234,7 @@ class Membership(Model):
     def __str__(self):
         return f'{self.user} | {self.permission} | {self.project}'
 
-def getVideoDefinition(path, codec, resolution, **kwargs):
+def get_video_definition(path, codec, resolution, **kwargs):
     """ Convenience function to generate video definiton dictionary """
     obj = {"path": path,
            "codec": codec,
@@ -229,10 +250,12 @@ def getVideoDefinition(path, codec, resolution, **kwargs):
             raise TypeError(f"Invalid argument '{arg}' supplied")
     return obj
 
-def ProjectBasedFileLocation(instance, filename):
+def project_based_file_location(instance, filename):
+    """ TODO: add documentation for this """
     return os.path.join(f"{instance.project.id}", filename)
 
 class JobCluster(Model):
+    """ TODO: add documentation for this """
     name = CharField(max_length=128)
     owner = ForeignKey(User, null=True, blank=True, on_delete=SET_NULL)
     host = CharField(max_length=1024)
@@ -241,16 +264,18 @@ class JobCluster(Model):
     cert = TextField(max_length=2048)
 
     def __str__(self):
+        """ TODO: add documentation for this """
         return self.name
 
 # Algorithm models
 
 class Algorithm(Model):
+    """ TODO: add documentation for this """
     name = CharField(max_length=128)
     project = ForeignKey(Project, on_delete=CASCADE)
     user = ForeignKey(User, on_delete=PROTECT)
     description = CharField(max_length=1024, null=True, blank=True)
-    manifest = FileField(upload_to=ProjectBasedFileLocation, null=True, blank=True)
+    manifest = FileField(upload_to=project_based_file_location, null=True, blank=True)
     cluster = ForeignKey(JobCluster, null=True, blank=True, on_delete=SET_NULL)
     files_per_job = PositiveIntegerField(
         default=1,
@@ -265,7 +290,8 @@ class Algorithm(Model):
         return self.name
 
 class TemporaryFile(Model):
-    """ Represents a temporary file in the system, can be used for algorithm results or temporary outputs """
+    """ Represents a temporary file in the system"""
+    """ can be used for algorithm results or temporary outputs """
     name = CharField(max_length=128)
     """ Human readable name for display purposes """
     project = ForeignKey(Project, on_delete=CASCADE)
@@ -293,12 +319,13 @@ class TemporaryFile(Model):
         :returns A saved TemporaryFile:
         """
         extension = os.path.splitext(name)[-1]
-        destination_fp=os.path.join(settings.MEDIA_ROOT, f"{project.id}", f"{uuid.uuid1()}{extension}")
+        destination_fp = os.path.join(settings.MEDIA_ROOT, f"{project.id}",
+                                      f"{uuid.uuid1()}{extension}")
         os.makedirs(os.path.dirname(destination_fp), exist_ok=True)
         shutil.copyfile(path, destination_fp)
 
         now = datetime.datetime.utcnow()
-        eol =  now + datetime.timedelta(hours=hours)
+        eol = now + datetime.timedelta(hours=hours)
 
         temp_file = TemporaryFile(name=name,
                                   project=project,
@@ -306,18 +333,20 @@ class TemporaryFile(Model):
                                   path=destination_fp,
                                   lookup=lookup,
                                   created_datetime=now,
-                                  eol_datetime = eol)
+                                  eol_datetime=eol)
         temp_file.save()
         return temp_file
 
 @receiver(pre_delete, sender=TemporaryFile)
-def temporary_file_delete(sender, instance, **kwargs):
+def temporary_file_delete(instance):
+    """ TODO: add documentation for this """
     if os.path.exists(instance.path):
         os.remove(instance.path)
 
 # Entity types
 
 class MediaType(Model):
+    """ TODO: add documentation for this """
     dtype = CharField(max_length=16, choices=[('image', 'image'), ('video', 'video')])
     project = ForeignKey(Project, on_delete=CASCADE, null=True, blank=True, db_column='project')
     name = CharField(max_length=64)
@@ -361,10 +390,12 @@ class MediaType(Model):
         return f'{self.name} | {self.project}'
 
 @receiver(post_save, sender=MediaType)
-def media_type_save(sender, instance, **kwargs):
+def media_type_save(instance):
+    """ TODO: add documentation for this """
     TatorSearch().create_mapping(instance)
 
 class LocalizationType(Model):
+    """ TODO: add documentation for this """
     dtype = CharField(max_length=16,
                       choices=[('box', 'box'), ('line', 'line'), ('dot', 'dot')])
     project = ForeignKey(Project, on_delete=CASCADE, null=True, blank=True, db_column='project')
@@ -403,10 +434,12 @@ class LocalizationType(Model):
         return f'{self.name} | {self.project}'
 
 @receiver(post_save, sender=LocalizationType)
-def localization_type_save(sender, instance, **kwargs):
+def localization_type_save(instance):
+    """ TODO: add documentation for this """
     TatorSearch().create_mapping(instance)
 
 class StateType(Model):
+    """ TODO: add documentation for this """
     dtype = CharField(max_length=16, choices=[('state', 'state')], default='state')
     project = ForeignKey(Project, on_delete=CASCADE, null=True, blank=True, db_column='project')
     name = CharField(max_length=64)
@@ -448,10 +481,12 @@ class StateType(Model):
         return f'{self.name} | {self.project}'
 
 @receiver(post_save, sender=StateType)
-def state_type_save(sender, instance, **kwargs):
+def state_type_save(instance):
+    """ TODO: add documentation for this """
     TatorSearch().create_mapping(instance)
 
 class LeafType(Model):
+    """ TODO: add documentation for this """
     dtype = CharField(max_length=16, choices=[('leaf', 'leaf')], default='leaf')
     project = ForeignKey(Project, on_delete=CASCADE, null=True, blank=True, db_column='project')
     name = CharField(max_length=64)
@@ -486,7 +521,8 @@ class LeafType(Model):
         return f'{self.name} | {self.project}'
 
 @receiver(post_save, sender=LeafType)
-def leaf_type_save(sender, instance, **kwargs):
+def leaf_type_save(instance):
+    """ TODO: add documentation for this """
     TatorSearch().create_mapping(instance)
 
 
@@ -575,17 +611,19 @@ class Media(Model):
     num_frames = IntegerField(null=True, blank=True)
     fps = FloatField(null=True, blank=True)
     codec = CharField(null=True, blank=True, max_length=256)
-    width=IntegerField(null=True)
-    height=IntegerField(null=True)
+    width = IntegerField(null=True)
+    height = IntegerField(null=True)
     segment_info = FilePathField(path=settings.MEDIA_ROOT, null=True,
                                  blank=True)
     media_files = JSONField(null=True, blank=True)
 
 @receiver(post_save, sender=Media)
-def media_save(sender, instance, created, **kwargs):
+def media_save(instance):
+    """ TODO: add documentation for this """
     TatorSearch().create_document(instance)
 
 def safe_delete(path):
+    """ TODO: add documentation for this """
     try:
         logger.info(f"Deleting {path}")
         os.remove(path)
@@ -594,7 +632,8 @@ def safe_delete(path):
         logger.warning(f"{traceback.format_exc()}")
 
 @receiver(pre_delete, sender=Media)
-def media_delete(sender, instance, **kwargs):
+def media_delete(instance):
+    """ TODO: add documentation for this """
     if instance.project:
         TatorSearch().delete_document(instance)
     instance.file.delete(False)
@@ -621,6 +660,7 @@ def media_delete(sender, instance, **kwargs):
     instance.thumbnail_gif.delete(False)
 
 class Localization(Model):
+    """ TODO: add documentation for this """
     project = ForeignKey(Project, on_delete=SET_NULL, null=True, blank=True, db_column='project')
     meta = ForeignKey(LocalizationType, on_delete=SET_NULL, null=True, blank=True, db_column='meta')
     """ Meta points to the defintion of the attribute field. That is
@@ -661,18 +701,20 @@ class Localization(Model):
     """ Width for boxes."""
     height = FloatField(null=True, blank=True)
     """ Height for boxes."""
-    parent = ForeignKey("self", on_delete=SET_NULL, null=True, blank=True,db_column='parent')
+    parent = ForeignKey("self", on_delete=SET_NULL, null=True, blank=True, db_column='parent')
     """ Pointer to localization in which this one was generated from """
 
 @receiver(post_save, sender=Localization)
-def localization_save(sender, instance, created, **kwargs):
-    if getattr(instance,'_inhibit', False) == False:
+def localization_save(instance):
+    """ TODO: add documentation for this """
+    if getattr(instance, '_inhibit', False) == False:
         TatorSearch().create_document(instance)
     else:
         pass
 
 @receiver(pre_delete, sender=Localization)
-def localization_delete(sender, instance, **kwargs):
+def localization_delete(instance):
+    """ TODO: add documentation for this """
     TatorSearch().delete_document(instance)
     if instance.thumbnail_image:
         instance.thumbnail_image.delete()
@@ -715,28 +757,32 @@ class State(Model):
                            blank=True,
                            related_name='extracted',
                            db_column='extracted')
-    def selectOnMedia(media_id):
+    def select_on_media(media_id):
+        """ TODO: add documentation for this """
         return State.objects.filter(media__in=media_id)
 
 @receiver(post_save, sender=State)
-def state_save(sender, instance, created, **kwargs):
+def state_save(instance):
+    """ TODO: add documentation for this """
     TatorSearch().create_document(instance)
 
 @receiver(pre_delete, sender=State)
-def state_delete(sender, instance, **kwargs):
+def state_delete(instance):
+    """ TODO: add documentation for this """
     TatorSearch().delete_document(instance)
 
 @receiver(m2m_changed, sender=State.localizations.through)
-def calc_segments(sender, **kwargs):
-    instance=kwargs['instance']
-    sortedLocalizations=Localization.objects.filter(pk__in=instance.localizations.all()).order_by('frame')
+def calc_segments(**kwargs):
+    """ TODO: add documentation for this """
+    instance = kwargs['instance']
+    sorted_localizations = Localization.objects.filter(pk__in=instance.localizations.all()).order_by('frame')
 
     #Bring up related media to association
-    instance.media.set(sortedLocalizations.all().values_list('media', flat=True))
-    segmentList=[]
-    current=[None,None]
-    last=None
-    for localization in sortedLocalizations:
+    instance.media.set(sorted_localizations.all().values_list('media', flat=True))
+    segmentList = []
+    current = [None, None]
+    last = None
+    for localization in sorted_localizations:
         if current[0] is None:
             current[0] = localization.frame
             last = current[0]
@@ -769,8 +815,8 @@ class Leaf(Model):
     modified_datetime = DateTimeField(auto_now=True, null=True, blank=True)
     modified_by = ForeignKey(User, on_delete=SET_NULL, null=True, blank=True,
                              related_name='leaf_modified_by', db_column='modified_by')
-    parent=ForeignKey('self', on_delete=SET_NULL, blank=True, null=True, db_column='parent')
-    path=PathField(unique=True)
+    parent = ForeignKey('self', on_delete=SET_NULL, blank=True, null=True, db_column='parent')
+    path = PathField(unique=True)
     name = CharField(max_length=255)
 
     class Meta:
@@ -790,12 +836,12 @@ class Leaf(Model):
 
     def computePath(self):
         """ Returns the string representing the path element """
-        pathStr=self.name.replace(" ","_").replace("-","_").replace("(","_").replace(")","_")
+        pathStr = self.name.replace(" ", "_").replace("-", "_").replace("(", "_").replace(")", "_")
         if self.parent:
-            pathStr=self.parent.computePath()+"."+pathStr
+            pathStr = self.parent.computePath()+"."+pathStr
         elif self.project:
-            projName=self.project.name.replace(" ","_").replace("-","_").replace("(","_").replace(")","_")
-            pathStr=projName+"."+pathStr
+            projName = self.project.name.replace(" ", "_").replace("-", "_").replace("(", "_").replace(")", "_")
+            pathStr = projName+"."+pathStr
         return pathStr
 
 @receiver(post_save, sender=Leaf)
@@ -828,8 +874,8 @@ def type_to_obj(typeObj):
         return None
 
 def make_dict(keys, row):
-    d={}
-    for idx,col in enumerate(keys):
+    d = {}
+    for idx, col in enumerate(keys):
         d[col.name] = row[idx]
     return d
 
@@ -841,11 +887,11 @@ def database_query(query):
     import datetime
     with connection.cursor() as d_cursor:
         cursor = d_cursor.cursor
-        bq=datetime.datetime.now()
+        bq = datetime.datetime.now()
         cursor.execute(query)
-        aq=datetime.datetime.now()
-        l=[make_dict(cursor.description, x) for x in cursor]
-        af=datetime.datetime.now()
+        aq = datetime.datetime.now()
+        l = [make_dict(cursor.description, x) for x in cursor]
+        af = datetime.datetime.now()
         logger.info(f"Query = {aq-bq}")
         logger.info(f"List = {af-aq}")
     return l
