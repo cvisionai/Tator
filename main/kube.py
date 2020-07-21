@@ -1,9 +1,9 @@
+""" TODO: add documentation for this """
 import math
 import os
 import logging
 import tempfile
 import copy
-import tarfile
 import json
 
 from kubernetes.client import Configuration
@@ -22,6 +22,7 @@ logger.setLevel(logging.INFO)
 NUM_WORK_PACKETS = 20
 
 def bytes_to_mi_str(num_bytes):
+    """ TODO: add documentation for this """
     num_megabytes = int(math.ceil(float(num_bytes)/1024/1024))
     return "{}Mi".format(num_megabytes)
 
@@ -612,7 +613,7 @@ class TatorTranscode(JobManagerMixin):
                                              'withParam' : f'{{{{tasks.unpack-task.outputs.parameters.videos-{x}}}}}',
                                              'dependencies' : ['unpack-task']}
                                             for x in range(NUM_WORK_PACKETS)])
-        unpack_task['dag']['tasks'].append({'name': f'image-upload-task',
+        unpack_task['dag']['tasks'].append({'name': 'image-upload-task',
                                             'template': 'image-upload',
                                             'dependencies' : ['unpack-task']})
 
@@ -742,15 +743,11 @@ class TatorTranscode(JobManagerMixin):
                          url,
                          name,
                          section,
-                         md5,
                          gid,
                          uid,
                          user,
                          upload_size):
         """ Initiate a transcode based on the contents on an archive """
-        comps = name.split('.')
-        base = comps[0]
-        ext = '.'.join(comps[1:])
 
         if entity_type != -1:
             raise Exception("entity type is not -1!")
@@ -822,7 +819,7 @@ class TatorTranscode(JobManagerMixin):
         }
 
         # Create the workflow
-        response = self.custom.create_namespaced_custom_object(
+        self.custom.create_namespaced_custom_object(
             group='argoproj.io',
             version='v1alpha1',
             namespace='default',
@@ -908,7 +905,7 @@ class TatorTranscode(JobManagerMixin):
         }
 
         # Create the workflow
-        response = self.custom.create_namespaced_custom_object(
+        self.custom.create_namespaced_custom_object(
             group='argoproj.io',
             version='v1alpha1',
             namespace='default',
@@ -928,8 +925,8 @@ class TatorAlgorithm(JobManagerMixin):
             host = alg.cluster.host
             port = alg.cluster.port
             token = alg.cluster.token
-            fd, cert = tempfile.mkstemp(text=True)
-            with open(fd, 'w') as f:
+            f_d, cert = tempfile.mkstemp(text=True)
+            with open(f_d, 'w') as f: #pylint: disable=invalid-name
                 f.write(alg.cluster.cert)
             conf = Configuration()
             conf.api_key['authorization'] = token
@@ -1119,9 +1116,10 @@ class TatorAlgorithm(JobManagerMixin):
         return response
 
 class TatorMove:
+    """ TODO: add documentation for this """
     def __init__(self):
         # Load in the workflow yaml.
-        with open('/tator_online/workflows/move-video.yaml', 'r') as f:
+        with open('/tator_online/workflows/move-video.yaml', 'r') as f: #pylint: disable=invalid-name
             self.workflow = yaml.safe_load(f)
 
         # Initialize kube interface.
@@ -1135,7 +1133,7 @@ class TatorMove:
                 param['value'] = value
                 break
 
-    def move_video(self, project, media_id, token, move_list, media_files, gid, uid):
+    def move_video(self, media_id, token, move_list, media_files, gid, uid):
         """ Create a workflow for moving files.
 
         :param project: Unique integer identifying a project.
