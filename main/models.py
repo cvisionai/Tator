@@ -1,14 +1,18 @@
 """ TODO: add documentaion for this """
 import os
 import traceback
+import uuid
+import shutil
+import logging
+import datetime
 
+from django.db import connection
 from django.contrib.gis.db.models import Model
 from django.contrib.gis.db.models import ForeignKey
 from django.contrib.gis.db.models import ManyToManyField
 from django.contrib.gis.db.models import OneToOneField
 from django.contrib.gis.db.models import CharField
 from django.contrib.gis.db.models import TextField
-from django.contrib.gis.db.models import URLField
 from django.contrib.gis.db.models import SlugField
 from django.contrib.gis.db.models import BooleanField
 from django.contrib.gis.db.models import IntegerField
@@ -16,39 +20,26 @@ from django.contrib.gis.db.models import BigIntegerField
 from django.contrib.gis.db.models import PositiveIntegerField
 from django.contrib.gis.db.models import FloatField
 from django.contrib.gis.db.models import DateTimeField
-from django.contrib.gis.db.models import PointField
 from django.contrib.gis.db.models import FileField
 from django.contrib.gis.db.models import FilePathField
 from django.contrib.gis.db.models import ImageField
 from django.contrib.gis.db.models import PROTECT
 from django.contrib.gis.db.models import CASCADE
 from django.contrib.gis.db.models import SET_NULL
-from django.contrib.gis.geos import Point
 from django.contrib.auth.models import AbstractUser
-from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
-from django.core.validators import RegexValidator
-from django.db.models import FloatField, Transform
+from django.db.models import Transform
 from django.db.models.signals import post_save
 from django.db.models.signals import pre_delete
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver
 from django.conf import settings
+import pytz
 from enumfields import Enum
 from enumfields import EnumField
 from django_ltree.fields import PathField
-
 from .search import TatorSearch
-
-from collections import UserDict
-
-import pytz
-import datetime
-import logging
-import os
-import shutil
-import uuid
 
 # Load the main.view logger
 logger = logging.getLogger(__name__)
@@ -314,7 +305,7 @@ class TemporaryFile(Model):
         self.eol_datetime = past
         self.save()
 
-    def from_local(path, name, project, user, lookup, hours):
+    def from_local(self, path, name, project, user, lookup, hours):
         """ Given a local file create a temporary file storage object
         :returns A saved TemporaryFile:
         """
@@ -757,7 +748,7 @@ class State(Model):
                            blank=True,
                            related_name='extracted',
                            db_column='extracted')
-    def select_on_media(media_id):
+    def select_on_media(self, media_id):
         """ TODO: add documentation for this """
         return State.objects.filter(media__in=media_id)
 
@@ -779,7 +770,7 @@ def calc_segments(**kwargs):
 
     #Bring up related media to association
     instance.media.set(sorted_localizations.all().values_list('media', flat=True))
-    segmentList = []
+    segment_list = []
     current = [None, None]
     last = None
     for localization in sorted_localizations:
@@ -791,16 +782,17 @@ def calc_segments(**kwargs):
                 last = localization.frame
             else:
                 current[1] = last
-                segmentList.append(current.copy())
+                segment_list.append(current.copy())
                 current[0] = localization.frame
                 current[1] = None
                 last = localization.frame
     if current[1] is None:
         current[1] = last
-        segmentList.append(current)
-    instance.segments = segmentList
+        segment_list.append(current)
+    instance.segments = segment_list
 
 class Leaf(Model):
+    """ TODO: add documentation for this """
     project = ForeignKey(Project, on_delete=SET_NULL, null=True, blank=True, db_column='project')
     meta = ForeignKey(LeafType, on_delete=SET_NULL, null=True, blank=True, db_column='meta')
     """ Meta points to the defintion of the attribute field. That is
@@ -826,40 +818,45 @@ class Leaf(Model):
         return str(self.path)
 
     def depth(self):
+        """ TODO: add documentation for this """
         return Leaf.objects.annotate(depth=Depth('path')).get(pk=self.pk).depth
 
-    def subcategories(self, minLevel=1):
+    def subcategories(self, min_level=1):
+        """ TODO: add documentation for this """
         return Leaf.objects.select_related('parent').filter(
             path__descendants=self.path,
-            path__depth__gte=self.depth()+minLevel
+            path__depth__gte=self.depth()+min_level
         )
 
-    def computePath(self):
+    def compute_path(self):
         """ Returns the string representing the path element """
-        pathStr = self.name.replace(" ", "_").replace("-", "_").replace("(", "_").replace(")", "_")
+        path_str = self.name.replace(" ", "_").replace("-", "_").replace("(", "_").replace(")", "_")
         if self.parent:
-            pathStr = self.parent.computePath()+"."+pathStr
+            path_str = self.parent.computePath()+"."+path_str
         elif self.project:
-            projName = self.project.name.replace(" ", "_").replace("-", "_").replace("(", "_").replace(")", "_")
-            pathStr = projName+"."+pathStr
-        return pathStr
+            proj_name = self.project.name.replace(" ", "_").replace("-", "_").replace("(", "_").replace(")", "_")
+            path_str = proj_name+"."+path_str
+        return path_str
 
 @receiver(post_save, sender=Leaf)
-def leaf_save(sender, instance, **kwargs):
+def leaf_save(instance):
+    """ TODO: add documentation for this """
     TatorSearch().create_document(instance)
 
 @receiver(pre_delete, sender=Leaf)
-def leaf_delete(sender, instance, **kwargs):
+def leaf_delete(instance):
+    """ TODO: add documentation for this """
     TatorSearch().delete_document(instance)
 
 class Analysis(Model):
+    """ TODO: add documentation for this """
     project = ForeignKey(Project, on_delete=CASCADE, db_column='project')
     name = CharField(max_length=64)
     data_query = CharField(max_length=1024, default='*')
     def __str__(self):
         return f"{self.project} | {self.name}"
 
-def type_to_obj(typeObj):
+def type_to_obj(type_obj):
     """Returns a data object for a given type object"""
     _dict = {
         MediaType: Media,
@@ -868,32 +865,33 @@ def type_to_obj(typeObj):
         LeafType: Leaf,
     }
 
-    if typeObj in _dict:
-        return _dict[typeObj]
+    if type_obj in _dict:
+        return _dict[type_obj]
     else:
         return None
 
 def make_dict(keys, row):
-    d = {}
+    """ TODO: add documentation for this """
+    d = {} #pylint: disable=invalid-name
     for idx, col in enumerate(keys):
         d[col.name] = row[idx]
     return d
 
 def database_qs(qs):
+    """ TODO: add documentation for this """
     return database_query(str(qs.query))
 
 def database_query(query):
-    from django.db import connection
-    import datetime
+    """ TODO: add documentation for this """
     with connection.cursor() as d_cursor:
         cursor = d_cursor.cursor
-        bq = datetime.datetime.now()
+        b_q = datetime.datetime.now()
         cursor.execute(query)
-        aq = datetime.datetime.now()
-        l = [make_dict(cursor.description, x) for x in cursor]
-        af = datetime.datetime.now()
-        logger.info(f"Query = {aq-bq}")
-        logger.info(f"List = {af-aq}")
+        a_q = datetime.datetime.now()
+        l = [make_dict(cursor.description, x) for x in cursor] #pylint: disable=invalid-name
+        a_f = datetime.datetime.now()
+        logger.info(f"Query = {a_q-b_q}")
+        logger.info(f"List = {a_f-a_q}")
     return l
 
 def database_query_ids(table, ids, order):
