@@ -105,10 +105,7 @@ class TatorCache:
         val = None
         if self.rds.hexists(group, key):
             val = self.rds.hget(group, key)
-            if val == 'True':
-                val = True
-            else:
-                val = False
+            val = bool(val == 'True')
         return val
 
     def set_cred_cache(self, user_id, project_id, val):
@@ -120,28 +117,6 @@ class TatorCache:
     def invalidate_cred_cache(self, project_id):
         """ TODO: add documentation for this """
         group = f'creds_{project_id}'
-        self.rds.delete(group)
-
-    def get_project_cache(self, project_id):
-        """ TODO: add documentation for this """
-        group = f'project_{project_id}'
-        key = f'project_{project_id}'
-        val = None
-        if self.rds.hexists(group, key):
-            val = self.rds.hget(group, key)
-        if val:
-            val = eval(val)
-        return val
-
-    def set_project_cache(self, project_id, val):
-        """ TODO: add documenation for this """
-        group = f'project_{project_id}'
-        key = f'project_{project_id}'
-        self.rds.hset(group, key, str(val))
-
-    def invalidate_project_cache(self, project_id):
-        """ TODO: add documentation for this """
-        group = f'project_{project_id}'
         self.rds.delete(group)
 
     def invalidate_all(self):
