@@ -42,7 +42,7 @@ RUN pip3 --no-cache-dir install \
         daphne==2.2.5 gunicorn==20.0.0 django_admin_json_editor==0.2.0 django-ltree==0.4 \
         requests==2.22.0 python-dateutil==2.8.1 ujson==1.35 slackclient==2.3.1 \
         google-auth==1.6.3 elasticsearch==7.1.0 progressbar2==3.47.0 \
-        gevent==1.4.0 uritemplate==3.0.1
+        gevent==1.4.0 uritemplate==3.0.1 pylint pylint-django
 
 # Install fork of openapi-core that works in DRF views
 WORKDIR /working

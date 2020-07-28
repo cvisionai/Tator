@@ -479,3 +479,6 @@ HOST=$(shell python3 -c 'import yaml; a = yaml.load(open("helm/tator/values.yaml
 pytest:
 	cd scripts/packages/tator-py && pip3 install . --upgrade && pytest --full-trace --host $(HOST) --token $(TOKEN)
 	#cd scripts/packages/pytator/test && pytest --url $(HOST)/rest --token $(TOKEN)
+.PHONY: pylint
+pylint:
+	docker run -it --rm -v $(shell pwd):/pwd localhost:5000/tator_online:$(GIT_VERSION) pylint --rcfile /pwd/pylint.ini --load-plugins pylint_django /pwd/main
