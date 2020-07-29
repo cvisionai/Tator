@@ -81,3 +81,37 @@ def query_string_to_media_ids(project_id, url):
     media_ids, _, _ = get_media_queryset(project_id, query_params)
     return media_ids
 
+def search_by_dtype(dtype, query, response_data, project):
+    dtype_filter = [{'match': {'_dtype': {'query': dtype}}}]
+    query = copy.deepcopy(query)
+    if query['query']['bool']['filter']:
+        query['query']['bool']['filter'] += dtype_filter
+    else:
+        query['query']['bool']['filter'] = dtype_filter
+    num_elements = TatorSearch().search_raw(project, query)
+    num_elements = num_elements['aggregations']['section_counts']['buckets']
+    for data in num_elements:
+        response_data[data['key']][f'num_{dtype}s'] = data['doc_count']
+        response_data[data['key']][f'download_size_{dtype}s'] = data['download_size']['value']
+        response_data[data['key']][f'total_size_{dtype}s'] = data['total_size']['value']
+    return response_data
+
+def get_section_info(query, project):
+    query['aggs']['section_counts']['terms']['field'] = 'tator_user_sections'
+    query['aggs']['section_counts']['terms']['size'] = 1000 # Return up to 1000 sections
+    query['aggs']['section_counts']['aggs']['download_size'] = {'sum': {'field': '_download_size'}}
+    query['aggs']['section_counts']['aggs']['total_size'] = {'sum': {'field': '_total_size'}}
+    query['size'] = 0
+
+    # Do queries.
+    response_data = defaultdict(dict)
+    response_data = search_by_dtype('image', query, response_data, project)
+    response_data = search_by_dtype('video', query, response_data, project)
+
+    # Fill in zeros.
+    for section in response_data:
+        for key in ['num_videos', 'download_size_videos', 'total_size_videos',
+                    'num_images', 'download_size_images', 'total_size_images']:
+            if key not in response_data[section]:
+                response_data[section][key] = 0
+

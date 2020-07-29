@@ -110,7 +110,6 @@ class TatorSearch:
                             '_md5': {'type': 'keyword'},
                             '_meta': {'type': 'integer'},
                             '_dtype': {'type': 'keyword'},
-                            'tator_user_sections': {'type': 'keyword'},
                         }
                     },
                 },
@@ -200,9 +199,7 @@ class TatorSearch:
             aux['_total_size'] = total_size
             aux['_download_size'] = download_size
 
-            # Copy section name and ID.
-            aux['tator_user_sections'] = [section.name for section in
-                                          entity.sections.all().iterator()]
+            # Copy section IDs.
             aux['_section'] = [section.id for section in entity.sections.all().iterator()]
         elif entity.meta.dtype in ['box', 'line', 'dot']:
             aux['_media_relation'] = {
