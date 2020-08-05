@@ -134,8 +134,7 @@ class User(AbstractUser):
     def __str__(self):
         if self.first_name or self.last_name:
             return f"{self.first_name} {self.last_name}"
-        else:
-            return "---"
+        return "---"
 
 class Project(Model):
     """ TODO: add documentation for this """
@@ -204,14 +203,14 @@ def make_default_version(instance):
         show_empty=True,
     )
 
-@receiver(post_save, sender=Project)
+@receiver(_, post_save, sender=Project, **kwargs)
 def project_save(instance, created):
     """ TODO: add documentation for this """
     TatorSearch().create_index(instance.pk)
     if created:
         make_default_version(instance)
 
-@receiver(pre_delete, sender=Project)
+@receiver(pre_delete, sender=Project, **kwargs)
 def delete_index_project(instance):
     """ TODO: add documentation for this """
     TatorSearch().delete_index(instance.pk)
@@ -281,8 +280,8 @@ class Algorithm(Model):
         return self.name
 
 class TemporaryFile(Model):
-    """ Represents a temporary file in the system"""
-    """ can be used for algorithm results or temporary outputs """
+    """ Represents a temporary file in the system
+        can be used for algorithm results or temporary outputs """
     name = CharField(max_length=128)
     """ Human readable name for display purposes """
     project = ForeignKey(Project, on_delete=CASCADE)
@@ -698,7 +697,7 @@ class Localization(Model):
 @receiver(post_save, sender=Localization)
 def localization_save(instance):
     """ TODO: add documentation for this """
-    if getattr(instance, '_inhibit', False) == False:
+    if getattr(instance, '_inhibit', False) is False:
         TatorSearch().create_document(instance)
     else:
         pass
@@ -834,7 +833,10 @@ class Leaf(Model):
         if self.parent:
             path_str = self.parent.computePath()+"."+path_str
         elif self.project:
-            proj_name = self.project.name.replace(" ", "_").replace("-", "_").replace("(", "_").replace(")", "_")
+            proj_name = self.project.name.replace(" ",
+                                                  "_").replace("-",
+                                                               "_").replace("(",
+                                                                            "_").replace(")", "_")
             path_str = proj_name+"."+path_str
         return path_str
 
@@ -867,8 +869,7 @@ def type_to_obj(type_obj):
 
     if type_obj in _dict:
         return _dict[type_obj]
-    else:
-        return None
+    return None
 
 def make_dict(keys, row):
     """ TODO: add documentation for this """
