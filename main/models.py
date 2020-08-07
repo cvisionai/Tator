@@ -203,15 +203,15 @@ def make_default_version(instance):
         show_empty=True,
     )
 
-@receiver(_, post_save, sender=Project, **kwargs)
-def project_save(instance, created):
+@receiver(post_save, sender=Project)
+def project_save(_, instance, created, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_index(instance.pk)
     if created:
         make_default_version(instance)
 
-@receiver(pre_delete, sender=Project, **kwargs)
-def delete_index_project(instance):
+@receiver(pre_delete, sender=Project)
+def delete_index_project(instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().delete_index(instance.pk)
 
