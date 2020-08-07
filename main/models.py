@@ -240,7 +240,7 @@ def get_video_definition(path, codec, resolution, **kwargs):
             raise TypeError(f"Invalid argument '{arg}' supplied")
     return obj
 
-def project_based_file_location(instance, filename):
+def ProjectBasedFileLocation(instance, filename):
     """ TODO: add documentation for this """
     return os.path.join(f"{instance.project.id}", filename)
 
@@ -265,7 +265,7 @@ class Algorithm(Model):
     project = ForeignKey(Project, on_delete=CASCADE)
     user = ForeignKey(User, on_delete=PROTECT)
     description = CharField(max_length=1024, null=True, blank=True)
-    manifest = FileField(upload_to=project_based_file_location, null=True, blank=True)
+    manifest = FileField(upload_to=ProjectBasedFileLocation, null=True, blank=True)
     cluster = ForeignKey(JobCluster, null=True, blank=True, on_delete=SET_NULL)
     files_per_job = PositiveIntegerField(
         default=1,
@@ -328,7 +328,7 @@ class TemporaryFile(Model):
         return temp_file
 
 @receiver(pre_delete, sender=TemporaryFile)
-def temporary_file_delete(instance):
+def temporary_file_delete(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     if os.path.exists(instance.path):
         os.remove(instance.path)
@@ -380,7 +380,7 @@ class MediaType(Model):
         return f'{self.name} | {self.project}'
 
 @receiver(post_save, sender=MediaType)
-def media_type_save(instance):
+def media_type_save(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_mapping(instance)
 
@@ -424,7 +424,7 @@ class LocalizationType(Model):
         return f'{self.name} | {self.project}'
 
 @receiver(post_save, sender=LocalizationType)
-def localization_type_save(instance):
+def localization_type_save(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_mapping(instance)
 
@@ -471,7 +471,7 @@ class StateType(Model):
         return f'{self.name} | {self.project}'
 
 @receiver(post_save, sender=StateType)
-def state_type_save(instance):
+def state_type_save(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_mapping(instance)
 
@@ -511,7 +511,7 @@ class LeafType(Model):
         return f'{self.name} | {self.project}'
 
 @receiver(post_save, sender=LeafType)
-def leaf_type_save(instance):
+def leaf_type_save(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_mapping(instance)
 
@@ -608,7 +608,7 @@ class Media(Model):
     media_files = JSONField(null=True, blank=True)
 
 @receiver(post_save, sender=Media)
-def media_save(instance):
+def media_save(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_document(instance)
 
@@ -622,7 +622,7 @@ def safe_delete(path):
         logger.warning(f"{traceback.format_exc()}")
 
 @receiver(pre_delete, sender=Media)
-def media_delete(instance):
+def media_delete(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     if instance.project:
         TatorSearch().delete_document(instance)
@@ -695,7 +695,7 @@ class Localization(Model):
     """ Pointer to localization in which this one was generated from """
 
 @receiver(post_save, sender=Localization)
-def localization_save(instance):
+def localization_save(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     if getattr(instance, '_inhibit', False) is False:
         TatorSearch().create_document(instance)
@@ -703,7 +703,7 @@ def localization_save(instance):
         pass
 
 @receiver(pre_delete, sender=Localization)
-def localization_delete(instance):
+def localization_delete(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().delete_document(instance)
     if instance.thumbnail_image:
@@ -752,17 +752,17 @@ class State(Model):
         return State.objects.filter(media__in=media_id)
 
 @receiver(post_save, sender=State)
-def state_save(instance):
+def state_save(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_document(instance)
 
 @receiver(pre_delete, sender=State)
-def state_delete(instance):
+def state_delete(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().delete_document(instance)
 
 @receiver(m2m_changed, sender=State.localizations.through)
-def calc_segments(**kwargs):
+def calc_segments(sender, **kwargs):
     """ TODO: add documentation for this """
     instance = kwargs['instance']
     sorted_localizations = Localization.objects.filter(pk__in=instance.localizations.all()).order_by('frame')
@@ -841,12 +841,12 @@ class Leaf(Model):
         return path_str
 
 @receiver(post_save, sender=Leaf)
-def leaf_save(instance):
+def leaf_save(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_document(instance)
 
 @receiver(pre_delete, sender=Leaf)
-def leaf_delete(instance):
+def leaf_delete(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().delete_document(instance)
 
