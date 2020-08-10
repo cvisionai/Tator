@@ -1,3 +1,4 @@
+""" TODO: add documentation for this """
 import os
 import json
 import random
@@ -137,7 +138,7 @@ def create_test_box(user, entity_type, project, media, frame):
         width=w,
         height=h,
     )
-        
+
 def create_test_line(user, entity_type, project, media, frame):
     x0 = random.uniform(0.0, float(media.width))
     y0 = random.uniform(0.0, float(media.height))
@@ -151,7 +152,7 @@ def create_test_line(user, entity_type, project, media, frame):
         frame=frame,
         x=x0, y=y0, u=(x1 - x0), v=(y1 - y0),
     )
-        
+
 def create_test_dot(user, entity_type, project, media, frame):
     x = random.uniform(0.0, float(media.width))
     y = random.uniform(0.0, float(media.height))
@@ -172,7 +173,7 @@ def create_test_leaf(name, entity_type, project):
         project=project,
         path=''.join(random.choices(string.ascii_lowercase, k=10)),
     )
-        
+
 def create_test_attribute_types():
     """Create one of each attribute type.
     """
@@ -271,15 +272,15 @@ class DefaultCreateTestMixin:
             if is_default:
                 if not attr_type['dtype'] == 'datetime':
                     default = attr_type['default']
-                    self.assertTrue(obj.attributes[field]==default)
+                    self.assertTrue(obj.attributes[field] == default)
             else:
                 if isinstance(self.create_json, dict):
-                    self.assertTrue(obj.attributes[field]==self.create_json[field])
+                    self.assertTrue(obj.attributes[field] == self.create_json[field])
                 else:
                     for create_json in self.create_json:
                         create_json[field]
                         obj.attributes[field]
-                        self.assertTrue(obj.attributes[field]==create_json[field])
+                        self.assertTrue(obj.attributes[field] == create_json[field])
         # Delete the object
         obj.delete()
 
@@ -466,7 +467,7 @@ class AttributeTestMixin:
         self.assertEqual(len(response.data), len(self.entities))
         this_ids = [e.pk for e in self.entities]
         rest_ids = [e['id'] for e in response.data]
-        for this_id, rest_id in zip(sorted(this_ids), sorted(rest_ids)):    
+        for this_id, rest_id in zip(sorted(this_ids), sorted(rest_ids)):
             self.assertEqual(this_id, rest_id)
 
     def test_multiple_attribute(self):
@@ -579,7 +580,7 @@ class AttributeTestMixin:
             format='json'
         )
         self.assertEqual(len(response.data), 0)
-    
+
     def test_bool_attr(self):
         test_vals = [random.random() > 0.5 for _ in range(len(self.entities))]
         # Test setting an invalid bool
@@ -604,23 +605,39 @@ class AttributeTestMixin:
             self.assertEqual(response.data['id'], pk)
             self.assertEqual(response.data['attributes']['bool_test'], test_val)
         TatorSearch().refresh(self.project.pk)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute=bool_test::true&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute=bool_test::true&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), sum(test_vals))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute=bool_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute=bool_test::false&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), len(test_vals) - sum(test_vals))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gt=bool_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_gt=bool_test::false&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gte=bool_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_gte=bool_test::false&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_lt=bool_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_lt=bool_test::false&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_lte=bool_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_lte=bool_test::false&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_contains=bool_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_contains=bool_test::false&type='
+                                   f'{self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_distance=bool_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_distance=bool_test::false&type='
+                                   f'{self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_int_attr(self):
@@ -653,19 +670,33 @@ class AttributeTestMixin:
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         TatorSearch().refresh(self.project.pk)
         for test_val in test_vals:
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute=int_test::{test_val}&type={self.entity_type.pk}&format=json')
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                       f'?attribute=int_test::{test_val}&type='
+                                       f'{self.entity_type.pk}&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), sum([t == test_val for t in test_vals]))
         for lbound, ubound in [(-1000, 1000), (-500, 500), (-500, 0), (0, 500)]:
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gt=int_test::{lbound}&attribute_lt=int_test::{ubound}&type={self.entity_type.pk}&format=json')
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                       f'?attribute_gt=int_test::{lbound}&attribute_lt='
+                                       f'int_test::{ubound}&type={self.entity_type.pk}'
+                                       f'&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([(t > lbound) and (t < ubound) for t in test_vals]))
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gte=int_test::{lbound}&attribute_lte=int_test::{ubound}&type={self.entity_type.pk}&format=json')
+            self.assertEqual(len(response.data), sum([(t > lbound) and (t < ubound)
+                                                      for t in test_vals]))
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                       f'?attribute_gte=int_test::{lbound}&attribute_lte='
+                                       f'int_test::{ubound}&type={self.entity_type.pk}'
+                                       f'&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([(t >= lbound) and (t <= ubound) for t in test_vals]))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_contains=int_test::1&type={self.entity_type.pk}&format=json')
+            self.assertEqual(len(response.data), sum([(t >= lbound) and (t <= ubound)
+                                                      for t in test_vals]))
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_contains=int_test::1&type='
+                                   f'{self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_distance=int_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_distance=int_test::false&type='
+                                   f'{self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_float_attr(self):
@@ -698,23 +729,38 @@ class AttributeTestMixin:
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         TatorSearch().refresh(self.project.pk)
         # Equality on float not recommended but is allowed.
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute=float_test::{test_val}&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute=float_test::{test_val}'
+                                   f'&type={self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for lbound, ubound in [(-1000.0, 1000.0), (-500.0, 500.0), (-500.0, 0.0), (0.0, 500.0)]:
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gt=float_test::{lbound}&attribute_lt=float_test::{ubound}&type={self.entity_type.pk}&format=json')
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                       f'?attribute_gt=float_test::{lbound}&attribute_lt='
+                                       f'float_test::{ubound}&type={self.entity_type.pk}'
+                                       f'&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([(t > lbound) and (t < ubound) for t in test_vals]))
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gte=float_test::{lbound}&attribute_lte=float_test::{ubound}&type={self.entity_type.pk}&format=json')
+            self.assertEqual(len(response.data), sum([(t > lbound) and (t < ubound)
+                                                      for t in test_vals]))
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                       f'?attribute_gte=float_test::{lbound}&attribute_lte='
+                                       f'float_test::{ubound}&type={self.entity_type.pk}'
+                                       f'&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([(t >= lbound) and (t <= ubound) for t in test_vals]))
+            self.assertEqual(len(response.data), sum([(t >= lbound) and (t <= ubound)
+                                                      for t in test_vals]))
         # Contains on float not recommended but is allowed.
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_contains=float_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_contains=float_test::false&type='
+                                   f'{self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_distance=float_test::false&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_distance=float_test::false&type='
+                                   f'{self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_enum_attr(self):
-        test_vals = [random.choice(['enum_val1', 'enum_val2', 'enum_val3']) for _ in range(len(self.entities))]
+        test_vals = [random.choice(['enum_val1', 'enum_val2', 'enum_val3'])
+                     for _ in range(len(self.entities))]
         # Test setting an invalid choice
         response = self.client.patch(
             f'/rest/{self.detail_uri}/{self.entities[0].pk}',
@@ -732,25 +778,39 @@ class AttributeTestMixin:
             self.assertEqual(response.data['id'], pk)
             self.assertEqual(response.data['attributes']['enum_test'], test_val)
         TatorSearch().refresh(self.project.pk)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gt=enum_test::0&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_gt=enum_test::0&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gte=enum_test::0&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_gte=enum_test::0&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_lt=enum_test::0&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_lt=enum_test::0&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_lte=enum_test::0&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_lte=enum_test::0&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for _ in range(10):
             subs = ''.join(random.choices(string.ascii_lowercase, k=2))
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_contains=enum_test::{subs}&type={self.entity_type.pk}&format=json')
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                       f'?attribute_contains=enum_test::{subs}'
+                                       f'&type={self.entity_type.pk}&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([subs.lower() in t.lower() for t in test_vals]))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_distance=enum_test::0&type={self.entity_type.pk}&format=json')
+            self.assertEqual(len(response.data), sum([subs.lower() in t.lower()
+                                                      for t in test_vals]))
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_distance=enum_test::0&type='
+                                   f'{self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_string_attr(self):
-        test_vals = [''.join(random.choices(string.ascii_uppercase + string.digits, k=random.randint(1, 64)))
-            for _ in range(len(self.entities))]
+        test_vals = [''.join(random.choices(string.ascii_uppercase + string.digits,
+                                            k=random.randint(1, 64)))
+                     for _ in range(len(self.entities))]
         for idx, test_val in enumerate(test_vals):
             pk = self.entities[idx].pk
             response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
@@ -761,20 +821,33 @@ class AttributeTestMixin:
             self.assertEqual(response.data['id'], pk)
             self.assertEqual(response.data['attributes']['string_test'], test_val)
         TatorSearch().refresh(self.project.pk)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gt=string_test::0&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_gt=string_test::0&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_gte=string_test::0&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_gte=string_test::0&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_lt=string_test::0&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_lt=string_test::0&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_lte=string_test::0&type={self.entity_type.pk}&format=json')
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_lte=string_test::0&type={self.entity_type.pk}'
+                                   f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for _ in range(10):
             subs = ''.join(random.choices(string.ascii_lowercase, k=2))
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_contains=string_test::{subs}&type={self.entity_type.pk}&format=json')
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                       f'?attribute_contains=string_test::{subs}&type='
+                                       f'{self.entity_type.pk}&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([subs.lower() in t.lower() for t in test_vals]))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}?attribute_distance=string_test::0&type={self.entity_type.pk}&format=json')
+            self.assertEqual(len(response.data), sum([subs.lower() in t.lower()
+                                                      for t in test_vals]))
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+                                   f'?attribute_distance=string_test::0&type='
+                                   f'{self.entity_type.pk}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_datetime_attr(self):
@@ -806,10 +879,11 @@ class AttributeTestMixin:
             self.assertEqual(dateutil_parse(response.data['attributes']['datetime_test']), test_val)
         TatorSearch().refresh(self.project.pk)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute=datetime_test::{to_string(test_val)}&'
+            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'?attribute=datetime_test::{to_string(test_val)}&'
             f'type={self.entity_type.pk}&format=json'
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK) 
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         delta_dt = datetime.timedelta(days=365)
         for lbound, ubound in [
                 (start_dt, end_dt),
@@ -830,7 +904,8 @@ class AttributeTestMixin:
                 sum([(t > lbound) and (t < ubound) for t in test_vals])
             )
             response = self.client.get(
-                f'/rest/{self.list_uri}/{self.project.pk}?attribute_gte=datetime_test::{lbound_iso}&'
+                f'/rest/{self.list_uri}/{self.project.pk}'
+                f'?attribute_gte=datetime_test::{lbound_iso}&'
                 f'attribute_lte=datetime_test::{ubound_iso}&type={self.entity_type.pk}&'
                 f'format=json'
             )
@@ -885,34 +960,40 @@ class AttributeTestMixin:
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_lt=geoposition_test::10::{lat}::{lon}&'
+            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'?attribute_lt=geoposition_test::10::{lat}::{lon}&'
             f'type={self.entity_type.pk}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_lte=geoposition_test::10::{lat}::{lon}&'
+            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'?attribute_lte=geoposition_test::10::{lat}::{lon}&'
             f'type={self.entity_type.pk}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_gt=geoposition_test::10::{lat}::{lon}&'
+            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'?attribute_gt=geoposition_test::10::{lat}::{lon}&'
             f'type={self.entity_type.pk}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_gte=geoposition_test::10::{lat}::{lon}&'
+            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'?attribute_gte=geoposition_test::10::{lat}::{lon}&'
             f'type={self.entity_type.pk}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_contains=geoposition_test::10::{lat}::{lon}&'
+            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'?attribute_contains=geoposition_test::10::{lat}::{lon}&'
             f'type={self.entity_type.pk}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         test_lat, test_lon = random_latlon()
         for dist in [1.0, 100.0, 1000.0, 5000.0, 10000.0, 43000.0]:
             response = self.client.get(
-                f'/rest/{self.list_uri}/{self.project.pk}?attribute_distance=geoposition_test::'
+                f'/rest/{self.list_uri}/{self.project.pk}'
+                f'?attribute_distance=geoposition_test::'
                 f'{dist}::{test_lat}::{test_lon}&'
                 f'type={self.entity_type.pk}&format=json'
             )
@@ -985,7 +1066,7 @@ class AlgorithmLaunchTestCase(
         self.list_uri = 'AlgorithmLaunch'
         self.create_json = {
             'algorithm_name': self.algorithm.name,
-            'media_ids': [1,2,3],
+            'media_ids': [1, 2, 3],
         }
         self.edit_permission = Permission.CAN_EXECUTE
 
@@ -1112,7 +1193,8 @@ class LocalizationBoxTestCase(
             for idx in range(random.randint(3, 10))
         ]
         self.entities = [
-            create_test_box(self.user, self.entity_type, self.project, random.choice(self.media_entities), 0)
+            create_test_box(self.user, self.entity_type, self.project,
+                            random.choice(self.media_entities), 0)
             for idx in range(random.randint(6, 10))
         ]
         self.list_uri = 'Localizations'
@@ -1176,7 +1258,8 @@ class LocalizationLineTestCase(
             for idx in range(random.randint(3, 10))
         ]
         self.entities = [
-            create_test_line(self.user, self.entity_type, self.project, random.choice(self.media_entities), 0)
+            create_test_line(self.user, self.entity_type, self.project,
+                             random.choice(self.media_entities), 0)
             for idx in range(random.randint(6, 10))
         ]
         self.list_uri = 'Localizations'
@@ -1240,7 +1323,8 @@ class LocalizationDotTestCase(
             for idx in range(random.randint(3, 10))
         ]
         self.entities = [
-            create_test_dot(self.user, self.entity_type, self.project, random.choice(self.media_entities), 0)
+            create_test_dot(self.user, self.entity_type, self.project,
+                            random.choice(self.media_entities), 0)
             for idx in range(random.randint(6, 10))
         ]
         self.list_uri = 'Localizations'
@@ -1315,9 +1399,9 @@ class StateTestCase(
         self.list_uri = 'States'
         self.detail_uri = 'State'
         self.create_entity = functools.partial(State.objects.create,
-            meta=self.entity_type,
-            project=self.project,
-            version=self.version
+                                               meta=self.entity_type,
+                                               project=self.project,
+                                               version=self.version
         )
         self.create_json = [{
             'type': self.entity_type.pk,
@@ -1376,7 +1460,7 @@ class LeafTestCase(
             'datetime_test': datetime.datetime.now(datetime.timezone.utc).isoformat(),
             'geoposition_test': [0.0, 0.0],
         }]
-        self.edit_permission = Permission.FULL_CONTROL 
+        self.edit_permission = Permission.FULL_CONTROL
         self.patch_json = {'name': 'leaf1'}
         TatorSearch().refresh(self.project.pk)
 
@@ -1452,7 +1536,7 @@ class StateTypeTestCase(
 
     def tearDown(self):
         self.project.delete()
-        
+
 class MediaTypeTestCase(
         APITestCase,
         PermissionCreateTestMixin,
@@ -1653,7 +1737,7 @@ class ProjectTestCase(APITestCase):
     def tearDown(self):
         for project in self.entities:
             project.delete()
-        
+
 class TranscodeTestCase(
         APITestCase,
         PermissionCreateTestMixin):
@@ -1755,4 +1839,3 @@ class VersionTestCase(
 
     def tearDown(self):
         self.project.delete()
-
