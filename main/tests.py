@@ -26,6 +26,7 @@ from .search import TatorSearch
 logger = logging.getLogger(__name__)
 
 def create_test_user():
+    """ TODO: add documentation for this """
     return User.objects.create(
         username="jsnow",
         password="jsnow",
@@ -37,12 +38,14 @@ def create_test_user():
     )
 
 def create_test_project(user):
+    """ TODO: add documentation for this """
     return Project.objects.create(
         name="asdf",
         creator=user,
     )
 
 def create_test_membership(user, project):
+    """ TODO: add documentation for this """
     return Membership.objects.create(
         user=user,
         project=project,
@@ -50,6 +53,7 @@ def create_test_membership(user, project):
     )
 
 def create_test_algorithm(user, name, project):
+    """ TODO: add documentation for this """
     obj = Algorithm.objects.create(
         name=name,
         project=project,
@@ -85,6 +89,7 @@ spec:
 
 
 def create_test_image_file():
+    """ TODO: add documentation for this """
     this_path = os.path.dirname(os.path.abspath(__file__))
     img_path = os.path.join(this_path, 'static', 'images',
                             'cvision_horizontal.png')
@@ -93,6 +98,7 @@ def create_test_image_file():
                               content_type='image/png')
 
 def create_test_video(user, name, entity_type, project):
+    """ TODO: add documentation for this """
     return Media.objects.create(
         name=name,
         meta=entity_type,
@@ -110,6 +116,7 @@ def create_test_video(user, name, entity_type, project):
     )
 
 def create_test_image(user, name, entity_type, project):
+    """ TODO: add documentation for this """
     return Media.objects.create(
         name=name,
         meta=entity_type,
@@ -122,10 +129,11 @@ def create_test_image(user, name, entity_type, project):
     )
 
 def create_test_box(user, entity_type, project, media, frame):
-    x = random.uniform(0.0, float(media.width))
-    y = random.uniform(0.0, float(media.height))
-    w = random.uniform(0.0, float(media.width) - x)
-    h = random.uniform(0.0, float(media.height) - y)
+    """ TODO: add documentation for this """
+    x = random.uniform(0.0, float(media.width)) #pylint: disable=invalid-name
+    y = random.uniform(0.0, float(media.height)) #pylint: disable=invalid-name
+    w = random.uniform(0.0, float(media.width) - x) #pylint: disable=invalid-name
+    h = random.uniform(0.0, float(media.height) - y) #pylint: disable=invalid-name
     return Localization.objects.create(
         user=user,
         meta=entity_type,
@@ -140,22 +148,24 @@ def create_test_box(user, entity_type, project, media, frame):
     )
 
 def create_test_line(user, entity_type, project, media, frame):
-    x0 = random.uniform(0.0, float(media.width))
-    y0 = random.uniform(0.0, float(media.height))
-    x1 = random.uniform(0.0, float(media.width) - x0)
-    y1 = random.uniform(0.0, float(media.height) - y0)
+    """ TODO: add documentation for this """
+    x_0 = random.uniform(0.0, float(media.width))
+    y_0 = random.uniform(0.0, float(media.height))
+    x_1 = random.uniform(0.0, float(media.width) - x_0)
+    y_1 = random.uniform(0.0, float(media.height) - y_0)
     return Localization.objects.create(
         user=user,
         meta=entity_type,
         project=project,
         media=media,
         frame=frame,
-        x=x0, y=y0, u=(x1 - x0), v=(y1 - y0),
+        x=x_0, y=y_0, u=(x_1 - x_0), v=(y_1 - y_0),
     )
 
 def create_test_dot(user, entity_type, project, media, frame):
-    x = random.uniform(0.0, float(media.width))
-    y = random.uniform(0.0, float(media.height))
+    """ TODO: add documentation for this """
+    x = random.uniform(0.0, float(media.width)) #pylint: disable=invalid-name
+    y = random.uniform(0.0, float(media.height)) #pylint: disable=invalid-name
     return Localization.objects.create(
         user=user,
         meta=entity_type,
@@ -167,6 +177,7 @@ def create_test_dot(user, entity_type, project, media, frame):
     )
 
 def create_test_leaf(name, entity_type, project):
+    """ TODO: add documentation for this """
     return Leaf.objects.create(
         name=name,
         meta=entity_type,
@@ -221,6 +232,7 @@ def create_test_attribute_types():
     ]
 
 def create_test_version(name, description, number, project, media):
+    """ TODO: add documentation for this """
     return Version.objects.create(
         name=name,
         description=description,
@@ -235,18 +247,21 @@ def random_datetime(start, end):
     )
 
 def random_latlon():
+    """ TODO: add documentation for this """
     return (random.uniform(-90.0, 90.0), random.uniform(-180.0, 180.0))
 
 def latlon_distance(lat0, lon0, lat1, lon1):
-    R = 6373.0 # Radius of earth in km
+    """ TODO: add documentation for this """
+    R = 6373.0 #pylint: disable=invalid-name
+    # Radius of earth in km
     rlat0 = radians(lat0)
     rlon0 = radians(lon0)
     rlat1 = radians(lat1)
     rlon1 = radians(lon1)
     dlon = rlon1 - rlon0
     dlat = rlat1 - rlat0
-    a = sin(dlat / 2)**2 + cos(rlat0) * cos(rlat1) * sin(dlon / 2)**2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
+    a = sin(dlat / 2)**2 + cos(rlat0) * cos(rlat1) * sin(dlon / 2)**2 #pylint: disable=invalid-name
+    c = 2 * atan2(sqrt(a), sqrt(1 - a)) #pylint: disable=invalid-name
     distance = R * c
     return distance
 
@@ -259,6 +274,7 @@ permission_levels = [
 ]
 
 class DefaultCreateTestMixin:
+    """ TODO: add documentation for this """
     def _check_object(self, response, is_default):
         # Get the created objects.
         if isinstance(response.data['id'], list):
@@ -285,6 +301,7 @@ class DefaultCreateTestMixin:
         obj.delete()
 
     def test_create_default(self):
+        """ TODO: add documentation for this """
         endpoint = f'/rest/{self.list_uri}/{self.project.pk}'
         # Remove attribute values.
         def clear_attributes(obj):
@@ -310,7 +327,9 @@ class DefaultCreateTestMixin:
         self._check_object(response, False)
 
 class PermissionCreateTestMixin:
+    """ TODO: add documentation for this """
     def test_create_permissions(self):
+        """ TODO: add documentation for this """
         permission_index = permission_levels.index(self.edit_permission)
         for index, level in enumerate(permission_levels):
             self.membership.permission = level
@@ -335,7 +354,9 @@ class PermissionCreateTestMixin:
         self.membership.save()
 
 class PermissionListTestMixin:
+    """ TODO: add documentation for this """
     def test_list_patch_permissions(self):
+        """ TODO: add documentation for this """
         permission_index = permission_levels.index(self.edit_permission)
         for index, level in enumerate(permission_levels):
             self.membership.permission = level
@@ -355,6 +376,7 @@ class PermissionListTestMixin:
         self.membership.save()
 
     def test_list_delete_permissions(self):
+        """ TODO: add documentation for this """
         # Wait for ES
         time.sleep(1)
         permission_index = permission_levels.index(self.edit_permission)
@@ -373,7 +395,9 @@ class PermissionListTestMixin:
         self.membership.save()
 
 class PermissionDetailTestMixin:
+    """ TODO: add documentation for this """
     def test_detail_patch_permissions(self):
+        """ TODO: add documentation for this """
         permission_index = permission_levels.index(self.edit_permission)
         for index, level in enumerate(permission_levels):
             self.membership.permission = level
@@ -391,6 +415,7 @@ class PermissionDetailTestMixin:
         self.membership.save()
 
     def test_detail_delete_permissions(self):
+        """ TODO: add documentation for this """
         permission_index = permission_levels.index(self.edit_permission)
         for index, level in enumerate(permission_levels):
             self.membership.permission = level
@@ -410,7 +435,9 @@ class PermissionDetailTestMixin:
         self.membership.save()
 
 class PermissionListMembershipTestMixin:
+    """ TODO: add documentation for this """
     def test_list_not_a_member_permissions(self):
+        """ TODO: add documentation for this """
         self.membership.delete()
         url = f'/rest/{self.list_uri}/{self.project.pk}'
         if hasattr(self, 'entity_type'):
@@ -420,6 +447,7 @@ class PermissionListMembershipTestMixin:
         self.membership.save()
 
     def test_list_is_a_member_permissions(self):
+        """ TODO: add documentation for this """
         self.membership.permission = Permission.VIEW_ONLY
         self.membership.save()
         url = f'/rest/{self.list_uri}/{self.project.pk}'
@@ -431,7 +459,9 @@ class PermissionListMembershipTestMixin:
         self.membership.save()
 
 class PermissionDetailMembershipTestMixin:
+    """ TODO: add documentation for this """
     def test_detail_not_a_member_permissions(self):
+        """ TODO: add documentation for this """
         self.membership.delete()
         url = f'/rest/{self.detail_uri}/{self.entities[0].pk}'
         if hasattr(self, 'entity_type'):
@@ -441,6 +471,7 @@ class PermissionDetailMembershipTestMixin:
         self.membership.save()
 
     def test_detail_is_a_member_permissions(self):
+        """ TODO: add documentation for this """
         self.membership.permission = Permission.VIEW_ONLY
         self.membership.save()
         url = f'/rest/{self.detail_uri}/{self.entities[0].pk}'
@@ -452,7 +483,9 @@ class PermissionDetailMembershipTestMixin:
         self.membership.save()
 
 class AttributeMediaTestMixin:
+    """ TODO: add documentation for this """
     def test_media_with_attr(self):
+        """ TODO: add documentation for this """
         response = self.client.get(
             f'/rest/{self.list_uri}/{self.project.pk}?media_id={self.media_entities[0].pk}'
             f'&type={self.entity_type.pk}&attribute=bool_test::true'
@@ -460,7 +493,9 @@ class AttributeMediaTestMixin:
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 class AttributeTestMixin:
+    """ TODO: add documentation for this """
     def test_query_no_attributes(self):
+        """ TODO: add documentataion for this """
         response = self.client.get(
             f'/rest/{self.list_uri}/{self.project.pk}?type={self.entity_type.pk}&format=json'
         )
@@ -471,6 +506,7 @@ class AttributeTestMixin:
             self.assertEqual(this_id, rest_id)
 
     def test_multiple_attribute(self):
+        """ TODO: add documentation for this """
         response = self.client.get(
             f'/rest/{self.list_uri}/{self.project.pk}'
             f'?type={self.entity_type.pk}&attribute=bool_test::true&attribute=int_test::0'
@@ -478,29 +514,30 @@ class AttributeTestMixin:
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_pagination(self):
+        """ TODO: add documentation for this """
         test_vals = [random.random() > 0.5 for _ in range(len(self.entities))]
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            p_k = self.entities[idx].p_k
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'bool_test': test_val}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-        TatorSearch().refresh(self.project.pk)
+        TatorSearch().refresh(self.project.p_k)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
             f'?format=json'
             f'&attribute=bool_test::true'
-            f'&type={self.entity_type.pk}'
+            f'&type={self.entity_type.p_k}'
             f'&start=0'
             f'&stop=2'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), max(0, min(sum(test_vals), 2)))
         response1 = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
             f'?format=json'
             f'&attribute=bool_test::true'
-            f'&type={self.entity_type.pk}'
+            f'&type={self.entity_type.p_k}'
             f'&start=1'
             f'&stop=4'
         )
@@ -510,6 +547,7 @@ class AttributeTestMixin:
             self.assertEqual(response.data[1], response1.data[0])
 
     def test_list_patch(self):
+        """ TODO: add documentation for this """
         test_val = random.random() > 0.5
         response = self.client.patch(
             f'/rest/{self.list_uri}/{self.project.pk}'
@@ -523,6 +561,7 @@ class AttributeTestMixin:
             self.assertEqual(response.data['attributes']['bool_test'], test_val)
 
     def test_list_delete(self):
+        """ TODO: add documentation for this """
         test_val = random.random() > 0.5
         to_delete = [self.create_entity() for _ in range(5)]
         obj_ids = list(map(lambda x: str(x.pk), to_delete))
@@ -548,40 +587,42 @@ class AttributeTestMixin:
             self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_null_attr(self):
+        """ TODO: add documentation for this """
         test_vals = [random.random() > 0.5 for _ in range(len(self.entities))]
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            p_k = self.entities[idx].p_k
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'bool_test': test_val}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-        TatorSearch().refresh(self.project.pk)
+        TatorSearch().refresh(self.project.p_k)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_null=bool_test::false'
-            f'&type={self.entity_type.pk}', # needed for localizations
+            f'/rest/{self.list_uri}/{self.project.p_k}?attribute_null=bool_test::false'
+            f'&type={self.entity_type.p_k}', # needed for localizations
             format='json'
         )
         self.assertEqual(len(response.data), len(self.entities))
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_null=bool_test::true'
-            f'&type={self.entity_type.pk}', # needed for localizations
+            f'/rest/{self.list_uri}/{self.project.p_k}?attribute_null=bool_test::true'
+            f'&type={self.entity_type.p_k}', # needed for localizations
             format='json'
         )
         self.assertEqual(len(response.data), 0)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_null=asdf::true'
-            f'&type={self.entity_type.pk}', # needed for localizations
+            f'/rest/{self.list_uri}/{self.project.p_k}?attribute_null=asdf::true'
+            f'&type={self.entity_type.p_k}', # needed for localizations
             format='json'
         )
         self.assertEqual(len(response.data), len(self.entities))
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_null=asdf::false'
-            f'&type={self.entity_type.pk}', # needed for localizations
+            f'/rest/{self.list_uri}/{self.project.p_k}?attribute_null=asdf::false'
+            f'&type={self.entity_type.p_k}', # needed for localizations
             format='json'
         )
         self.assertEqual(len(response.data), 0)
 
     def test_bool_attr(self):
+        """ TODO: add documentation for this """
         test_vals = [random.random() > 0.5 for _ in range(len(self.entities))]
         # Test setting an invalid bool
         response = self.client.patch(
@@ -591,174 +632,177 @@ class AttributeTestMixin:
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            p_k = self.entities[idx].p_k
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'bool_test': test_val}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             # Do this again to test after the attribute object has been created.
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'bool_test': test_val}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(f'/rest/{self.detail_uri}/{pk}?format=json')
-            self.assertEqual(response.data['id'], pk)
+            response = self.client.get(f'/rest/{self.detail_uri}/{p_k}?format=json')
+            self.assertEqual(response.data['id'], p_k)
             self.assertEqual(response.data['attributes']['bool_test'], test_val)
-        TatorSearch().refresh(self.project.pk)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute=bool_test::true&type={self.entity_type.pk}'
+        TatorSearch().refresh(self.project.p_k)
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute=bool_test::true&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), sum(test_vals))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute=bool_test::false&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute=bool_test::false&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), len(test_vals) - sum(test_vals))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_gt=bool_test::false&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_gt=bool_test::false&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_gte=bool_test::false&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_gte=bool_test::false&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_lt=bool_test::false&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_lt=bool_test::false&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_lte=bool_test::false&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_lte=bool_test::false&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute_contains=bool_test::false&type='
-                                   f'{self.entity_type.pk}&format=json')
+                                   f'{self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute_distance=bool_test::false&type='
-                                   f'{self.entity_type.pk}&format=json')
+                                   f'{self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_int_attr(self):
+        """ TODO: add documentation for this """
         test_vals = [random.randint(-1000, 1000) for _ in range(len(self.entities))]
         # Test setting an invalid int
         response = self.client.patch(
-            f'/rest/{self.detail_uri}/{self.entities[0].pk}',
+            f'/rest/{self.detail_uri}/{self.entities[0].p_k}',
             {'attributes': {'int_test': 'asdfasdf'}},
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            p_k = self.entities[idx].p_k
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'int_test': test_val}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(f'/rest/{self.detail_uri}/{pk}?format=json')
-            self.assertEqual(response.data['id'], pk)
+            response = self.client.get(f'/rest/{self.detail_uri}/{p_k}?format=json')
+            self.assertEqual(response.data['id'], p_k)
             self.assertEqual(response.data['attributes']['int_test'], test_val)
             # Test that attribute maximum is working.
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'int_test': 100000}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             # Test that attribute minimum is working.
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'int_test': -100000}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         TatorSearch().refresh(self.project.pk)
         for test_val in test_vals:
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                        f'?attribute=int_test::{test_val}&type='
-                                       f'{self.entity_type.pk}&format=json')
+                                       f'{self.entity_type.p_k}&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), sum([t == test_val for t in test_vals]))
         for lbound, ubound in [(-1000, 1000), (-500, 500), (-500, 0), (0, 500)]:
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                        f'?attribute_gt=int_test::{lbound}&attribute_lt='
-                                       f'int_test::{ubound}&type={self.entity_type.pk}'
+                                       f'int_test::{ubound}&type={self.entity_type.p_k}'
                                        f'&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([(t > lbound) and (t < ubound)
+            self.assertEqual(len(response.data), sum([(lbound < t < ubound)
                                                       for t in test_vals]))
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                        f'?attribute_gte=int_test::{lbound}&attribute_lte='
-                                       f'int_test::{ubound}&type={self.entity_type.pk}'
+                                       f'int_test::{ubound}&type={self.entity_type.p_k}'
                                        f'&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([(t >= lbound) and (t <= ubound)
+            self.assertEqual(len(response.data), sum([(lbound <= t <= ubound)
                                                       for t in test_vals]))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute_contains=int_test::1&type='
-                                   f'{self.entity_type.pk}&format=json')
+                                   f'{self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute_distance=int_test::false&type='
-                                   f'{self.entity_type.pk}&format=json')
+                                   f'{self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_float_attr(self):
+        """ TODO: add documentation for this """
         test_vals = [random.uniform(-1000.0, 1000.0) for _ in range(len(self.entities))]
         # Test setting an invalid float
         response = self.client.patch(
-            f'/rest/{self.detail_uri}/{self.entities[0].pk}',
+            f'/rest/{self.detail_uri}/{self.entities[0].p_k}',
             {'attributes': {'float_test': 'asdfasdf'}},
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            p_k = self.entities[idx].p_k
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'float_test': test_val}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(f'/rest/{self.detail_uri}/{pk}?format=json')
-            self.assertEqual(response.data['id'], pk)
+            response = self.client.get(f'/rest/{self.detail_uri}/{p_k}?format=json')
+            self.assertEqual(response.data['id'], p_k)
             self.assertEqual(response.data['attributes']['float_test'], test_val)
             # Test that attribute maximum is working.
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'float_test': 100000}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             # Test that attribute minimum is working.
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'float_test': -100000}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        TatorSearch().refresh(self.project.pk)
+        TatorSearch().refresh(self.project.p_k)
         # Equality on float not recommended but is allowed.
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute=float_test::{test_val}'
-                                   f'&type={self.entity_type.pk}&format=json')
+                                   f'&type={self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for lbound, ubound in [(-1000.0, 1000.0), (-500.0, 500.0), (-500.0, 0.0), (0.0, 500.0)]:
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                        f'?attribute_gt=float_test::{lbound}&attribute_lt='
-                                       f'float_test::{ubound}&type={self.entity_type.pk}'
+                                       f'float_test::{ubound}&type={self.entity_type.p_k}'
                                        f'&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([(t > lbound) and (t < ubound)
+            self.assertEqual(len(response.data), sum([(lbound < t < ubound)
                                                       for t in test_vals]))
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                        f'?attribute_gte=float_test::{lbound}&attribute_lte='
-                                       f'float_test::{ubound}&type={self.entity_type.pk}'
+                                       f'float_test::{ubound}&type={self.entity_type.p_k}'
                                        f'&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(len(response.data), sum([(t >= lbound) and (t <= ubound)
+            self.assertEqual(len(response.data), sum([(lbound <= t <= ubound)
                                                       for t in test_vals]))
         # Contains on float not recommended but is allowed.
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute_contains=float_test::false&type='
-                                   f'{self.entity_type.pk}&format=json')
+                                   f'{self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute_distance=float_test::false&type='
-                                   f'{self.entity_type.pk}&format=json')
+                                   f'{self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_enum_attr(self):
+        """ TODO: add documentation for this """
         test_vals = [random.choice(['enum_val1', 'enum_val2', 'enum_val3'])
                      for _ in range(len(self.entities))]
         # Test setting an invalid choice
@@ -769,90 +813,93 @@ class AttributeTestMixin:
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            p_k = self.entities[idx].p_k
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'enum_test': test_val}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(f'/rest/{self.detail_uri}/{pk}?format=json')
-            self.assertEqual(response.data['id'], pk)
+            response = self.client.get(f'/rest/{self.detail_uri}/{p_k}?format=json')
+            self.assertEqual(response.data['id'], p_k)
             self.assertEqual(response.data['attributes']['enum_test'], test_val)
-        TatorSearch().refresh(self.project.pk)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_gt=enum_test::0&type={self.entity_type.pk}'
+        TatorSearch().refresh(self.project.p_k)
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_gt=enum_test::0&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_gte=enum_test::0&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_gte=enum_test::0&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_lt=enum_test::0&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_lt=enum_test::0&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_lte=enum_test::0&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_lte=enum_test::0&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for _ in range(10):
             subs = ''.join(random.choices(string.ascii_lowercase, k=2))
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                        f'?attribute_contains=enum_test::{subs}'
-                                       f'&type={self.entity_type.pk}&format=json')
+                                       f'&type={self.entity_type.p_k}&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), sum([subs.lower() in t.lower()
                                                       for t in test_vals]))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute_distance=enum_test::0&type='
-                                   f'{self.entity_type.pk}&format=json')
+                                   f'{self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_string_attr(self):
+        """ TODO: add documentation for this """
         test_vals = [''.join(random.choices(string.ascii_uppercase + string.digits,
                                             k=random.randint(1, 64)))
                      for _ in range(len(self.entities))]
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
-            response = self.client.patch(f'/rest/{self.detail_uri}/{pk}',
+            p_k = self.entities[idx].p_k
+            response = self.client.patch(f'/rest/{self.detail_uri}/{p_k}',
                                          {'attributes': {'string_test': test_val}},
                                          format='json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(f'/rest/{self.detail_uri}/{pk}?format=json')
-            self.assertEqual(response.data['id'], pk)
+            response = self.client.get(f'/rest/{self.detail_uri}/{p_k}?format=json')
+            self.assertEqual(response.data['id'], p_k)
             self.assertEqual(response.data['attributes']['string_test'], test_val)
-        TatorSearch().refresh(self.project.pk)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_gt=string_test::0&type={self.entity_type.pk}'
+        TatorSearch().refresh(self.project.p_k)
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_gt=string_test::0&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_gte=string_test::0&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_gte=string_test::0&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_lt=string_test::0&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_lt=string_test::0&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
-                                   f'?attribute_lte=string_test::0&type={self.entity_type.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
+                                   f'?attribute_lte=string_test::0&type={self.entity_type.p_k}'
                                    f'&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for _ in range(10):
             subs = ''.join(random.choices(string.ascii_lowercase, k=2))
-            response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+            response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                        f'?attribute_contains=string_test::{subs}&type='
-                                       f'{self.entity_type.pk}&format=json')
+                                       f'{self.entity_type.p_k}&format=json')
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), sum([subs.lower() in t.lower()
                                                       for t in test_vals]))
-        response = self.client.get(f'/rest/{self.list_uri}/{self.project.pk}'
+        response = self.client.get(f'/rest/{self.list_uri}/{self.project.p_k}'
                                    f'?attribute_distance=string_test::0&type='
-                                   f'{self.entity_type.pk}&format=json')
+                                   f'{self.entity_type.p_k}&format=json')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_datetime_attr(self):
-        def to_string(dt):
-            return dt.isoformat().replace('+00:00', 'Z')
+        """ TODO: add documentation for this """
+        def to_string(d_t):
+            """ TODO: add documentation for this """
+            return d_t.isoformat().replace('+00:00', 'Z')
         end_dt = datetime.datetime.now(datetime.timezone.utc)
         start_dt = end_dt - datetime.timedelta(days=5 * 365)
         test_vals = [
@@ -861,27 +908,27 @@ class AttributeTestMixin:
         ]
         # Test setting an invalid datetime
         response = self.client.patch(
-            f'/rest/{self.detail_uri}/{self.entities[0].pk}',
+            f'/rest/{self.detail_uri}/{self.entities[0].p_k}',
             {'attributes': {'datetime_test': 'asdfasdf'}},
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
+            p_k = self.entities[idx].p_k
             response = self.client.patch(
-                f'/rest/{self.detail_uri}/{pk}',
+                f'/rest/{self.detail_uri}/{p_k}',
                 {'attributes': {'datetime_test': to_string(test_val)}},
                 format='json'
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(f'/rest/{self.detail_uri}/{pk}?format=json')
-            self.assertEqual(response.data['id'], pk)
+            response = self.client.get(f'/rest/{self.detail_uri}/{p_k}?format=json')
+            self.assertEqual(response.data['id'], p_k)
             self.assertEqual(dateutil_parse(response.data['attributes']['datetime_test']), test_val)
-        TatorSearch().refresh(self.project.pk)
+        TatorSearch().refresh(self.project.p_k)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
             f'?attribute=datetime_test::{to_string(test_val)}&'
-            f'type={self.entity_type.pk}&format=json'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         delta_dt = datetime.timedelta(days=365)
@@ -894,108 +941,111 @@ class AttributeTestMixin:
             lbound_iso = to_string(lbound)
             ubound_iso = to_string(ubound)
             response = self.client.get(
-                f'/rest/{self.list_uri}/{self.project.pk}?attribute_gt=datetime_test::{lbound_iso}&'
-                f'attribute_lt=datetime_test::{ubound_iso}&type={self.entity_type.pk}&'
+                f'/rest/{self.list_uri}/{self.project.p_k}'
+                f'?attribute_gt=datetime_test::{lbound_iso}&'
+                f'attribute_lt=datetime_test::{ubound_iso}&type={self.entity_type.p_k}&'
                 f'format=json'
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(
                 len(response.data),
-                sum([(t > lbound) and (t < ubound) for t in test_vals])
+                sum([(lbound < t < ubound) for t in test_vals])
             )
             response = self.client.get(
-                f'/rest/{self.list_uri}/{self.project.pk}'
+                f'/rest/{self.list_uri}/{self.project.p_k}'
                 f'?attribute_gte=datetime_test::{lbound_iso}&'
-                f'attribute_lte=datetime_test::{ubound_iso}&type={self.entity_type.pk}&'
+                f'attribute_lte=datetime_test::{ubound_iso}&type={self.entity_type.p_k}&'
                 f'format=json'
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(
                 len(response.data),
-                sum([(t >= lbound) and (t <= ubound) for t in test_vals])
+                sum([(lbound <= t <= ubound) for t in test_vals])
             )
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_contains=datetime_test::asdf&'
-            f'type={self.entity_type.pk}&format=json'
+            f'/rest/{self.list_uri}/{self.project.p_k}?attribute_contains=datetime_test::asdf&'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute_distance=datetime_test::asdf&'
-            f'type={self.entity_type.pk}&format=json'
+            f'/rest/{self.list_uri}/{self.project.p_k}?attribute_distance=datetime_test::asdf&'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_geoposition_attr(self):
+        """ TODO: add documentation for this """
         test_vals = [random_latlon() for _ in range(len(self.entities))]
         # Test setting invalid geopositions
         response = self.client.patch(
-            f'/rest/{self.detail_uri}/{self.entities[0].pk}',
+            f'/rest/{self.detail_uri}/{self.entities[0].p_k}',
             {'attributes': {'geoposition_test': [0.0, -91.0]}},
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.patch(
-            f'/rest/{self.detail_uri}/{self.entities[0].pk}',
+            f'/rest/{self.detail_uri}/{self.entities[0].p_k}',
             {'attributes': {'geoposition_test': [-181.0, 0.0]}},
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         for idx, test_val in enumerate(test_vals):
-            pk = self.entities[idx].pk
+            p_k = self.entities[idx].p_k
             lat, lon = test_val
             response = self.client.patch(
-                f'/rest/{self.detail_uri}/{pk}',
+                f'/rest/{self.detail_uri}/{p_k}',
                 {'attributes': {'geoposition_test': [lon, lat]}},
                 format='json',
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
-            response = self.client.get(f'/rest/{self.detail_uri}/{pk}?format=json')
-            self.assertEqual(response.data['id'], pk)
+            response = self.client.get(f'/rest/{self.detail_uri}/{p_k}?format=json')
+            self.assertEqual(response.data['id'], p_k)
             attrs = response.data['attributes']['geoposition_test']
             self.assertEqual(response.data['attributes']['geoposition_test'], [lon, lat])
-        TatorSearch().refresh(self.project.pk)
+        TatorSearch().refresh(self.project.p_k)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}?attribute=geoposition_test::10::{lat}::{lon}&'
-            f'type={self.entity_type.pk}&format=json'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
+            f'?attribute=geoposition_test::10::{lat}::{lon}&'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
             f'?attribute_lt=geoposition_test::10::{lat}::{lon}&'
-            f'type={self.entity_type.pk}&format=json'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
             f'?attribute_lte=geoposition_test::10::{lat}::{lon}&'
-            f'type={self.entity_type.pk}&format=json'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
             f'?attribute_gt=geoposition_test::10::{lat}::{lon}&'
-            f'type={self.entity_type.pk}&format=json'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
             f'?attribute_gte=geoposition_test::10::{lat}::{lon}&'
-            f'type={self.entity_type.pk}&format=json'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         response = self.client.get(
-            f'/rest/{self.list_uri}/{self.project.pk}'
+            f'/rest/{self.list_uri}/{self.project.p_k}'
             f'?attribute_contains=geoposition_test::10::{lat}::{lon}&'
-            f'type={self.entity_type.pk}&format=json'
+            f'type={self.entity_type.p_k}&format=json'
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         test_lat, test_lon = random_latlon()
         for dist in [1.0, 100.0, 1000.0, 5000.0, 10000.0, 43000.0]:
             response = self.client.get(
-                f'/rest/{self.list_uri}/{self.project.pk}'
+                f'/rest/{self.list_uri}/{self.project.p_k}'
                 f'?attribute_distance=geoposition_test::'
                 f'{dist}::{test_lat}::{test_lon}&'
-                f'type={self.entity_type.pk}&format=json'
+                f'type={self.entity_type.p_k}&format=json'
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             self.assertEqual(len(response.data), sum([
@@ -1004,7 +1054,9 @@ class AttributeTestMixin:
             ]))
 
 class CurrentUserTestCase(APITestCase):
+    """ TODO: add documentation for this """
     def test_get(self):
+        """ TODO: add documentation for this """
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
         response = self.client.get('/rest/User/GetCurrent')
@@ -1012,6 +1064,7 @@ class CurrentUserTestCase(APITestCase):
         self.assertEqual(response.data['id'], self.user.id)
 
 class ProjectDeleteTestCase(APITestCase):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.project = create_test_project(self.user)
@@ -1052,11 +1105,13 @@ class ProjectDeleteTestCase(APITestCase):
                 state.media.add(media)
 
     def test_delete(self):
+        """ TODO: add documentation for this """
         self.client.delete(f'/rest/Project/{self.project.pk}')
 
 class AlgorithmLaunchTestCase(
         APITestCase,
         PermissionCreateTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1076,6 +1131,7 @@ class AlgorithmLaunchTestCase(
 class AlgorithmTestCase(
         APITestCase,
         PermissionListMembershipTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1098,6 +1154,7 @@ class VideoTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1133,6 +1190,7 @@ class ImageTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1170,6 +1228,7 @@ class LocalizationBoxTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1235,6 +1294,7 @@ class LocalizationLineTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1300,6 +1360,7 @@ class LocalizationDotTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1363,6 +1424,7 @@ class StateTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1431,6 +1493,7 @@ class LeafTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1473,6 +1536,7 @@ class LeafTypeTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1499,6 +1563,7 @@ class StateTypeTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1543,6 +1608,7 @@ class MediaTypeTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1583,6 +1649,7 @@ class LocalizationTypeTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1632,6 +1699,7 @@ class MembershipTestCase(
         PermissionCreateTestMixin,
         PermissionListMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1653,6 +1721,7 @@ class MembershipTestCase(
         self.project.delete()
 
 class ProjectTestCase(APITestCase):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1676,11 +1745,13 @@ class ProjectTestCase(APITestCase):
         self.edit_permission = Permission.FULL_CONTROL
 
     def test_create(self):
+        """ TODO: add documentation for this """
         endpoint = f'/rest/{self.list_uri}'
         response = self.client.post(endpoint, self.create_json, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_detail_patch_permissions(self):
+        """ TODO: add documentation for this """
         permission_index = permission_levels.index(self.edit_permission)
         for index, level in enumerate(permission_levels):
             obj = Membership.objects.filter(project=self.entities[0], user=self.user)[0]
@@ -1698,6 +1769,7 @@ class ProjectTestCase(APITestCase):
             self.assertEqual(response.status_code, expected_status)
 
     def test_detail_delete_permissions(self):
+        """ TODO: add documentation for this """
         permission_index = permission_levels.index(self.edit_permission)
         for index, level in enumerate(permission_levels):
             obj = Membership.objects.filter(project=self.entities[0], user=self.user)[0]
@@ -1717,6 +1789,7 @@ class ProjectTestCase(APITestCase):
                 del self.entities[0]
 
     def test_delete_non_creator(self):
+        """ TODO: add documentation for this """
         other_user = User.objects.create(
             username="other",
             password="user",
@@ -1741,6 +1814,7 @@ class ProjectTestCase(APITestCase):
 class TranscodeTestCase(
         APITestCase,
         PermissionCreateTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1771,6 +1845,7 @@ class AnalysisCountTestCase(
         APITestCase,
         PermissionCreateTestMixin,
         PermissionListMembershipTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
@@ -1808,6 +1883,7 @@ class VersionTestCase(
         PermissionListMembershipTestMixin,
         PermissionDetailMembershipTestMixin,
         PermissionDetailTestMixin):
+    """ TODO: add documentation for this """
     def setUp(self):
         self.user = create_test_user()
         self.client.force_authenticate(self.user)
