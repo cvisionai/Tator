@@ -1,7 +1,7 @@
 from ..models import Section
 from ..models import Project
-from ..schema import SectionListSchema
-from ..schema import SectionDetailSchema
+from ..schema import SectionAssociationListSchema
+from ..schema import SectionAssociationDetailSchema
 
 from ._media_query import get_section_info
 from ._media_query import get_media_queryset

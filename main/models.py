@@ -584,7 +584,6 @@ class Media(Model):
     segment_info = FilePathField(path=settings.MEDIA_ROOT, null=True,
                                  blank=True)
     media_files = JSONField(null=True, blank=True)
-    sections = ManyToManyField(Section)
 
 @receiver(post_save, sender=Media)
 def media_save(sender, instance, created, **kwargs):
@@ -624,6 +623,13 @@ def media_delete(sender, instance, **kwargs):
             safe_delete(obj['path'])
     instance.thumbnail.delete(False)
     instance.thumbnail_gif.delete(False)
+
+class SectionAssociation(Model):
+    """ Relationship between media and media section.
+    """
+    project = ForeignKey(Project, on_delete=CASCADE)
+    media = ForeignKey(Media, on_delete=CASCADE)
+    section = ForeignKey(Section, on_delete=CASCADE)
 
 class Localization(Model):
     project = ForeignKey(Project, on_delete=SET_NULL, null=True, blank=True, db_column='project')
