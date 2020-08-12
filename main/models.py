@@ -204,7 +204,7 @@ def make_default_version(instance):
     )
 
 @receiver(post_save, sender=Project)
-def project_save(_, instance, created, **kwargs):
+def project_save(sender, instance, created, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().create_index(instance.pk)
     if created:
