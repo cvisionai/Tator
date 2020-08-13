@@ -211,7 +211,7 @@ def project_save(sender, instance, created, **kwargs):
         make_default_version(instance)
 
 @receiver(pre_delete, sender=Project)
-def delete_index_project(instance, **kwargs):
+def delete_index_project(sender, instance, **kwargs):
     """ TODO: add documentation for this """
     TatorSearch().delete_index(instance.pk)
 
