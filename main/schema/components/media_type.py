@@ -46,6 +46,11 @@ media_type_properties = {
         'type': 'array',
         'items': {'$ref': '#/components/schemas/ArchiveConfig'},
     },
+    'streaming_config': {
+        'description': 'Streaming config defintion. If null, the default will be used.',
+        'type': 'object',
+        'additionalProperties': {'$ref': '#/components/schemas/StreamingConfig'},
+    },
 }
 
 media_type_spec = {
