@@ -382,6 +382,7 @@ class MediaType(Model):
                      as the default for datetime dtype.
     """
     archive_config = JSONField(default=None, null=True, blank=True)
+    streaming_config = JSONField(default=None, null=True,blank=True)
     def __str__(self):
         return f'{self.name} | {self.project}'
 
