@@ -66,6 +66,8 @@ media_type_update = {
         'description': media_type_properties['description'],
         'file_format': media_type_properties['file_format'],
         'keep_original': media_type_properties['keep_original'],
+        'archive_config': media_type_properties['archive_config'],
+        'streaming_config': media_type_properties['streaming_config'],
     },
 }
 
