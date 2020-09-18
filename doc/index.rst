@@ -8,6 +8,6 @@ Tator Documentation
 
 **Tator** is a web-based video analytics platform.
 
-Documentation has moved to `Tator Cloud <https://www.tatorapp.com/docs>`
+Documentation has moved to `Tator Cloud <https://www.tatorapp.com/docs>`_
 
 
