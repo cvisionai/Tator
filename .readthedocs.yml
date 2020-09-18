@@ -11,17 +11,3 @@ sphinx:
 
 # Optionally build your docs in additional formats such as PDF and ePub
 formats: all
-
-submodules:
- include:
-   - scripts/packages/tator-py
-# Optionally set the version of Python and requirements required to build your docs
-python:
-  version: 3.7
-  system_packages: true
-  install:
-  - requirements: scripts/packages/tator-py/requirements.txt
-  - method: pip
-    path: scripts/packages/pytator
-  - method: pip
-    path: scripts/packages/tator-py
