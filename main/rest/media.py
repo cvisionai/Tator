@@ -27,6 +27,8 @@ from ..schema import parse
 from ..notify import Notify
 from ..uploads import download_uploaded_file
 from ..uploads import get_destination_path
+from ._util import computeRequiredFields
+from ._util import check_required_fields
 
 from ._base_views import BaseListView
 from ._base_views import BaseDetailView
@@ -133,9 +135,20 @@ class MediaListAPI(BaseListView, AttributeFilterMixin):
             if media_type.project.pk != project:
                 raise Exception('Media type is not part of project')
 
-        attributes={'tator_user_sections': tator_user_sections}
+        # Compute the required fields for posting a media object
+        # of this type
+        required_fields = computeRequiredFields(entity_type)
+
+        # Set the tator_user_section special attribute
+        attributes = {'tator_user_sections': tator_user_sections}
+
+        # Apply user-supplied attributes and finally fill in
+        # defaults and validate
         if new_attributes:
             attributes.update(new_attributes)
+        attributes = check_required_fields(required_fields[0],
+                                           required_fields[2],
+                                           attributes)
         if media_type.dtype == 'image':
             # Get image only parameters.
             url = params['url']
