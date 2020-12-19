@@ -6,6 +6,17 @@ from elasticsearch.helpers import bulk
 
 logger = logging.getLogger(__name__)
 
+# What mapping types are maintained for each dtype.
+MAPPING_TYPES = {
+    'bool': ['boolean', 'long', 'double', 'text', 'keyword'],
+    'int': ['boolean', 'long', 'double', 'text', 'keyword'],
+    'float': ['boolean', 'long', 'double', 'text', 'keyword'],
+    'enum': ['text', 'keyword'],
+    'string': ['text', 'keyword'],
+    'datetime': ['text', 'keyword', 'date'],
+    'geopos': ['text', 'keyword', 'geo_point']
+}
+
 # Used for duplicate ID storage
 id_bits=448
 id_mask=(1 << id_bits) - 1
@@ -144,24 +155,34 @@ class TatorSearch:
     def create_mapping(self, entity_type):
         if entity_type.attribute_types:
             for attribute_type in entity_type.attribute_types:
-                if attribute_type['dtype'] == 'bool':
-                    dtype='boolean'
-                elif attribute_type['dtype'] == 'int':
-                    dtype='integer'
-                elif attribute_type['dtype'] == 'float':
-                    dtype='float'
-                elif attribute_type['dtype'] == 'enum':
-                    dtype='keyword'
-                elif attribute_type['dtype'] == 'string':
-                    dtype='keyword'
-                elif attribute_type['dtype'] == 'datetime':
-                    dtype='date'
-                elif attribute_type['dtype'] == 'geopos':
-                    dtype='geo_point'
+                name = attribute_type['name']
+                dtype = attribute_type['dtype']
+
+                # Get or create UUID for this attribute type.
+                if name in entity_type.attribute_type_uuids:
+                    uuid = entity_type.attribute_type_uuids[name]
+                else:
+                    uuid = str(uuid1()).strip('-')
+                    entity_type.attribute_type_uuids[name] = uuid
+                    entity_type.save()
+  
+                # Define alias for this attribute type.
+                mapping_type = MAPPING_TYPES[dtype]
+                alias = {name: {'type': 'alias',
+                                'path': f'{uuid}_{mapping_type}'}}
+
+                # Create mappings depending on dtype.
+                mappings = {}
+                for mapping_type in MAPPING_TYPES[dtype]:
+                    mapping_name = f'{uuid}_{mapping_type}'
+                    mappings[mapping_name] = mapping_type
+
+                # Create mappings.
                 self.es.indices.put_mapping(
                     index=self.index_name(entity_type.project.pk),
                     body={'properties': {
-                        attribute_type['name']: {'type': dtype},
+                        **mappings,
+                        **alias,
                     }},
                 )
 
