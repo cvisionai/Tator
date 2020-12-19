@@ -3,6 +3,7 @@ import os
 from copy import deepcopy
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import bulk
+from uuid import uuid1
 
 logger = logging.getLogger(__name__)
 
