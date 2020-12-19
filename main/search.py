@@ -219,6 +219,101 @@ class TatorSearch:
                     }},
                 )
 
+    def rename_alias(self, entity_type, old_name, new_name):
+        """ Adds an alias corresponding to an attribute type rename. Note that the old alias
+            will still exist but can be excluded by specifying fields parameter in query_string
+            queries. Entity type should contain an attribute type definition for old_name.
+
+            :param entity_type: *Type object. Should be passed in before updating attribute_type
+                                json. Fields attribute_types and attribute_type_uuids will be 
+                                updated with new name. Entity type will NOT be saved.
+            :param old_name: Name of attribute type being mutated.
+            :param new_name: New name for the attribute type.
+            :returns: Entity type with updated attribute_type_uuids.
+        """
+        # Retrieve UUID, raise error if it doesn't exist.
+        uuid = entity_type.attribute_type_uuids.get(old_name)
+        if uuid is None:
+            raise ValueError(f"Could not find attribute name {old_name} in entity type "
+                              "{type(entity_type)} ID {entity_type.id}")
+
+        # Find old attribute type and create new attribute type.
+        new_attribute_type = None
+        for idx, attribute_type in enumerate(entity_type.attribute_types):
+            name = attribute_type['name']
+            if name == old_name:
+                replace_idx = idx
+                new_attribute_type = dict(attribute_type)
+                new_attribute_type['name'] = new_name
+                break
+        if new_attribute_type is None:
+            raise ValueError(f"Could not find attribute name {old_name} in entity type "
+                              "{type(entity_type)} ID {entity_type.id}")
+
+        # Create new alias definition.
+        alias_type = _get_alias_type(new_attribute_type)
+        alias = {new_name: {'type': 'alias',
+                            'path': f'{uuid}_{alias_type}'}}
+        self.es.indices.put_mapping(
+            index=self.index_name(entity_type.project.pk),
+            body={'properties': alias},
+        )
+
+        # Update entity type object with new values.
+        entity_type.attribute_type_uuids[new_name] = entity_type.attribute_type_uuids.pop(old_name)
+        entity_type.attribute_types[replace_idx] = new_attribute_type
+        return entity_type
+
+    def mutate_alias(self, entity_type, name, new_dtype, new_style=None):
+        """ Sets alias to new mapping type.
+
+            :param entity_type: *Type object. Should be passed in before updating attribute_type
+                                json. Field attribute_types will be updated with new dtype and 
+                                style. Entity type will not be saved.
+            :param name: Name of attribute type being mutated.
+            :param new_dtype: New dtype for the attribute type.
+            :param new_style: [Optional] New display style of attribute type. Used to determine
+                              if string attributes should be indexed as keyword or text.
+            :returns: Entity type with updated attribute_types.
+        """
+        # Retrieve UUID, raise error if it doesn't exist.
+        uuid = entity_type.attribute_type_uuids.get(name)
+        if uuid is None:
+            raise ValueError(f"Could not find attribute name {name} in entity type "
+                              "{type(entity_type)} ID {entity_type.id}")
+
+        # Find old attribute type and create new attribute type.
+        new_attribute_type = None
+        for idx, attribute_type in enumerate(entity_type.attribute_types):
+            name = attribute_type['name']
+            if name == old_name:
+                replace_idx = idx
+                old_dtype = attribute_type['dtype']
+                new_attribute_type = dict(attribute_type)
+                new_attribute_type['dtype'] = new_dtype
+                if new_style is not None:
+                    new_attribute_type['style'] = new_style
+                break
+        if new_attribute_type is None:
+            raise ValueError(f"Could not find attribute name {old_name} in entity type "
+                              "{type(entity_type)} ID {entity_type.id}")
+        if new_dtype not in ALLOWED_MUTATIONS[old_dtype]:
+            raise RuntimeError(f"Attempted mutation of {name} from {old_dtype} to {new_dtype} is "
+                                "not allowed!")
+
+        # Create new alias definition.
+        alias_type = _get_alias_type(new_attribute_type)
+        alias = {name: {'type': 'alias',
+                        'path': f'{uuid}_{alias_type}'}}
+        self.es.indices.put_mapping(
+            index=self.index_name(entity_type.project.pk),
+            body={'properties': alias},
+        )
+
+        # Update entity type object with new values.
+        entity_type.attribute_types[replace_idx] = new_attribute_type
+        return entity_type
+
     def bulk_add_documents(self, listOfDocs):
         bulk(self.es, listOfDocs, raise_on_error=False)
 
