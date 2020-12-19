@@ -167,9 +167,26 @@ class TatorSearch:
                     entity_type.save()
   
                 # Define alias for this attribute type.
-                mapping_type = MAPPING_TYPES[dtype]
+                if dtype == 'bool':
+                    alias_type = 'boolean'
+                elif dtype == 'int':
+                    alias_type = 'long'
+                elif dtype == 'float':
+                    alias_type = 'double'
+                elif dtype == 'enum':
+                    alias_type = 'keyword'
+                elif dtype == 'string':
+                    alias_type = 'keyword'
+                    style = attribute_type.get('style')
+                    if style is not None:
+                        if 'long_string' in style:
+                            alias_type = 'text'
+                elif dtype == 'datetime':
+                    alias_type = 'date'
+                elif dtype == 'geopos':
+                    alias_type = 'geo_point'
                 alias = {name: {'type': 'alias',
-                                'path': f'{uuid}_{mapping_type}'}}
+                                'path': f'{uuid}_{alias_type}'}}
 
                 # Create mappings depending on dtype.
                 mappings = {}
