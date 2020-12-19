@@ -79,6 +79,28 @@ def drop_dupes(ids):
     seen_add = seen.add
     return [x for x in ids if not (x in seen or seen_add(x))]
 
+def _get_alias_type(attribute_type):
+    dtype = attribute_type['dtype']
+    if dtype == 'bool':
+        alias_type = 'boolean'
+    elif dtype == 'int':
+        alias_type = 'long'
+    elif dtype == 'float':
+        alias_type = 'double'
+    elif dtype == 'enum':
+        alias_type = 'keyword'
+    elif dtype == 'string':
+        alias_type = 'keyword'
+        style = attribute_type.get('style')
+        if style is not None:
+            if 'long_string' in style:
+                alias_type = 'text'
+    elif dtype == 'datetime':
+        alias_type = 'date'
+    elif dtype == 'geopos':
+        alias_type = 'geo_point'
+    return alias_type
+
 class TatorSearch:
     """ Interface for elasticsearch documents.
         There is one index per entity type.
@@ -178,24 +200,7 @@ class TatorSearch:
                     entity_type.save()
   
                 # Define alias for this attribute type.
-                if dtype == 'bool':
-                    alias_type = 'boolean'
-                elif dtype == 'int':
-                    alias_type = 'long'
-                elif dtype == 'float':
-                    alias_type = 'double'
-                elif dtype == 'enum':
-                    alias_type = 'keyword'
-                elif dtype == 'string':
-                    alias_type = 'keyword'
-                    style = attribute_type.get('style')
-                    if style is not None:
-                        if 'long_string' in style:
-                            alias_type = 'text'
-                elif dtype == 'datetime':
-                    alias_type = 'date'
-                elif dtype == 'geopos':
-                    alias_type = 'geo_point'
+                alias_type = _get_alias_type(attribute_type)
                 alias = {name: {'type': 'alias',
                                 'path': f'{uuid}_{alias_type}'}}
 
