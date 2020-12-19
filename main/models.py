@@ -386,6 +386,10 @@ class MediaType(Model):
                      as the default for datetime dtype.
         style: (optional) String of GUI-related styles.
     """
+    attribute_type_uuids = JSONField(default=dict, null=True, blank=True)
+    """ Mapping between attribute type names and UUIDs. Used internally for 
+        maintaining elasticsearch field aliases.
+    """
     archive_config = JSONField(default=None, null=True, blank=True)
     streaming_config = JSONField(default=None, null=True,blank=True)
     overlay_config = JSONField(default=None,null=True,blank=True)
