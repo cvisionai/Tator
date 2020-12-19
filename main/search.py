@@ -6,6 +6,17 @@ from elasticsearch.helpers import bulk
 
 logger = logging.getLogger(__name__)
 
+# Indicates what types can mutate into. Maps from type -> to type.
+ALLOWED_MUTATIONS = {
+    'bool': ['bool', 'int', 'float', 'enum', 'string'],
+    'int': ['bool', 'int', 'float', 'enum', 'string'],
+    'float': ['bool', 'int', 'float', 'enum', 'string'],
+    'enum': ['enum', 'string'],
+    'string': ['enum', 'string'],
+    'datetime': ['enum', 'string', 'datetime'],
+    'geopos': ['enum', 'string', 'geopos'],
+}
+
 # What mapping types are maintained for each dtype.
 MAPPING_TYPES = {
     'bool': ['boolean', 'long', 'double', 'text', 'keyword'],
