@@ -321,21 +321,44 @@ class TatorSearch:
             entity.attributes = {}
             entity.save()
 
-        corrected_attributes={**entity.attributes}
-        if mode != 'single':
-            for key in corrected_attributes:
-                value=corrected_attributes[key]
-                # Store django lat/lon as a string
-                # Special note: in ES, array representations are lon/lat, but
-                # strings are lat/lon, therefore we intentionally swap order here.
-                if type(value) == list:
-                    corrected_attributes[key] = f"{value[1]},{value[0]}"
+        # Index attributes for all supported dtype mutations.
+        attributes = {}
+        if entity.meta.attribute_types is not None:
+            for attribute_type in entity.meta.attribute_types:
+                value = entity.attributes.get(name)
+                if value is not None:
+                    dtype = attribute_type['dtype']
+                    name = attribute_type['name']
+                    uuid = entity.meta.attribute_type_uuids[name]
+                    for mapping_type in MAPPING_TYPES[dtype]:
+                        mapping_name = f'{uuid}_{mapping_type}'
+                        if mapping_type == 'boolean':
+                            attributes[mapping_name] = bool(value)
+                        elif mapping_type == 'long':
+                            attributes[mapping_name] = int(value)
+                        elif mapping_type == 'double':
+                            attributes[mapping_name] = float(value)
+                        elif mapping_type == 'text':
+                            attributes[mapping_name] = value
+                        elif mapping_type == 'keyword':
+                            attributes[mapping_name] = value
+                        elif mapping_type == 'date':
+                            attributes[mapping_name] = value # TODO: reformat?
+                        elif mapping_type == 'geo_point':
+                            if type(value) == list:
+                                # Store django lat/lon as a string
+                                # Special note: in ES, array representations are lon/lat, but
+                                # strings are lat/lon, therefore we intentionally swap order here.
+                                attributes[mapping_name] = f"{value[1]},{value[0]}"
+                            else:
+                                attributes[mapping_name] = value
+
         results=[]
         results.append({
             '_index':self.index_name(entity.project.pk),
             '_op_type': mode,
             '_source': {
-                **corrected_attributes,
+                **attributes,
                 **aux,
             },
             '_id': f"{aux['_dtype']}_{entity.pk}",
