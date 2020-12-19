@@ -192,7 +192,7 @@ class TatorSearch:
                 mappings = {}
                 for mapping_type in MAPPING_TYPES[dtype]:
                     mapping_name = f'{uuid}_{mapping_type}'
-                    mappings[mapping_name] = mapping_type
+                    mappings[mapping_name] = {'type': mapping_type}
 
                 # Create mappings.
                 self.es.indices.put_mapping(
