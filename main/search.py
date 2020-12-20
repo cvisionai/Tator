@@ -314,6 +314,8 @@ class TatorSearch:
             name = attribute_type['name']
             if name == old_name:
                 replace_idx = idx
+                old_mapping_type = _get_alias_type(attribute_type)
+                old_mapping_name = f'{uuid}_{old_mapping_type}'
                 old_dtype = attribute_type['dtype']
                 new_attribute_type = dict(attribute_type)
                 new_attribute_type['dtype'] = new_dtype
@@ -327,13 +329,32 @@ class TatorSearch:
             raise RuntimeError(f"Attempted mutation of {name} from {old_dtype} to {new_dtype} is "
                                 "not allowed!")
 
-        # Create new alias definition.
-        alias_type = _get_alias_type(new_attribute_type)
+        # Create new alias definition and mapping.
+        mapping_type = _get_alias_type(new_attribute_type)
+        mapping_name = f'{uuid}_{mapping_type}'
         alias = {name: {'type': 'alias',
-                        'path': f'{uuid}_{alias_type}'}}
+                        'path': mapping_name}}
+        mapping = {mapping_name: {'type': mapping_type}}
+        # Create new mapping.
         self.es.indices.put_mapping(
             index=self.index_name(entity_type.project.pk),
-            body={'properties': alias},
+            body={'properties': **mapping, **alias},
+        )
+
+        # Copy values from old mapping to new mapping.
+        body = {'script': f"ctx._source['{mapping_name}']=ctx._source['{old_mapping_name}'];"}
+        self.es.update_by_query(
+            index=self.index_name(project),
+            body=body,
+            conflicts='proceed',
+        )
+
+        # Replace values in old mapping with null.
+        body = {'script': f"ctx._source['{old_mapping_name}']=null;"}
+        self.es.update_by_query(
+            index=self.index_name(project),
+            body=body,
+            conflicts='proceed',
         )
 
         # Update entity type object with new values.
