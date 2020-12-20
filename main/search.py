@@ -214,12 +214,9 @@ class TatorSearch:
     def create_mapping(self, entity_type):
         if entity_type.attribute_types:
             for attribute_type in entity_type.attribute_types:
-                name = attribute_type['name']
-                dtype = attribute_type['dtype']
-                mapping_type = _get_alias_type(attribute_type)
-                mapping_name = f'{uuid}_{mapping_type}'
 
                 # Get or create UUID for this attribute type.
+                name = attribute_type['name']
                 if name in entity_type.attribute_type_uuids:
                     uuid = entity_type.attribute_type_uuids[name]
                 else:
@@ -227,22 +224,22 @@ class TatorSearch:
                     entity_type.attribute_type_uuids[name] = uuid
                     # Save without triggering save signal.
                     qs = entity_type.__class__.objects.filter(pk=entity_type.id)
-                    qs.update({'attribute_type_uuids': entity_type.attribute_type_uuids})
+                    qs.update(attribute_type_uuids=entity_type.attribute_type_uuids)
+
+                mapping_type = _get_alias_type(attribute_type)
+                mapping_name = f'{uuid}_{mapping_type}'
   
                 # Define alias for this attribute type.
                 alias = {name: {'type': 'alias',
                                 'path': mapping_name}}
 
                 # Create mappings depending on dtype.
-                mappings[mapping_name] = {'type': mapping_type}
+                mapping = {mapping_name: {'type': mapping_type}}
 
                 # Create mappings.
                 self.es.indices.put_mapping(
                     index=self.index_name(entity_type.project.pk),
-                    body={'properties': {
-                        **mappings,
-                        **alias,
-                    }},
+                    body={'properties': {**mapping, **alias}},
                 )
 
     def rename_alias(self, entity_type, old_name, new_name):
