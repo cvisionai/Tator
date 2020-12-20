@@ -173,6 +173,10 @@ class Project(Model):
     num_files = IntegerField(default=0)
     summary = CharField(max_length=1024)
     filter_autocomplete = JSONField(null=True, blank=True)
+    attribute_type_uuids = JSONField(default=dict, null=True, blank=True)
+    """ Mapping between attribute type names and UUIDs. Used internally for 
+        maintaining elasticsearch field aliases.
+    """
     def has_user(self, user_id):
         return self.membership_set.filter(user_id=user_id).exists()
     def user_permission(self, user_id):
@@ -386,10 +390,6 @@ class MediaType(Model):
                      as the default for datetime dtype.
         style: (optional) String of GUI-related styles.
     """
-    attribute_type_uuids = JSONField(default=dict, null=True, blank=True)
-    """ Mapping between attribute type names and UUIDs. Used internally for 
-        maintaining elasticsearch field aliases.
-    """
     archive_config = JSONField(default=None, null=True, blank=True)
     streaming_config = JSONField(default=None, null=True,blank=True)
     overlay_config = JSONField(default=None,null=True,blank=True)
@@ -448,10 +448,6 @@ class LocalizationType(Model):
                      as the default for datetime dtype.
         style: (optional) String of GUI-related styles.
     """
-    attribute_type_uuids = JSONField(default=dict, null=True, blank=True)
-    """ Mapping between attribute type names and UUIDs. Used internally for 
-        maintaining elasticsearch field aliases.
-    """
     def __str__(self):
         return f'{self.name} | {self.project}'
 
@@ -500,10 +496,6 @@ class StateType(Model):
                      as the default for datetime dtype.
         style: (optional) String of GUI-related styles.
     """
-    attribute_type_uuids = JSONField(default=dict, null=True, blank=True)
-    """ Mapping between attribute type names and UUIDs. Used internally for 
-        maintaining elasticsearch field aliases.
-    """
     delete_child_localizations = BooleanField(default=False)
     """ If enabled, child localizations will be deleted when states of this
         type are deleted.
@@ -546,10 +538,6 @@ class LeafType(Model):
         use_current: (optional) Boolean indicating whether to use the current time
                      as the default for datetime dtype.
         style: (optional) String of GUI-related styles.
-    """
-    attribute_type_uuids = JSONField(default=dict, null=True, blank=True)
-    """ Mapping between attribute type names and UUIDs. Used internally for 
-        maintaining elasticsearch field aliases.
     """
     def __str__(self):
         return f'{self.name} | {self.project}'
