@@ -579,12 +579,13 @@ class TatorSearch:
             conflicts='proceed',
         )
 
-    def update(self, project, query, attrs):
+    def update(self, project, entity_type, query, attrs):
         """Bulk update on search results.
         """
         query['script'] = ''
-        for key in attrs:
-            val = attrs[key]
+        mapping_values = _get_mapping_values(entity_type, attrs)
+        for key in mapping_values:
+            val = mapping_values[key]
             if isinstance(val, bool):
                 if val:
                     val = 'true'
