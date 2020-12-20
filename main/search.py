@@ -18,17 +18,6 @@ ALLOWED_MUTATIONS = {
     'geopos': ['enum', 'string', 'geopos'],
 }
 
-# What mapping types are maintained for each dtype.
-MAPPING_TYPES = {
-    'bool': ['boolean', 'long', 'double', 'text', 'keyword'],
-    'int': ['boolean', 'long', 'double', 'text', 'keyword'],
-    'float': ['boolean', 'long', 'double', 'text', 'keyword'],
-    'enum': ['text', 'keyword'],
-    'string': ['text', 'keyword'],
-    'datetime': ['text', 'keyword', 'date'],
-    'geopos': ['text', 'keyword', 'geo_point']
-}
-
 # Used for duplicate ID storage
 id_bits=448
 id_mask=(1 << id_bits) - 1
@@ -114,28 +103,28 @@ def _get_mapping_values(entity_type, attributes):
             if value is not None:
                 dtype = attribute_type['dtype']
                 uuid = entity_type.attribute_type_uuids[name]
-                for mapping_type in MAPPING_TYPES[dtype]:
-                    mapping_name = f'{uuid}_{mapping_type}'
-                    if mapping_type == 'boolean':
-                        mapping_values[mapping_name] = bool(value)
-                    elif mapping_type == 'long':
-                        mapping_values[mapping_name] = int(value)
-                    elif mapping_type == 'double':
-                        mapping_values[mapping_name] = float(value)
-                    elif mapping_type == 'text':
+                mapping_type = _get_alias_type(attribute_type)
+                mapping_name = f'{uuid}_{mapping_type}'
+                if mapping_type == 'boolean':
+                    mapping_values[mapping_name] = bool(value)
+                elif mapping_type == 'long':
+                    mapping_values[mapping_name] = int(value)
+                elif mapping_type == 'double':
+                    mapping_values[mapping_name] = float(value)
+                elif mapping_type == 'text':
+                    mapping_values[mapping_name] = value
+                elif mapping_type == 'keyword':
+                    mapping_values[mapping_name] = value
+                elif mapping_type == 'date':
+                    mapping_values[mapping_name] = value # TODO: reformat?
+                elif mapping_type == 'geo_point':
+                    if type(value) == list:
+                        # Store django lat/lon as a string
+                        # Special note: in ES, array representations are lon/lat, but
+                        # strings are lat/lon, therefore we intentionally swap order here.
+                        mapping_values[mapping_name] = f"{value[1]},{value[0]}"
+                    else:
                         mapping_values[mapping_name] = value
-                    elif mapping_type == 'keyword':
-                        mapping_values[mapping_name] = value
-                    elif mapping_type == 'date':
-                        mapping_values[mapping_name] = value # TODO: reformat?
-                    elif mapping_type == 'geo_point':
-                        if type(value) == list:
-                            # Store django lat/lon as a string
-                            # Special note: in ES, array representations are lon/lat, but
-                            # strings are lat/lon, therefore we intentionally swap order here.
-                            mapping_values[mapping_name] = f"{value[1]},{value[0]}"
-                        else:
-                            mapping_values[mapping_name] = value
     return mapping_values
 
 class TatorSearch:
@@ -227,25 +216,25 @@ class TatorSearch:
             for attribute_type in entity_type.attribute_types:
                 name = attribute_type['name']
                 dtype = attribute_type['dtype']
+                mapping_type = _get_alias_type(attribute_type)
+                mapping_name = f'{uuid}_{mapping_type}'
 
                 # Get or create UUID for this attribute type.
                 if name in entity_type.attribute_type_uuids:
                     uuid = entity_type.attribute_type_uuids[name]
                 else:
-                    uuid = str(uuid1()).strip('-')
+                    uuid = str(uuid1()).replace('-', '')
                     entity_type.attribute_type_uuids[name] = uuid
-                    entity_type.save()
+                    # Save without triggering save signal.
+                    qs = entity_type.__class__.objects.filter(pk=entity_type.id)
+                    qs.update({'attribute_type_uuids': entity_type.attribute_type_uuids})
   
                 # Define alias for this attribute type.
-                alias_type = _get_alias_type(attribute_type)
                 alias = {name: {'type': 'alias',
-                                'path': f'{uuid}_{alias_type}'}}
+                                'path': mapping_name}}
 
                 # Create mappings depending on dtype.
-                mappings = {}
-                for mapping_type in MAPPING_TYPES[dtype]:
-                    mapping_name = f'{uuid}_{mapping_type}'
-                    mappings[mapping_name] = {'type': mapping_type}
+                mappings[mapping_name] = {'type': mapping_type}
 
                 # Create mappings.
                 self.es.indices.put_mapping(
