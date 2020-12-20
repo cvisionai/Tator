@@ -308,8 +308,7 @@ class TatorSearch:
         # Find old attribute type and create new attribute type.
         new_attribute_type = None
         for idx, attribute_type in enumerate(entity_type.attribute_types):
-            name = attribute_type['name']
-            if name == old_name:
+            if attribute_type['name'] == name:
                 replace_idx = idx
                 old_mapping_type = _get_alias_type(attribute_type)
                 old_mapping_name = f'{uuid}_{old_mapping_type}'
@@ -320,7 +319,7 @@ class TatorSearch:
                     new_attribute_type['style'] = new_style
                 break
         if new_attribute_type is None:
-            raise ValueError(f"Could not find attribute name {old_name} in entity type "
+            raise ValueError(f"Could not find attribute name {name} in entity type "
                               "{type(entity_type)} ID {entity_type.id}")
         if new_dtype not in ALLOWED_MUTATIONS[old_dtype]:
             raise RuntimeError(f"Attempted mutation of {name} from {old_dtype} to {new_dtype} is "
@@ -341,7 +340,7 @@ class TatorSearch:
         # Copy values from old mapping to new mapping.
         body = {'script': f"ctx._source['{mapping_name}']=ctx._source['{old_mapping_name}'];"}
         self.es.update_by_query(
-            index=self.index_name(project),
+            index=self.index_name(entity_type.project.pk),
             body=body,
             conflicts='proceed',
         )
@@ -349,7 +348,7 @@ class TatorSearch:
         # Replace values in old mapping with null.
         body = {'script': f"ctx._source['{old_mapping_name}']=null;"}
         self.es.update_by_query(
-            index=self.index_name(project),
+            index=self.index_name(entity_type.project.pk),
             body=body,
             conflicts='proceed',
         )
