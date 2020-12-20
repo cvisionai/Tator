@@ -489,7 +489,7 @@ class TatorSearch:
             '_index':self.index_name(entity.project.pk),
             '_op_type': mode,
             '_source': {
-                **corrected_attributes,
+                **attributes,
                 **duplicate,
             },
             '_id': f"{aux['_dtype']}_{duplicate_id}",
