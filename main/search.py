@@ -338,7 +338,7 @@ class TatorSearch:
         # Create new mapping.
         self.es.indices.put_mapping(
             index=self.index_name(entity_type.project.pk),
-            body={'properties': **mapping, **alias},
+            body={'properties': {**mapping, **alias}},
         )
 
         # Copy values from old mapping to new mapping.
