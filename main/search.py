@@ -102,7 +102,7 @@ def _get_mapping_values(entity_type, attributes):
             value = attributes.get(name)
             if value is not None:
                 dtype = attribute_type['dtype']
-                uuid = entity_type.attribute_type_uuids[name]
+                uuid = entity_type.project.attribute_type_uuids[name]
                 mapping_type = _get_alias_type(attribute_type)
                 mapping_name = f'{uuid}_{mapping_type}'
                 if mapping_type == 'boolean':
@@ -217,14 +217,12 @@ class TatorSearch:
 
                 # Get or create UUID for this attribute type.
                 name = attribute_type['name']
-                if name in entity_type.attribute_type_uuids:
-                    uuid = entity_type.attribute_type_uuids[name]
+                if name in entity_type.project.attribute_type_uuids:
+                    uuid = entity_type.project.attribute_type_uuids[name]
                 else:
                     uuid = str(uuid1()).replace('-', '')
-                    entity_type.attribute_type_uuids[name] = uuid
-                    # Save without triggering save signal.
-                    qs = entity_type.__class__.objects.filter(pk=entity_type.id)
-                    qs.update(attribute_type_uuids=entity_type.attribute_type_uuids)
+                    entity_type.project.attribute_type_uuids[name] = uuid
+                    entity_type.project.save()
 
                 mapping_type = _get_alias_type(attribute_type)
                 mapping_name = f'{uuid}_{mapping_type}'
@@ -255,7 +253,7 @@ class TatorSearch:
             :returns: Entity type with updated attribute_type_uuids.
         """
         # Retrieve UUID, raise error if it doesn't exist.
-        uuid = entity_type.attribute_type_uuids.get(old_name)
+        uuid = entity_type.project.attribute_type_uuids.get(old_name)
         if uuid is None:
             raise ValueError(f"Could not find attribute name {old_name} in entity type "
                               "{type(entity_type)} ID {entity_type.id}")
@@ -283,7 +281,7 @@ class TatorSearch:
         )
 
         # Update entity type object with new values.
-        entity_type.attribute_type_uuids[new_name] = entity_type.attribute_type_uuids.pop(old_name)
+        entity_type.attribute_type_uuids[new_name] = entity_type.project.attribute_type_uuids.pop(old_name)
         entity_type.attribute_types[replace_idx] = new_attribute_type
         return entity_type
 
@@ -300,7 +298,7 @@ class TatorSearch:
             :returns: Entity type with updated attribute_types.
         """
         # Retrieve UUID, raise error if it doesn't exist.
-        uuid = entity_type.attribute_type_uuids.get(name)
+        uuid = entity_type.project.attribute_type_uuids.get(name)
         if uuid is None:
             raise ValueError(f"Could not find attribute name {name} in entity type "
                               "{type(entity_type)} ID {entity_type.id}")
