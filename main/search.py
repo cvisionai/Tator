@@ -102,6 +102,42 @@ def _get_alias_type(attribute_type):
         alias_type = 'geo_point'
     return alias_type
 
+def _get_mapping_values(entity_type, attributes):
+    """ For a given entity type and attribute values, determines mappings that should
+        be set.
+    """
+    mapping_values = {}
+    if entity_type.attribute_types is not None:
+        for attribute_type in entity_type.attribute_types:
+            name = attribute_type['name']
+            value = attributes.get(name)
+            if value is not None:
+                dtype = attribute_type['dtype']
+                uuid = entity_type.attribute_type_uuids[name]
+                for mapping_type in MAPPING_TYPES[dtype]:
+                    mapping_name = f'{uuid}_{mapping_type}'
+                    if mapping_type == 'boolean':
+                        mapping_values[mapping_name] = bool(value)
+                    elif mapping_type == 'long':
+                        mapping_values[mapping_name] = int(value)
+                    elif mapping_type == 'double':
+                        mapping_values[mapping_name] = float(value)
+                    elif mapping_type == 'text':
+                        mapping_values[mapping_name] = value
+                    elif mapping_type == 'keyword':
+                        mapping_values[mapping_name] = value
+                    elif mapping_type == 'date':
+                        mapping_values[mapping_name] = value # TODO: reformat?
+                    elif mapping_type == 'geo_point':
+                        if type(value) == list:
+                            # Store django lat/lon as a string
+                            # Special note: in ES, array representations are lon/lat, but
+                            # strings are lat/lon, therefore we intentionally swap order here.
+                            mapping_values[mapping_name] = f"{value[1]},{value[0]}"
+                        else:
+                            mapping_values[mapping_name] = value
+    return mapping_values
+
 class TatorSearch:
     """ Interface for elasticsearch documents.
         There is one index per entity type.
@@ -434,43 +470,14 @@ class TatorSearch:
             entity.save()
 
         # Index attributes for all supported dtype mutations.
-        attributes = {}
-        if entity.meta.attribute_types is not None:
-            for attribute_type in entity.meta.attribute_types:
-                name = attribute_type['name']
-                value = entity.attributes.get(name)
-                if value is not None:
-                    dtype = attribute_type['dtype']
-                    uuid = entity.meta.attribute_type_uuids[name]
-                    for mapping_type in MAPPING_TYPES[dtype]:
-                        mapping_name = f'{uuid}_{mapping_type}'
-                        if mapping_type == 'boolean':
-                            attributes[mapping_name] = bool(value)
-                        elif mapping_type == 'long':
-                            attributes[mapping_name] = int(value)
-                        elif mapping_type == 'double':
-                            attributes[mapping_name] = float(value)
-                        elif mapping_type == 'text':
-                            attributes[mapping_name] = value
-                        elif mapping_type == 'keyword':
-                            attributes[mapping_name] = value
-                        elif mapping_type == 'date':
-                            attributes[mapping_name] = value # TODO: reformat?
-                        elif mapping_type == 'geo_point':
-                            if type(value) == list:
-                                # Store django lat/lon as a string
-                                # Special note: in ES, array representations are lon/lat, but
-                                # strings are lat/lon, therefore we intentionally swap order here.
-                                attributes[mapping_name] = f"{value[1]},{value[0]}"
-                            else:
-                                attributes[mapping_name] = value
+        mapping_values = _get_mapping_values(entity.meta, entity.attributes)
 
         results=[]
         results.append({
             '_index':self.index_name(entity.project.pk),
             '_op_type': mode,
             '_source': {
-                **attributes,
+                **mapping_values,
                 **aux,
             },
             '_id': f"{aux['_dtype']}_{entity.pk}",
@@ -489,7 +496,7 @@ class TatorSearch:
             '_index':self.index_name(entity.project.pk),
             '_op_type': mode,
             '_source': {
-                **attributes,
+                **mapping_values,
                 **duplicate,
             },
             '_id': f"{aux['_dtype']}_{duplicate_id}",
