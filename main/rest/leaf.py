@@ -197,7 +197,7 @@ class LeafListAPI(BaseListView, AttributeFilterMixin):
             qs = Leaf.objects.filter(pk__in=leaf_ids)
             new_attrs = validate_attributes(params, qs[0])
             bulk_patch_attributes(new_attrs, qs)
-            TatorSearch().update(self.kwargs['project'], query, new_attrs)
+            TatorSearch().update(self.kwargs['project'], qs[0].meta, query, new_attrs)
         return {'message': f'Successfully updated {len(leaf_ids)} leaves!'}
 
     def get_queryset(self):

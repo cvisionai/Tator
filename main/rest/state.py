@@ -280,7 +280,7 @@ class StateListAPI(BaseListView, AttributeFilterMixin):
             new_attrs = validate_attributes(params, qs[0])
             bulk_patch_attributes(new_attrs, qs)
             qs.update(modified_by=self.request.user)
-            TatorSearch().update(self.kwargs['project'], query, new_attrs)
+            TatorSearch().update(self.kwargs['project'], qs[0].meta, query, new_attrs)
         return {'message': f'Successfully updated {len(annotation_ids)} states!'}
 
     def get_queryset(self):
