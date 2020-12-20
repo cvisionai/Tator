@@ -437,10 +437,10 @@ class TatorSearch:
         attributes = {}
         if entity.meta.attribute_types is not None:
             for attribute_type in entity.meta.attribute_types:
+                name = attribute_type['name']
                 value = entity.attributes.get(name)
                 if value is not None:
                     dtype = attribute_type['dtype']
-                    name = attribute_type['name']
                     uuid = entity.meta.attribute_type_uuids[name]
                     for mapping_type in MAPPING_TYPES[dtype]:
                         mapping_name = f'{uuid}_{mapping_type}'
