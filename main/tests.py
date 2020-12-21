@@ -215,6 +215,7 @@ def create_test_attribute_types():
             name='String Test',
             dtype='string',
             default='asdf_default',
+            style='long_string',
         ),
         dict(
             name='Datetime Test',
