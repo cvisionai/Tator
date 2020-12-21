@@ -1912,7 +1912,6 @@ class MutateAliasTestCase(APITestCase):
 
     def _setup(self):
         project = create_test_project(self.user)
-        print(f"PROJECT: {type(project)}")
         entity_type = MediaType.objects.create(
             name="video",
             dtype='video',
@@ -1989,8 +1988,5 @@ class MutateAliasTestCase(APITestCase):
             value = datetime.datetime.now()
             self._test_mutation('datetime', new_dtype, 'Datetime Test', 'Datetime\ Test', value)
 
-    def test_geopos_mutations(self):
-        for new_dtype in ALLOWED_MUTATIONS['geopos']:
-            value = random_latlon()
-            self._test_mutation('geopos', new_dtype, 'Geoposition Test', 'Geoposition\ Test', value)
+    #TODO: write totally different test for geopos mutations (not supported in query string queries)
 
