@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 
 # Indicates what types can mutate into. Maps from type -> to type.
 ALLOWED_MUTATIONS = {
-    'bool': ['bool', 'int', 'float', 'enum', 'string'],
-    'int': ['bool', 'int', 'float', 'enum', 'string'],
-    'float': ['bool', 'int', 'float', 'enum', 'string'],
+    'bool': ['bool', 'enum', 'string'],
+    'int': ['int', 'float', 'enum', 'string'],
+    'float': ['int', 'float', 'enum', 'string'],
     'enum': ['enum', 'string'],
     'string': ['enum', 'string'],
     'datetime': ['enum', 'string', 'datetime'],
