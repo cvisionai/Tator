@@ -21,6 +21,7 @@ from dateutil.parser import parse as dateutil_parse
 from .models import *
 
 from .search import TatorSearch
+from .search import ALLOWED_MUTATIONS
 
 logger = logging.getLogger(__name__)
 
@@ -234,6 +235,9 @@ def create_test_version(name, description, number, project, media):
         number=number,
         project=project,
     )
+
+def random_string(length):
+    return ''.join(random.choice(string.ascii_letters) for _ in range(length))
 
 def random_datetime(start, end):
     """Generate a random datetime between `start` and `end`"""
@@ -1897,4 +1901,96 @@ class BookmarkTestCase(
             'name': 'New name',
         }
         self.edit_permission = Permission.CAN_EDIT
+
+class MutateAliasTestCase(APITestCase):
+    """Tests alias mutation in elasticsearch.
+    """
+    def setUp(self):
+        self.user = create_test_user()
+        self.client.force_authenticate(self.user)
+        self.search = TatorSearch()
+
+    def _setup(self):
+        project = create_test_project(self.user)
+        print(f"PROJECT: {type(project)}")
+        entity_type = MediaType.objects.create(
+            name="video",
+            dtype='video',
+            project=project,
+            attribute_types=create_test_attribute_types(),
+        )
+        entity = create_test_video(self.user, 'test.mp4', entity_type, project)
+        return project, entity_type, entity
+
+    def _convert_value(self, dtype, value):
+        if dtype == 'bool':
+            converted = str(bool(value)).lower()
+        elif dtype == 'int':
+            converted = int(value)
+        elif dtype == 'float':
+            converted = f'[{float(value) - 0.0001} TO {float(value) + 0.0001}]'
+        elif dtype == 'datetime':
+            converted = f'\"{value.isoformat()}\"'
+        else:
+            converted = str(value)
+            if isinstance(value, bool):
+                converted = converted.lower()
+            elif isinstance(value, datetime.datetime):
+                converted = f'\"{value.isoformat()}\"'
+        return converted
+
+    def _test_mutation(self, from_dtype, to_dtype, attr_name, search_name, value):
+        project, entity_type, entity = self._setup()
+        if isinstance(value, datetime.datetime):
+            entity.attributes = {attr_name: value.isoformat()}
+        else:
+            entity.attributes = {attr_name: value}
+        entity.save()
+        time.sleep(1)
+        query_string = f'{search_name}:{self._convert_value(from_dtype, value)}'
+        ids, _ = self.search.search(project.pk, {'query': {'query_string': {'query': query_string}}})
+        assert(len(ids) == 1)
+        entity_type = self.search.mutate_alias(entity_type, attr_name, to_dtype)
+        entity_type.save()
+        time.sleep(1)
+        query_string = f'{search_name}:{self._convert_value(to_dtype, value)}'
+        ids, _ = self.search.search(project.pk, {'query': {'query_string': {'query': query_string}}})
+        assert(len(ids) == 1)
+        project.delete()
+        print(f"Conversion of {from_dtype} to {to_dtype} success!")
+        
+    def test_bool_mutations(self):
+        for new_dtype in ALLOWED_MUTATIONS['bool']:
+            value = random.choice([True, False])
+            self._test_mutation('bool', new_dtype, 'Bool Test', 'Bool\ Test', value)
+            
+    def test_int_mutations(self):
+        for new_dtype in ALLOWED_MUTATIONS['int']:
+            value = random.choice([0, random.randint(-100, 100)])
+            self._test_mutation('int', new_dtype, 'Int Test', 'Int\ Test', value)
+
+    def test_float_mutations(self):
+        for new_dtype in ALLOWED_MUTATIONS['float']:
+            value = random.uniform(0, 1000)
+            self._test_mutation('float', new_dtype, 'Float Test', 'Float\ Test', value)
+
+    def test_enum_mutations(self):
+        for new_dtype in ALLOWED_MUTATIONS['enum']:
+            value = random_string(10)
+            self._test_mutation('enum', new_dtype, 'Enum Test', 'Enum\ Test', value)
+
+    def test_string_mutations(self):
+        for new_dtype in ALLOWED_MUTATIONS['string']:
+            value = random_string(10)
+            self._test_mutation('string', new_dtype, 'String Test', 'String\ Test', value)
+
+    def test_datetime_mutations(self):
+        for new_dtype in ALLOWED_MUTATIONS['datetime']:
+            value = datetime.datetime.now()
+            self._test_mutation('datetime', new_dtype, 'Datetime Test', 'Datetime\ Test', value)
+
+    def test_geopos_mutations(self):
+        for new_dtype in ALLOWED_MUTATIONS['geopos']:
+            value = random_latlon()
+            self._test_mutation('geopos', new_dtype, 'Geoposition Test', 'Geoposition\ Test', value)
 
