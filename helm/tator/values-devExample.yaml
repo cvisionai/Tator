@@ -190,6 +190,22 @@ minio:
   defaultBucket:
     enabled: true
     name: tator
+prometheus:
+  enabled: true
+  url: http://tator-kube-prometheus-stac-prometheus.default.svc
+rules:
+  default: false
+  custom:
+  - seriesQuery: '{namespace="default",service="rest-metrics-service"}'
+    resources:
+      overrides:
+        namespace:
+          resource: "namespace"
+        service:
+          resource: "service"
+    # name:
+    #   matches: "(.*)"
+    metricsQuery: "" # 'avg(sum_over_time(total_hit_count{pod=~"mockmetrics-deploy-(.*)"}[2m])) by (service)'
 # Limits on resources for transcode workflows.
 transcoderCpuLimit: "1000m"
 transcoderMemoryLimit: "4Gi"

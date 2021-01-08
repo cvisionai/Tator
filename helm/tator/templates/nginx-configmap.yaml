@@ -288,6 +288,14 @@ data:
           gzip_min_length 1024;
         }
 
+        location /status {
+            stub_status;
+            access_log off;
+            allow 127.0.0.1;
+            allow {{ .Values.domain }};
+            deny all;
+        }
+
         error_page 503 /static/maintenance.html;
         # Allow POST on static pages
         error_page 405 =200 $uri;

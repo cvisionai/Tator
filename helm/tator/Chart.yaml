@@ -36,6 +36,14 @@ dependencies:
     version: 8.0.8
     repository: https://helm.min.io
     condition: minio.enabled
+  - name: kube-prometheus-stack
+    version: 12.10.6
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus.enabled
+  - name: prometheus-adapter
+    version: 2.10.1
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus.enabled
 maintainers:
   - name: CVision AI
     email: info@cvisionai.com
