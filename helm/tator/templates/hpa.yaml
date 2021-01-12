@@ -9,16 +9,9 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: nginx
-  metrics:
-  - type: Object
-    object:
-      target:
-        kind: Service
-        name: rest-metrics-service
-      metricName: milli_requests
-      targetValue: 10
+  metrics: []
 ---
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   name: gunicorn-hpa
@@ -29,4 +22,4 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: gunicorn-deployment
-  targetCPUUtilizationPercentage: {{ .Values.hpa.gunicornCpuPercent }}
+  metrics: []
