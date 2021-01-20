@@ -1,4 +1,8 @@
+{{- if index .Values "kube-prometheus-stack" "enabled" }}
+apiVersion: autoscaling/v2beta2
+{{- else }}
 apiVersion: autoscaling/v1
+{{- end }}
 kind: HorizontalPodAutoscaler
 metadata:
   name: nginx-hpa
@@ -9,9 +13,24 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: nginx
+{{- if index .Values "kube-prometheus-stack" "enabled" }}
+  metrics:
+  - type: Pods
+    pods:
+      metric:
+        name: nginx_http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: 10m
+{{- else }}
   targetCPUUtilizationPercentage: {{ .Values.hpa.nginxCpuPercent }}
+{{- end }}
 ---
+{{- if index .Values "kube-prometheus-stack" "enabled" }}
+apiVersion: autoscaling/v2beta2
+{{- else }}
 apiVersion: autoscaling/v1
+{{- end }}
 kind: HorizontalPodAutoscaler
 metadata:
   name: gunicorn-hpa
@@ -22,4 +41,15 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: gunicorn-deployment
+{{- if index .Values "kube-prometheus-stack" "enabled" }}
+  metrics:
+  - type: Pods
+    pods:
+      metric:
+        name: nginx_http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: 10m
+{{- else }}
   targetCPUUtilizationPercentage: {{ .Values.hpa.gunicornCpuPercent }}
+{{- end }}

@@ -37,7 +37,7 @@ dependencies:
     repository: https://helm.min.io
     condition: minio.enabled
   - name: kube-prometheus-stack
-    version: 12.11.3
+    version: 12.12.1
     repository: https://prometheus-community.github.io/helm-charts
     condition: kube-prometheus-stack.enabled
 maintainers:
