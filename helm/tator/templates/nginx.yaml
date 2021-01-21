@@ -68,9 +68,9 @@ spec:
           imagePullPolicy: "IfNotPresent"
           args:
             {{- if .Values.requireHttps }}
-            - "-nginx.scrape-uri=https://localhost/status"
+            - "-nginx.scrape-uri=https://{{ .Values.domain }}/status"
             {{- else }}
-            - "-nginx.scrape-uri=http://localhost/status"
+            - "-nginx.scrape-uri=http://{{ .Values.domain }}/status"
             {{- end }}
           ports:
             - name: nginx-ex-port
