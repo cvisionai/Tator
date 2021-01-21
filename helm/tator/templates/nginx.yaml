@@ -67,7 +67,11 @@ spec:
           image: "nginx/nginx-prometheus-exporter:0.8.0"
           imagePullPolicy: "IfNotPresent"
           args:
-            - "-nginx.scrape-uri=http://localhost:80/status"
+            {{- if .Values.requireHttps }}
+            - "-nginx.scrape-uri=https://localhost/status"
+            {{- else }}
+            - "-nginx.scrape-uri=http://localhost/status"
+            {{- end }}
           ports:
             - name: nginx-ex-port
               containerPort: 9113
