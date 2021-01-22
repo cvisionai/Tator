@@ -262,5 +262,19 @@ data:
         # Allow POST on static pages
         error_page 405 =200 $uri;
       }
+
+      {{- if index .Values "kube-prometheus-stack" "enabled" }}
+      server {
+        listen 80;
+        server_name {{ .Values.domain }};
+
+        location /status {
+          stub_status;
+          access_log off;
+          allow 127.0.0.1;
+          deny all;
+        }
+      }
+      {{- end }}
     }
 
