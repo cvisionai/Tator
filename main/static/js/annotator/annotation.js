@@ -701,6 +701,7 @@ class AnnotationCanvas extends TatorElement
        "color": "white",
        "background": "rgba(0,0,0,0.33)"};
     this._showTextOverlays = true;
+    this._gridRows = 0;
 
     // Context menu (right-click): Tracks
     this._contextMenuTrack = document.createElement("canvas-context-menu");
@@ -1098,6 +1099,7 @@ class AnnotationCanvas extends TatorElement
 
   setupResizeHandler(dims, numGridRows, heightPadObject)
   {
+    this._gridRows = numGridRows;
     if (heightPadObject == null) {
       this.heightPadObject = {height: 175}; // Magic number here matching the header + footer
     }
@@ -1110,8 +1112,8 @@ class AnnotationCanvas extends TatorElement
     var resizeHandler = function()
     {
       var maxHeight;
-      if (numGridRows) {
-         maxHeight = (window.innerHeight - that.heightPadObject.height) / numGridRows;
+      if (that._gridRows) {
+         maxHeight = (window.innerHeight - that.heightPadObject.height) / that._gridRows;
       }
       else {
          maxHeight = window.innerHeight - that.heightPadObject.height;
