@@ -418,8 +418,7 @@ class AnnotationMulti extends TatorElement {
     this._dock_container = document.createElement("div");
     this._dock_container.setAttribute("class", "annotation__multi-grid")
 
-    this._multiVideos = {};
-    this._dockVideos = {};
+    this._videoDivs = {};
 
     this._multi_container.style.width="70%";
     this._dock_container.style.width="30%";
@@ -439,8 +438,8 @@ class AnnotationMulti extends TatorElement {
       const wrapper_div = document.createElement("div");
       wrapper_div.setAttribute("class", "annotation__multi-grid-entry d-flex flex-items-center ");
 
-      this.assignToPrimary(vid_id, wrapper_div);
-
+      this._videoDivs[vid_id] = wrapper_div;
+      this.assignToPrimary(vid_id);
       let roi_vid = document.createElement("video-canvas");
       roi_vid.style.gridColumn = (idx % this._multi_layout[1])+1;
       roi_vid.style.gridRow = Math.floor(idx / this._multi_layout[1])+1;
@@ -480,46 +479,80 @@ class AnnotationMulti extends TatorElement {
   {
     let pos = 0;
     let move = [];
-    for (let video of this._multi_container.children)
+    for (let video in this._videoDivs)
     {
       if (pos != 0)
       {
-        move.push(video);
+        this.assignToSecondary(Number(video));
       }
       pos++;
     }
-    for (let video of move)
-    {
-      this.assignToSecondary(0, video);
-    }
   }
 
-  assignToPrimary(vid_id, div)
+  assignToPrimary(vid_id)
   {
+    let div = this._videoDivs[vid_id];
     this._multi_container.appendChild(div);
     this.setMultiProportions();
-    div.children[0].style.visibility = null;
+    if (div.childElementCount)
+      div.children[0].style.visibility = null;
   }
 
-  assignToSecondary(vid_id, div)
+  assignToSecondary(vid_id)
   {
+    let div = this._videoDivs[vid_id];
     this._dock_container.appendChild(div);
     this.setMultiProportions();
-    div.children[0].style.visibility = null;
+    if (div.childElementCount)
+      div.children[0].style.visibility = null;
   }
 
   setMultiProportions()
   {
-    if (this._dock_container.children.length != 0)
+    let primaryCount = this._multi_container.childElementCount;
+    let secondaryCount = this._dock_container.childElementCount;
+    if (secondaryCount != 0)
     {
       this._multi_container.style.width="70%";
       this._dock_container.style.width="30%";
+      let rowsNeeded = Math.ceil(primaryCount / this._multi_layout[1]);
+      let colsNeeded = this._multi_layout[0];
+
+      if (primaryCount < this._multi_layout[1])
+        colsNeeded = primaryCount;
+      for (let primary of this._multi_container.children)
+      {
+        if (primary.childElementCount)
+        {
+          primary.children[0].gridRows = rowsNeeded;
+          primary.children[0].stretch = true;
+        }
+      }
+
+      for (let secondary of this._dock_container.children)
+      {
+        if (secondary.childElementCount)
+        {
+          secondary.children[0].gridRows = secondaryCount;
+          secondary.children[0].stretch = true;
+        }
+      }
     }
     else
     {
       this._multi_container.style.width="100%";
       this._dock_container.style.width="0%";
+      for (let primary of this._multi_container.children)
+      {
+        if (primary.childElementCount)
+        {
+          primary.children[0].gridRows = this._multi_layout[0];
+          primary.children[0].stretch = false;
+        }
+      }
     }
+
+    window.dispatchEvent(new Event('resize'));
   }
 
   set annotationData(val) {
