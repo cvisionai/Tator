@@ -702,6 +702,7 @@ class AnnotationCanvas extends TatorElement
        "background": "rgba(0,0,0,0.33)"};
     this._showTextOverlays = true;
     this._gridRows = 0;
+    this._stretch = false;
 
     // Context menu (right-click): Tracks
     this._contextMenuTrack = document.createElement("canvas-context-menu");
@@ -1136,12 +1137,30 @@ class AnnotationCanvas extends TatorElement
     {
       var maxHeight;
       if (that._gridRows) {
-         maxHeight = (window.innerHeight - that.heightPadObject.height) / that._gridRows;
+        maxHeight = (window.innerHeight / that._gridRows) - 90;
       }
       else {
          maxHeight = window.innerHeight - that.heightPadObject.height;
       }
-      const maxWidth = maxHeight*ratio;
+      let maxWidth = maxHeight*ratio;
+
+      // If stretch mode is on, stretch the canvas
+      if (that._stretch)
+      {
+        let hStretch = (maxWidth/that._canvas.width);
+        let vStretch = (maxHeight/that._canvas.height);
+        if (hStretch > 1 || vStretch > 1)
+        {
+          that._canvas.width = maxWidth;
+          that._canvas.height = maxHeight;
+          that._draw.resizeViewport(maxWidth, maxHeight);
+        }
+      }
+      else
+      {
+        that._canvas.width = that._dims[0];
+        that._canvas.height = that._dims[1];
+      }
       that._canvas.style.maxHeight=`${maxHeight}px`;
       that.parentElement.style.maxWidth=`${maxWidth}px`;
       that._domParents.forEach(parent =>
@@ -1192,6 +1211,14 @@ class AnnotationCanvas extends TatorElement
 
   set mediaInfo(val) {
     this._mediaInfo = val;
+  }
+
+  set gridRows(val) {
+    this._gridRows = val;
+  }
+
+  set stretch(val) {
+    this._stretch = true;
   }
 
   set annotationData(val) {
