@@ -1064,6 +1064,29 @@ class AnnotationCanvas extends TatorElement
     }
   }
 
+  // This function can be used to redo the guts of the openGL setup if one
+  // needs to. It can allow recovery from an openGL lost context.
+  reinitCanvas()
+  {
+    // Remove the old one
+    this._shadow.removeChild(this._canvas);
+    this._canvas=document.createElement("canvas");
+    this._canvas.setAttribute("class", "video");
+    this._canvas.style.zIndex = -1;
+    this._shadow.appendChild(this._canvas);
+
+    // Re-initalize openGL component
+    this._draw=new DrawGL(this._canvas);
+    this._dragHandler = new CanvasDrag(this,
+                                       this._canvas,
+                                       this._draw.displayToViewportScale.bind(this._draw),
+                                       this.dragHandler.bind(this));
+
+    // Set the canvas dimensions up correctly
+    this._draw.resizeViewport(this._dims[0], this._dims[1]);
+    this.refresh();
+  }
+
   resetRoi()
   {
     // Center zoom
