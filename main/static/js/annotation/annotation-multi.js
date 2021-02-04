@@ -485,7 +485,7 @@ class AnnotationMulti extends TatorElement {
           }
           else
           {
-            this.assignToPrimary(Number(video));
+            this.assignToPrimary(Number(video), true);
           }
         }
       }
@@ -536,7 +536,7 @@ class AnnotationMulti extends TatorElement {
       }
     }
   }
-  assignToPrimary(vid_id)
+  assignToPrimary(vid_id, focus)
   {
     let div = this._videoDivs[vid_id];
     this._multi_container.appendChild(div);
@@ -545,8 +545,15 @@ class AnnotationMulti extends TatorElement {
     this.makeAllVisible(div);
     let video = div.children[0];
 
-    // Max out quality for focused video
-    video.setQuality(this._quality);
+    if (focus)
+    {
+      video.setQuality(1080);
+    }
+    else
+    {
+      // Max out quality for focused video
+      video.setQuality(this._quality);
+    }
   }
 
   assignToSecondary(vid_id)
@@ -616,7 +623,10 @@ class AnnotationMulti extends TatorElement {
       }
     }
 
-    window.dispatchEvent(new Event('resize'));
+    // Wait for reassignments to calculate resize event.
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 5);
   }
 
   set annotationData(val) {
