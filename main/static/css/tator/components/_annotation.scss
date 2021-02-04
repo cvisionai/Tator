@@ -217,7 +217,8 @@ favorite-button {
 }
 
 .annotation__multi-grid {
-  display: grid;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .annotation__multi-grid-entry {

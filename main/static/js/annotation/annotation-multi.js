@@ -422,14 +422,6 @@ class AnnotationMulti extends TatorElement {
 
     this._multi_container.style.width="70%";
     this._dock_container.style.width="30%";
-    this._multi_container.style.gridTemplateColumns =
-      "auto ".repeat(this._multi_layout[1]);
-    this._multi_container.style.gridTemplateRows =
-      "auto ".repeat(this._multi_layout[0]);
-    this._dock_container.style.gridTemplateColumns =
-      "auto ".repeat(1);
-    this._dock_container.style.gridTemplateRows =
-      "auto ".repeat(this._multi_layout[0]*this._multi_layout[1]);
     this._vidDiv.appendChild(this._multi_container);
     this._vidDiv.appendChild(this._dock_container);
     let idx = 0;
@@ -441,8 +433,6 @@ class AnnotationMulti extends TatorElement {
       this._videoDivs[vid_id] = wrapper_div;
       this.assignToPrimary(vid_id);
       let roi_vid = document.createElement("video-canvas");
-      roi_vid.style.gridColumn = (idx % this._multi_layout[1])+1;
-      roi_vid.style.gridRow = Math.floor(idx / this._multi_layout[1])+1;
 
       this._videos.push(roi_vid);
       wrapper_div.appendChild(roi_vid);
@@ -478,7 +468,6 @@ class AnnotationMulti extends TatorElement {
   debug_multi()
   {
     let pos = 0;
-    let move = [];
     for (let video in this._videoDivs)
     {
       if (pos != 0)
@@ -486,6 +475,15 @@ class AnnotationMulti extends TatorElement {
         this.assignToSecondary(Number(video));
       }
       pos++;
+    }
+  }
+
+  // Move all to primary
+  all_primary()
+  {
+    for (let video in this._videoDivs)
+    {
+        this.assignToPrimary(Number(video));
     }
   }
 
@@ -524,8 +522,8 @@ class AnnotationMulti extends TatorElement {
       {
         if (primary.childElementCount)
         {
-          primary.children[0].gridRows = rowsNeeded;
           primary.children[0].stretch = true;
+          primary.children[0].gridRows = null;
         }
       }
 
@@ -533,8 +531,8 @@ class AnnotationMulti extends TatorElement {
       {
         if (secondary.childElementCount)
         {
-          secondary.children[0].gridRows = secondaryCount;
-          secondary.children[0].stretch = true;
+          secondary.children[0].stretch = false;
+          secondary.children[0].stretch = childElementCount;
         }
       }
     }
@@ -546,8 +544,8 @@ class AnnotationMulti extends TatorElement {
       {
         if (primary.childElementCount)
         {
-          primary.children[0].gridRows = this._multi_layout[0];
           primary.children[0].stretch = false;
+          primary.children[0].gridRows = this._multi_layout[0];
         }
       }
     }
