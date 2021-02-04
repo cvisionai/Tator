@@ -438,6 +438,9 @@ class AnnotationMulti extends TatorElement {
       wrapper_div.appendChild(roi_vid);
       video_resp.push(fetch(`/rest/Media/${vid_id}?presigned=28800`));
 
+      // Setup addons for multi-menu
+      this.setupMultiMenu(vid_id);
+
       idx += 1;
     }
 
@@ -464,6 +467,39 @@ class AnnotationMulti extends TatorElement {
     this._volume_control.style.display = "none";
   }
 
+  setupMultiMenu(vid_id)
+  {
+    let div = this._videoDivs[vid_id];
+    let video_element = div.children[0];
+    let focus = () => {
+      let primaryCount = this._multi_container.childElementCount;
+      let secondaryCount = this._dock_container.childElementCount;
+      if (secondaryCount == 0)
+      {
+        // Nothing on secondary yet add everything else
+        for (let video in this._videoDivs)
+        {
+          if (video != vid_id)
+          {
+            this.assignToSecondary(Number(video));
+          }
+        }
+      }
+      else
+      {
+        this.assignToPrimary(vid_id);
+      }
+    };
+
+    let reset = () => {
+      for (let video in this._videoDivs)
+      {
+        this.assignToPrimary(Number(video));
+      }
+    };
+    video_element.contextMenuNone.addMenuEntry("Focus On Video", focus);
+    video_element.contextMenuNone.addMenuEntry("Reset Multiview", reset);
+  }
   // Move all but the first to secondary
   debug_multi()
   {
@@ -475,15 +511,6 @@ class AnnotationMulti extends TatorElement {
         this.assignToSecondary(Number(video));
       }
       pos++;
-    }
-  }
-
-  // Move all to primary
-  all_primary()
-  {
-    for (let video in this._videoDivs)
-    {
-        this.assignToPrimary(Number(video));
     }
   }
 
@@ -537,10 +564,15 @@ class AnnotationMulti extends TatorElement {
         colsNeeded = primaryCount;
       for (let primary of this._multi_container.children)
       {
-        if (primary.childElementCount)
+        if (primaryCount == 1)
         {
           primary.children[0].stretch = true;
           primary.children[0].gridRows = null;
+        }
+        else
+        {
+          primary.children[0].stretch = false;
+          primary.children[0].gridRows = this._multi_layout[0];
         }
       }
 
