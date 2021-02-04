@@ -2,6 +2,8 @@ class AnnotationMulti extends TatorElement {
   constructor() {
     super();
 
+    window.tator_multi = this;
+
     this._playerDiv = document.createElement("div");
     this._playerDiv.setAttribute("class", "annotation__multi-player rounded-bottom-2");
     this._shadow.appendChild(this._playerDiv);
