@@ -497,9 +497,10 @@ class AnnotationMulti extends TatorElement {
         this.assignToPrimary(Number(video));
       }
     };
-    video_element.contextMenuNone.addMenuEntry("Focus On Video", focus);
+    video_element.contextMenuNone.addMenuEntry("Focus Video", focus);
     video_element.contextMenuNone.addMenuEntry("Reset Multiview", reset);
   }
+
   // Move all but the first to secondary
   debug_multi()
   {
@@ -573,6 +574,8 @@ class AnnotationMulti extends TatorElement {
         {
           primary.children[0].stretch = false;
           primary.children[0].gridRows = this._multi_layout[0];
+          primary.children[0].contextMenuNone.displayEntry("Focus Video", false);
+          primary.children[0].contextMenuNone.displayEntry("Reset Multiview", true);
         }
       }
 
@@ -582,6 +585,8 @@ class AnnotationMulti extends TatorElement {
         {
           secondary.children[0].stretch = false;
           secondary.children[0].gridRows = secondaryCount;
+          secondary.children[0].contextMenuNone.displayEntry("Focus Video", true);
+          secondary.children[0].contextMenuNone.displayEntry("Reset Multiview", true);
         }
       }
     }
@@ -595,6 +600,8 @@ class AnnotationMulti extends TatorElement {
         {
           primary.children[0].stretch = false;
           primary.children[0].gridRows = this._multi_layout[0];
+          primary.children[0].contextMenuNone.displayEntry("Reset Multiview", false);
+          primary.children[0].contextMenuNone.displayEntry("Focus Video", true);
         }
       }
     }
