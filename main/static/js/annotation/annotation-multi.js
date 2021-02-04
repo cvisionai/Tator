@@ -450,10 +450,24 @@ class AnnotationMulti extends TatorElement {
         video_info.push(resp.json());
       }
       Promise.all(video_info).then((info) => {
+        let focus = null;
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.has("focus"))
+        {
+          focus = searchParams.get("focus").split(",");
+        }
         for (let idx = 0; idx < video_info.length; idx++)
         {
           setup_video(idx, info[idx]);
-          this.assignToPrimary(info[idx].id);
+
+          if (focus == null || idx in focus)
+          {
+            this.assignToPrimary(info[idx].id);
+          }
+          else
+          {
+            this.assignToSecondary(info[idx].id);
+          }
         }
 
         this.dispatchEvent(new Event("canvasReady", {
