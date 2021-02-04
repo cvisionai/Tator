@@ -777,6 +777,10 @@ class AnnotationCanvas extends TatorElement
     }
   }
 
+  get contextMenuNone() {
+    return this._contextMenuNone;
+  }
+
   set mediaType(val) {
     this._mediaType = val;
 
