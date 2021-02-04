@@ -579,7 +579,7 @@ class AnnotationMulti extends TatorElement {
         else
         {
           primary.children[0].stretch = false;
-          primary.children[0].gridRows = 1.25;
+          primary.children[0].gridRows = 1.25; //Blow up row to 125%
           primary.children[0].contextMenuNone.displayEntry("Focus Video", false);
           primary.children[0].contextMenuNone.displayEntry("Reset Multiview", true);
         }
