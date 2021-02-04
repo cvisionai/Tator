@@ -483,6 +483,10 @@ class AnnotationMulti extends TatorElement {
           {
             this.assignToSecondary(Number(video));
           }
+          else
+          {
+            this.assignToPrimary(Number(video));
+          }
         }
       }
       else
