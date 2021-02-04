@@ -9,6 +9,7 @@ class AnnotationMulti extends TatorElement {
     this._shadow.appendChild(this._playerDiv);
 
     this._vidDiv = document.createElement("div");
+    this._vidDiv.style.display = "flex";
     this._playerDiv.appendChild(this._vidDiv);
 
     const div = document.createElement("div");
@@ -412,19 +413,33 @@ class AnnotationMulti extends TatorElement {
     };
 
     let video_resp = [];
-    let multi_container = document.createElement("div");
-    multi_container.setAttribute("class", "annotation__multi-grid")
-    multi_container.style.gridTemplateColumns =
+    this._multi_container = document.createElement("div");
+    this._multi_container.setAttribute("class", "annotation__multi-grid")
+    this._dock_container = document.createElement("div");
+    this._dock_container.setAttribute("class", "annotation__multi-grid")
+
+    this._multiVideos = {};
+    this._dockVideos = {};
+
+    this._multi_container.style.width="70%";
+    this._dock_container.style.width="30%";
+    this._multi_container.style.gridTemplateColumns =
       "auto ".repeat(this._multi_layout[1]);
-    multi_container.style.gridTemplateRows =
+    this._multi_container.style.gridTemplateRows =
       "auto ".repeat(this._multi_layout[0]);
-    this._vidDiv.appendChild(multi_container);
+    this._dock_container.style.gridTemplateColumns =
+      "auto ".repeat(1);
+    this._dock_container.style.gridTemplateRows =
+      "auto ".repeat(this._multi_layout[0]*this._multi_layout[1]);
+    this._vidDiv.appendChild(this._multi_container);
+    this._vidDiv.appendChild(this._dock_container);
     let idx = 0;
     for (const vid_id of val.media_files['ids'])
     {
       const wrapper_div = document.createElement("div");
       wrapper_div.setAttribute("class", "annotation__multi-grid-entry d-flex flex-items-center ");
-      multi_container.appendChild(wrapper_div);
+
+      this.assignToPrimary(vid_id, wrapper_div);
 
       let roi_vid = document.createElement("video-canvas");
       roi_vid.style.gridColumn = (idx % this._multi_layout[1])+1;
@@ -458,6 +473,53 @@ class AnnotationMulti extends TatorElement {
     // Audio for multi might get fun...
     // Hide volume on videos with no audio
     this._volume_control.style.display = "none";
+  }
+
+  // Move all but the first to secondary
+  debug_multi()
+  {
+    let pos = 0;
+    let move = [];
+    for (let video of this._multi_container.children)
+    {
+      if (pos != 0)
+      {
+        move.push(video);
+      }
+      pos++;
+    }
+    for (let video of move)
+    {
+      this.assignToSecondary(0, video);
+    }
+  }
+
+  assignToPrimary(vid_id, div)
+  {
+    this._multi_container.appendChild(div);
+    this.setMultiProportions();
+    div.children[0].style.visibility = null;
+  }
+
+  assignToSecondary(vid_id, div)
+  {
+    this._dock_container.appendChild(div);
+    this.setMultiProportions();
+    div.children[0].style.visibility = null;
+  }
+
+  setMultiProportions()
+  {
+    if (this._dock_container.children.length != 0)
+    {
+      this._multi_container.style.width="70%";
+      this._dock_container.style.width="30%";
+    }
+    else
+    {
+      this._multi_container.style.width="100%";
+      this._dock_container.style.width="0%";
+    }
   }
 
   set annotationData(val) {
