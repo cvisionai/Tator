@@ -487,13 +487,30 @@ class AnnotationMulti extends TatorElement {
     }
   }
 
+  makeAllVisible(node)
+  {
+    node.style.visibility = null;
+    for (let child of node.children)
+    {
+      this.makeAllVisible(child);
+    }
+
+    // Don't forget about the shadow children
+    if (node._shadow)
+    {
+      for (let child of node._shadow.children)
+      {
+        this.makeAllVisible(child);
+      }
+    }
+  }
   assignToPrimary(vid_id)
   {
     let div = this._videoDivs[vid_id];
     this._multi_container.appendChild(div);
     this.setMultiProportions();
-    if (div.childElementCount)
-      div.children[0].style.visibility = null;
+    // These go invisible on a move.
+    this.makeAllVisible(div);
   }
 
   assignToSecondary(vid_id)
@@ -501,8 +518,8 @@ class AnnotationMulti extends TatorElement {
     let div = this._videoDivs[vid_id];
     this._dock_container.appendChild(div);
     this.setMultiProportions();
-    if (div.childElementCount)
-      div.children[0].style.visibility = null;
+    // These go invisible on a move.
+    this.makeAllVisible(div);
   }
 
   setMultiProportions()
@@ -532,7 +549,7 @@ class AnnotationMulti extends TatorElement {
         if (secondary.childElementCount)
         {
           secondary.children[0].stretch = false;
-          secondary.children[0].stretch = childElementCount;
+          secondary.children[0].gridRows = secondaryCount;
         }
       }
     }
