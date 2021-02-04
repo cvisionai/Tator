@@ -431,7 +431,6 @@ class AnnotationMulti extends TatorElement {
       wrapper_div.setAttribute("class", "annotation__multi-grid-entry d-flex flex-items-center ");
 
       this._videoDivs[vid_id] = wrapper_div;
-      this.assignToPrimary(vid_id);
       let roi_vid = document.createElement("video-canvas");
 
       this._videos.push(roi_vid);
@@ -454,6 +453,7 @@ class AnnotationMulti extends TatorElement {
         for (let idx = 0; idx < video_info.length; idx++)
         {
           setup_video(idx, info[idx]);
+          this.assignToPrimary(info[idx].id);
         }
 
         this.dispatchEvent(new Event("canvasReady", {
@@ -539,6 +539,10 @@ class AnnotationMulti extends TatorElement {
     this.setMultiProportions();
     // These go invisible on a move.
     this.makeAllVisible(div);
+    let video = div.children[0];
+
+    // Max out quality for focused video
+    video.setQuality(this._quality);
   }
 
   assignToSecondary(vid_id)
@@ -548,6 +552,8 @@ class AnnotationMulti extends TatorElement {
     this.setMultiProportions();
     // These go invisible on a move.
     this.makeAllVisible(div);
+    let video = div.children[0];
+    video.setQuality(this._quality/3);
   }
 
   setMultiProportions()
@@ -573,7 +579,7 @@ class AnnotationMulti extends TatorElement {
         else
         {
           primary.children[0].stretch = false;
-          primary.children[0].gridRows = this._multi_layout[0];
+          primary.children[0].gridRows = 1.25;
           primary.children[0].contextMenuNone.displayEntry("Focus Video", false);
           primary.children[0].contextMenuNone.displayEntry("Reset Multiview", true);
         }
