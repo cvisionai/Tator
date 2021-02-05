@@ -485,9 +485,76 @@ class AnnotationMulti extends TatorElement {
   {
     let div = this._videoDivs[vid_id];
     let video_element = div.children[0];
+
+    let get_pos = (vid_id) => {
+      let idx = 0;
+      for (let video in this._videoDivs)
+      {
+        if (vid_id == vid_id)
+        {
+          break;
+        }
+        else
+        {
+          idx++;
+        }
+      }
+      return idx;
+    };
+
+    let pushed_state = false;
+    let state_obj = {"state": "focus"};
+    let reset_url = () => {
+      const search_params = new URLSearchParams(window.location.search);
+      if (search_params.has("focus"))
+      {
+        search_params.delete("focus");
+        const path = document.location.pathname;
+        const searchArgs = search_params.toString();
+        var newUrl = path + "?" + searchArgs;
+        if (pushed_state)
+        {
+          window.history.replaceState(state_obj, "Focus", newUrl);
+        }
+        else
+        {
+          window.history.pushState(state_obj, "Focus", newUrl);
+          pushed_state = true;
+        }
+      }
+
+    };
+    let update_url = (vid_id) => {
+      let focus = [];
+      const search_params = new URLSearchParams(window.location.search);
+      if (search_params.has("focus"))
+      {
+          focus = search_params.get("focus").split(",");
+      }
+      let pos = get_pos(vid_id);
+      if (! (pos in focus))
+      {
+        focus.push(pos);
+      }
+      search_params.set("focus",focus.join(','));
+      const path = document.location.pathname;
+      const searchArgs = search_params.toString();
+      var newUrl = path + "?" + searchArgs;
+      if (pushed_state)
+      {
+        window.history.replaceState(state_obj, "Focus", newUrl);
+      }
+      else
+      {
+        window.history.pushState(state_obj, "Focus", newUrl);
+        pushed_state = true;
+      }
+
+    };
     let focus = () => {
       let primaryCount = this._multi_container.childElementCount;
       let secondaryCount = this._dock_container.childElementCount;
+
       if (secondaryCount == 0)
       {
         // Nothing on secondary yet add everything else
@@ -499,6 +566,7 @@ class AnnotationMulti extends TatorElement {
           }
           else
           {
+            update_url(Number(video));
             this.assignToPrimary(Number(video), true);
           }
         }
@@ -514,6 +582,7 @@ class AnnotationMulti extends TatorElement {
       {
         this.assignToPrimary(Number(video));
       }
+      reset_url();
     };
     video_element.contextMenuNone.addMenuEntry("Focus Video", focus);
     video_element.contextMenuNone.addMenuEntry("Reset Multiview", reset);
