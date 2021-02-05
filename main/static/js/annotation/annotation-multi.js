@@ -470,6 +470,21 @@ class AnnotationMulti extends TatorElement {
           }
         }
 
+        // Go through again to make sure primary/secondary
+        // get correct quality factors set.
+        for (let idx = 0; idx < video_info.length; idx++)
+        {
+          if (focus == null || idx in focus)
+          {
+            this.assignToPrimary(info[idx].id);
+          }
+          else
+          {
+            this.assignToSecondary(info[idx].id);
+          }
+        }
+
+
         this.dispatchEvent(new Event("canvasReady", {
           composed: true
         }));
