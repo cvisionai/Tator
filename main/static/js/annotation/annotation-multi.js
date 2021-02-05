@@ -462,21 +462,7 @@ class AnnotationMulti extends TatorElement {
 
           if (focus == null || idx in focus)
           {
-            this.assignToPrimary(info[idx].id);
-          }
-          else
-          {
-            this.assignToSecondary(info[idx].id);
-          }
-        }
-
-        // Go through again to make sure primary/secondary
-        // get correct quality factors set.
-        for (let idx = 0; idx < video_info.length; idx++)
-        {
-          if (focus == null || idx in focus)
-          {
-            this.assignToPrimary(info[idx].id);
+            this.assignToPrimary(info[idx].id, true);
           }
           else
           {
@@ -588,7 +574,7 @@ class AnnotationMulti extends TatorElement {
       }
       else
       {
-        this.assignToPrimary(vid_id);
+        this.assignToPrimary(vid_id, true);
       }
     };
 
