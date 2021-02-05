@@ -1141,7 +1141,7 @@ class AnnotationCanvas extends TatorElement
     {
       var maxHeight;
       if (that._gridRows) {
-        maxHeight = (window.innerHeight / that._gridRows) - 90;
+        maxHeight = (window.innerHeight / that._gridRows) - that.heightPadObject.height;
       }
       else {
          maxHeight = window.innerHeight - that.heightPadObject.height;
