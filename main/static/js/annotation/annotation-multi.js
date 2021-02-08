@@ -2,11 +2,14 @@ class AnnotationMulti extends TatorElement {
   constructor() {
     super();
 
+    window.tator_multi = this;
+
     this._playerDiv = document.createElement("div");
     this._playerDiv.setAttribute("class", "annotation__multi-player rounded-bottom-2");
     this._shadow.appendChild(this._playerDiv);
 
     this._vidDiv = document.createElement("div");
+    this._vidDiv.style.display = "flex";
     this._playerDiv.appendChild(this._vidDiv);
 
     const div = document.createElement("div");
@@ -410,27 +413,32 @@ class AnnotationMulti extends TatorElement {
     };
 
     let video_resp = [];
-    let multi_container = document.createElement("div");
-    multi_container.setAttribute("class", "annotation__multi-grid")
-    multi_container.style.gridTemplateColumns =
-      "auto ".repeat(this._multi_layout[1]);
-    multi_container.style.gridTemplateRows =
-      "auto ".repeat(this._multi_layout[0]);
-    this._vidDiv.appendChild(multi_container);
+    this._multi_container = document.createElement("div");
+    this._multi_container.setAttribute("class", "annotation__multi-grid")
+    this._dock_container = document.createElement("div");
+    this._dock_container.setAttribute("class", "annotation__multi-grid")
+
+    this._videoDivs = {};
+
+    this._multi_container.style.width="70%";
+    this._dock_container.style.width="30%";
+    this._vidDiv.appendChild(this._multi_container);
+    this._vidDiv.appendChild(this._dock_container);
     let idx = 0;
     for (const vid_id of val.media_files['ids'])
     {
       const wrapper_div = document.createElement("div");
       wrapper_div.setAttribute("class", "annotation__multi-grid-entry d-flex flex-items-center ");
-      multi_container.appendChild(wrapper_div);
 
+      this._videoDivs[vid_id] = wrapper_div;
       let roi_vid = document.createElement("video-canvas");
-      roi_vid.style.gridColumn = (idx % this._multi_layout[1])+1;
-      roi_vid.style.gridRow = Math.floor(idx / this._multi_layout[1])+1;
 
       this._videos.push(roi_vid);
       wrapper_div.appendChild(roi_vid);
       video_resp.push(fetch(`/rest/Media/${vid_id}?presigned=28800`));
+
+      // Setup addons for multi-menu
+      this.setupMultiMenu(vid_id);
 
       idx += 1;
     }
@@ -442,10 +450,26 @@ class AnnotationMulti extends TatorElement {
         video_info.push(resp.json());
       }
       Promise.all(video_info).then((info) => {
+        let focus = null;
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.has("focus"))
+        {
+          focus = searchParams.get("focus").split(",");
+        }
         for (let idx = 0; idx < video_info.length; idx++)
         {
           setup_video(idx, info[idx]);
+
+          if (focus == null || idx in focus)
+          {
+            this.assignToPrimary(info[idx].id, true);
+          }
+          else
+          {
+            this.assignToSecondary(info[idx].id);
+          }
         }
+
 
         this.dispatchEvent(new Event("canvasReady", {
           composed: true
@@ -456,6 +480,239 @@ class AnnotationMulti extends TatorElement {
     // Audio for multi might get fun...
     // Hide volume on videos with no audio
     this._volume_control.style.display = "none";
+  }
+
+  setupMultiMenu(vid_id)
+  {
+    let div = this._videoDivs[vid_id];
+    let video_element = div.children[0];
+
+    let get_pos = (vid_id) => {
+      let idx = 0;
+      for (let video in this._videoDivs)
+      {
+        if (vid_id == vid_id)
+        {
+          break;
+        }
+        else
+        {
+          idx++;
+        }
+      }
+      return idx;
+    };
+
+    let pushed_state = false;
+    let state_obj = {"state": "focus"};
+    let reset_url = () => {
+      const search_params = new URLSearchParams(window.location.search);
+      if (search_params.has("focus"))
+      {
+        search_params.delete("focus");
+        const path = document.location.pathname;
+        const searchArgs = search_params.toString();
+        var newUrl = path + "?" + searchArgs;
+        if (pushed_state)
+        {
+          window.history.replaceState(state_obj, "Focus", newUrl);
+        }
+        else
+        {
+          window.history.pushState(state_obj, "Focus", newUrl);
+          pushed_state = true;
+        }
+      }
+
+    };
+    let update_url = (vid_id) => {
+      let focus = [];
+      const search_params = new URLSearchParams(window.location.search);
+      if (search_params.has("focus"))
+      {
+          focus = search_params.get("focus").split(",");
+      }
+      let pos = get_pos(vid_id);
+      if (! (pos in focus))
+      {
+        focus.push(pos);
+      }
+      search_params.set("focus",focus.join(','));
+      const path = document.location.pathname;
+      const searchArgs = search_params.toString();
+      var newUrl = path + "?" + searchArgs;
+      if (pushed_state)
+      {
+        window.history.replaceState(state_obj, "Focus", newUrl);
+      }
+      else
+      {
+        window.history.pushState(state_obj, "Focus", newUrl);
+        pushed_state = true;
+      }
+
+    };
+    let focus = () => {
+      let primaryCount = this._multi_container.childElementCount;
+      let secondaryCount = this._dock_container.childElementCount;
+
+      if (secondaryCount == 0)
+      {
+        // Nothing on secondary yet add everything else
+        for (let video in this._videoDivs)
+        {
+          if (video != vid_id)
+          {
+            this.assignToSecondary(Number(video));
+          }
+          else
+          {
+            update_url(Number(video));
+            this.assignToPrimary(Number(video), true);
+          }
+        }
+      }
+      else
+      {
+        this.assignToPrimary(vid_id, true);
+      }
+    };
+
+    let reset = () => {
+      for (let video in this._videoDivs)
+      {
+        this.assignToPrimary(Number(video));
+      }
+      reset_url();
+    };
+    video_element.contextMenuNone.addMenuEntry("Focus Video", focus);
+    video_element.contextMenuNone.addMenuEntry("Reset Multiview", reset);
+  }
+
+  // Move all but the first to secondary
+  debug_multi()
+  {
+    let pos = 0;
+    for (let video in this._videoDivs)
+    {
+      if (pos != 0)
+      {
+        this.assignToSecondary(Number(video));
+      }
+      pos++;
+    }
+  }
+
+  makeAllVisible(node)
+  {
+    node.style.visibility = null;
+    for (let child of node.children)
+    {
+      this.makeAllVisible(child);
+    }
+
+    // Don't forget about the shadow children
+    if (node._shadow)
+    {
+      for (let child of node._shadow.children)
+      {
+        this.makeAllVisible(child);
+      }
+    }
+  }
+  assignToPrimary(vid_id, focus)
+  {
+    let div = this._videoDivs[vid_id];
+    this._multi_container.appendChild(div);
+    this.setMultiProportions();
+    // These go invisible on a move.
+    this.makeAllVisible(div);
+    let video = div.children[0];
+
+    if (focus)
+    {
+      video.setQuality(1080);
+    }
+    else
+    {
+      // Max out quality for focused video
+      video.setQuality(this._quality);
+    }
+  }
+
+  assignToSecondary(vid_id)
+  {
+    let div = this._videoDivs[vid_id];
+    this._dock_container.appendChild(div);
+    this.setMultiProportions();
+    // These go invisible on a move.
+    this.makeAllVisible(div);
+    let video = div.children[0];
+    video.setQuality(this._quality/3);
+  }
+
+  setMultiProportions()
+  {
+    let primaryCount = this._multi_container.childElementCount;
+    let secondaryCount = this._dock_container.childElementCount;
+    if (secondaryCount != 0)
+    {
+      this._multi_container.style.width="70%";
+      this._dock_container.style.width="30%";
+      let rowsNeeded = Math.ceil(primaryCount / this._multi_layout[1]);
+      let colsNeeded = this._multi_layout[0];
+
+      if (primaryCount < this._multi_layout[1])
+        colsNeeded = primaryCount;
+      for (let primary of this._multi_container.children)
+      {
+        if (primaryCount == 1)
+        {
+          primary.children[0].stretch = true;
+          primary.children[0].gridRows = null;
+          primary.children[0].contextMenuNone.displayEntry("Focus Video", false);
+          primary.children[0].contextMenuNone.displayEntry("Reset Multiview", true);
+        }
+        else
+        {
+          primary.children[0].stretch = false;
+          primary.children[0].gridRows = 1.25; //Blow up row to 125%
+          primary.children[0].contextMenuNone.displayEntry("Focus Video", false);
+          primary.children[0].contextMenuNone.displayEntry("Reset Multiview", true);
+        }
+      }
+
+      for (let secondary of this._dock_container.children)
+      {
+        if (secondary.childElementCount)
+        {
+          secondary.children[0].stretch = false;
+          secondary.children[0].gridRows = secondaryCount;
+          secondary.children[0].contextMenuNone.displayEntry("Focus Video", true);
+          secondary.children[0].contextMenuNone.displayEntry("Reset Multiview", true);
+        }
+      }
+    }
+    else
+    {
+      this._multi_container.style.width="100%";
+      this._dock_container.style.width="0%";
+      for (let primary of this._multi_container.children)
+      {
+        if (primary.childElementCount)
+        {
+          primary.children[0].stretch = false;
+          primary.children[0].gridRows = this._multi_layout[0];
+          primary.children[0].contextMenuNone.displayEntry("Reset Multiview", false);
+          primary.children[0].contextMenuNone.displayEntry("Focus Video", true);
+        }
+      }
+    }
+
+    // Wait for reassignments to calculate resize event.
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+    }, 20);
   }
 
   set annotationData(val) {
