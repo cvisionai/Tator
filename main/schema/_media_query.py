@@ -71,4 +71,12 @@ media_filter_parameter_schema = [
                        'parameters are relative to this modified range.',
         'schema': {'type': 'string'},
     },
+    {
+        'name': 'archived',
+        'in': 'query',
+        'required': False,
+        'description': 'If given, results returned will have the given archival state. '
+                       'Default is "live".',
+        'schema': {'type': 'string', 'enum': ['live', 'archived', 'all']},
+    },
 ]

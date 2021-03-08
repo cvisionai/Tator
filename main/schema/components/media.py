@@ -21,6 +21,10 @@ media_properties = {
         'type': 'object',
         'additionalProperties': {'$ref': '#/components/schemas/AttributeValue'},
     },
+    'archived': {
+        'description': 'Archive state of this media.',
+        'type': 'boolean',
+    },
 }
 
 media_get_properties = {

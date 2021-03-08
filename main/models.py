@@ -799,6 +799,7 @@ class Media(Model, ModelDiffMixin):
     height=IntegerField(null=True)
     media_files = JSONField(null=True, blank=True)
     deleted = BooleanField(default=False)
+    archived = BooleanField(default=False)
     recycled_from = ForeignKey(Project, on_delete=SET_NULL, null=True, blank=True,
                                related_name='recycled_from')
 

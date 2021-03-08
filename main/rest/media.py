@@ -517,6 +517,9 @@ class MediaDetailAPI(BaseDetailView):
         if 'height' in params:
             obj.height = params['height']
 
+        if "archived" in params:
+            obj.archived = params["archived"]
+
         if 'multi' in params:
             # If this object already contains non-multi media definitions, raise an exception.
             if obj.media_files:
@@ -590,4 +593,3 @@ class MediaDetailAPI(BaseDetailView):
 
     def get_queryset(self):
         return Media.objects.all()
-

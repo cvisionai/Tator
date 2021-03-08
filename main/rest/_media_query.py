@@ -221,7 +221,7 @@ def _use_es(project, params):
     use_es = use_es or use_es_for_attributes
 
     return use_es, section_uuid, filter_ops
-        
+
 def get_media_queryset(project, params):
     # Determine whether to use ES or not.
     use_es, section_uuid, filter_ops = _use_es(project, params)
