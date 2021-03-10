@@ -39,6 +39,9 @@ const vsSource = `#version 300 es
     // modes:
     // -  0 is NO-OP
     // -  1 is pixelization, arg1 is percentage
+    // -  2 is gray-scale
+    // -  3 is solid color
+    // -  4 is donut, arg1 is inner radius (0 makes a solid circle)
     in vec4 filterOp;
 
     // These two matrices convert our pixel coordinate vertex (0,0) to
@@ -111,6 +114,19 @@ const imageFsSource = `#version 300 es
              else if (filterOp_s.x == 3.0)
              {
                 pixelOutput = vec4(0.5,0.25,0.25,1.0);
+             }
+             else if (filterOp_s.x == 4.0)
+             {
+                vec2 unit_coords = (texcoord - 0.5)*2.0;
+                float dist = (unit_coords.x*unit_coords.x)+(unit_coords.y*unit_coords.y);
+                if (dist >= filterOp_s.y && dist <= 1.0)
+                {
+                   pixelOutput = rgba;
+                }
+                else
+                {
+                   pixelOutput = vec4(0,0,0,0);
+                }
              }
              else
              {
@@ -749,6 +765,24 @@ class DrawGL
     return oldBuffer;
   }
 
+  drawCircle(center, radius, penColor, alpha, innerRadius)
+  {
+    if (this.drawBuffer == null)
+    {
+      this.beginDraw();
+    }
+    if (innerRadius == null)
+    {
+      innerRadius = 0.0;
+    }
+
+    let start = [center[0]-radius, center[1]];
+    let finsh = [center[0]+radius, center[1]];
+    let width = radius*2;
+    let effect = [4.0, innerRadius];
+    this.drawLine(start,finsh, penColor, width, alpha, effect);
+  }
+
   // Draw a line at start to finish. Optionally supply pen info.
   drawLine(start, finish, penColor, width, alpha, effect)
   {
@@ -866,6 +900,11 @@ class DrawGL
       {
         // No texture for pen drawing
         this.drawBuffer.uv.push(...[-1.0,-1.0]);
+      }
+      else if (effect[0] == 4.0)
+      {
+        const CIRCLE_UX = [[0.0,0.0],[1.0,0.0],[1.0,1.0],[0.0,1.0]];
+        this.drawBuffer.uv.push(...CIRCLE_UX[idx]);
       }
       else
       {
