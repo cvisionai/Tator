@@ -2099,15 +2099,10 @@ class AnnotationCanvas extends TatorElement
       width = Math.round(defaultDotWidth*this._draw.displayToViewportScale()[0]);
     }
 
-    //Scale box dimenisons
+    //Scale to get actual center of dot
     var actX0 = (localization.x - roi[0]) *scaleFactor[0];
     var actY0 = (localization.y - roi[1])*scaleFactor[1];
-    var actX1 = (localization.x - roi[0]) *scaleFactor[0];
-    var actY1 = (localization.y - roi[1])*scaleFactor[1];
-    actX0 -= width/2;
-    actX1 += width/2;
-    var line = [[actX0,actY0], [actX1,actY1]];
-    return line;
+    return [actX0,actY0];
   }
 
   explodeLine(line)
@@ -2662,8 +2657,8 @@ class AnnotationCanvas extends TatorElement
       else if (meta.dtype == 'dot')
       {
         const dotWidth = Math.round(defaultDotWidth*this._draw.displayToViewportScale()[0]);
-        var line = this.localizationToDot(localization, dotWidth);
-        this._draw.drawLine(line[0], line[1], drawColor, dotWidth);
+        var center = this.localizationToDot(localization, dotWidth);
+        this._draw.drawCircle(center, dotWidth/2, drawColor);
       }
       // Handle case when localization is in a track
       if (localization.id in this._data._trackDb)
@@ -2864,8 +2859,8 @@ class AnnotationCanvas extends TatorElement
           else if (meta.dtype == 'dot')
           {
             const dotWidth = Math.round(defaultDotWidth*that._draw.displayToViewportScale()[0]);
-            var dotline = that.localizationToDot(localization);
-            that._draw.drawLine(dotline[0], dotline[1], getColorForFrame(frameIdx), dotWidth, alpha);
+            var center = that.localizationToDot(localization);
+            that._draw.drawCircle(center, dotWidth/2, getColorForFrame(frameIdx), alpha);
           }
           that._draw.dispImage(true);
         }
@@ -3578,12 +3573,10 @@ class AnnotationCanvas extends TatorElement
 
         var translatedDot = function(begin, end)
         {
-          var line = that.localizationToDot(that.activeLocalization);
-          line[0][0] += end.x - begin.x;
-          line[1][0] += end.x - begin.x;
-          line[0][1] += end.y - begin.y;
-          line[1][1] += end.y - begin.y;
-          return line;
+          var center = that.localizationToDot(that.activeLocalization);
+          center[0] += end.x - begin.x;
+          center[1] += end.y - begin.y;
+          return center;
         }
 
         var translatedPoly = function(begin, end)
@@ -3655,11 +3648,10 @@ class AnnotationCanvas extends TatorElement
           }
           else
           {
-            var line = translatedDot(dragEvent.start, dragEvent.current);
-            var center = [(line[0][0]+line[1][0])/2,
-                          (line[0][1]+line[1][1])/2];
-            that.drawCrosshair(center, color.WHITE, 128);
-            this._draw.drawLine(line[0], line[1], color.WHITE, Math.round(defaultDotWidth * this._draw.displayToViewportScale()[0]));
+            var center = translatedDot(dragEvent.start, dragEvent.current);
+            const dotWidth = Math.round(defaultDotWidth * this._draw.displayToViewportScale()[0]);
+            this._draw.drawCircle(center, dotWidth/2, color.WHITE);
+            this.drawCrosshair(center, color.WHITE, 128);
           }
           this._draw.dispImage(true, true);
         }
@@ -3793,8 +3785,8 @@ class AnnotationCanvas extends TatorElement
       else if (type == 'dot')
       {
         const dotWidth = Math.round(defaultDotWidth*this._draw.displayToViewportScale()[0]);
-        var line = this.localizationToDot(localization, dotWidth, drawContext, roi);
-        drawContext.drawLine(line[0], line[1], localization.color, dotWidth, alpha);
+        var center = this.localizationToDot(localization, dotWidth, drawContext, roi);
+        drawContext.drawCircle(center, dotWidth/2, localization.color, alpha);
       }
       else
       {
@@ -3853,8 +3845,8 @@ class AnnotationCanvas extends TatorElement
           else if (type == 'dot')
           {
             const dotWidth = Math.round(defaultDotWidth*this._draw.displayToViewportScale()[0]);
-            var line = this.localizationToDot(localization, dotWidth, drawContext, roi);
-            drawContext.drawLine(line[0], line[1], localization.color, dotWidth, colorInfo.alpha);
+            var center = this.localizationToDot(localization, dotWidth, drawContext, roi);
+            drawContext.drawCircle(center, dotWidth/2, localization.color, colorInfo.alpha);
           }
           else
           {
