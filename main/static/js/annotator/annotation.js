@@ -1,7 +1,7 @@
 
 var statusAnimator=null;
 var defaultDotWidth=10;
-var defaultHandleWidth=5;
+var defaultHandleWidth=4;
 var defaultDrawWidth=3;
 const annotation_alpha=0.7*255;
 
