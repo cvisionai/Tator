@@ -89,7 +89,8 @@ const imageFsSource = `#version 300 es
     uniform vec2 u_Resolution;
 
     void main() {
-         if (texcoord.x >= 0.0)
+         // special mode is -1, so we have plenty of room to spare
+         if (texcoord.x >= -0.25)
          {
              if (filterOp_s.x == 1.0)
              {
@@ -117,16 +118,11 @@ const imageFsSource = `#version 300 es
              }
              else if (filterOp_s.x == 4.0)
              {
-                vec2 unit_coords = (texcoord - 0.5)*2.0;
-                float dist = (unit_coords.x*unit_coords.x)+(unit_coords.y*unit_coords.y);
-                if (dist >= filterOp_s.y && dist <= 1.0)
-                {
-                   pixelOutput = rgba;
-                }
-                else
-                {
-                   pixelOutput = vec4(0,0,0,0);
-                }
+                vec2 unit_coords = ((2.0*texcoord) - 1.0);
+                float dist = sqrt((unit_coords.x*unit_coords.x)+(unit_coords.y*unit_coords.y));
+                float delta = fwidth(dist);
+                float mix_perc = smoothstep(1.0-delta, 1.0, dist);
+                pixelOutput = mix(rgba, vec4(rgba.r,rgba.g,rgba.b,0), mix_perc);
              }
              else
              {
