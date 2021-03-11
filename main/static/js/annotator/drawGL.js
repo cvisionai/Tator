@@ -122,7 +122,14 @@ const imageFsSource = `#version 300 es
                 float dist = sqrt((unit_coords.x*unit_coords.x)+(unit_coords.y*unit_coords.y));
                 float delta = fwidth(dist);
                 float mix_perc = smoothstep(1.0-delta, 1.0, dist);
-                pixelOutput = mix(rgba, vec4(rgba.r,rgba.g,rgba.b,0), mix_perc);
+                if (dist >= filterOp_s.y)
+                {
+                   pixelOutput = mix(rgba, vec4(rgba.r,rgba.g,rgba.b,0), mix_perc);
+                }
+                else
+                {
+                   pixelOutput = mix(rgba, vec4(rgba.r,rgba.g,rgba.b,0), 1.0-mix_perc);
+                }
              }
              else
              {
