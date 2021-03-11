@@ -1,7 +1,6 @@
 
 var statusAnimator=null;
 var defaultDotWidth=10;
-var defaultHandleWidth=4;
 var defaultDrawWidth=3;
 const annotation_alpha=0.7*255;
 
@@ -2649,13 +2648,13 @@ class AnnotationCanvas extends TatorElement
       {
         var poly = this.localizationToPoly(localization);
         this._draw.drawPolygon(poly, drawColor, width);
-        this.accentWithHandles(poly, drawColor);
+        this.accentWithHandles(poly, drawColor, width);
       }
       else if (meta.dtype == "line")
       {
         var line = this.localizationToLine(localization);
         this._draw.drawLine(line[0], line[1], drawColor, width);
-        this.accentWithHandles(line, drawColor);
+        this.accentWithHandles(line, drawColor, width);
       }
       else if (meta.dtype == 'dot')
       {
@@ -2842,7 +2841,7 @@ class AnnotationCanvas extends TatorElement
           if (meta.dtype == 'box')
           {
             that._draw.drawPolygon(poly, getColorForFrame(frameIdx), width, alpha);
-            that.accentWithHandles(poly, getColorForFrame(frameIdx), alpha);
+            that.accentWithHandles(poly, getColorForFrame(frameIdx), width, alpha);
             if (colorInfo.fill.style == "solid")
             {
               that._draw.fillPolygon(poly, width, getColorForFrame(frameIdx), fillAlpha);
@@ -2859,7 +2858,7 @@ class AnnotationCanvas extends TatorElement
           else if (meta.dtype == 'line')
           {
             that._draw.drawLine(line[0], line[1], getColorForFrame(frameIdx), width, alpha);
-            that.accentWithHandles(line, getColorForFrame(frameIdx), alpha);
+            that.accentWithHandles(line, getColorForFrame(frameIdx), width, alpha);
           }
           else if (meta.dtype == 'dot')
           {
@@ -3335,9 +3334,13 @@ class AnnotationCanvas extends TatorElement
     return new_box;
   }
 
-  accentWithHandles(item, color, alpha)
+  accentWithHandles(item, color, width, alpha)
   {
-    const dotWidth = Math.round(defaultHandleWidth * this._draw.displayToViewportScale()[0]);
+    if (width == null)
+    {
+      width = Math.round(defaultDrawWidth * this._draw.displayToViewportScale()[0]);
+    }
+    const dotWidth = width * 1.25;
     if (item.length == 4)
     {
       item = this.fix_box(item);
@@ -3420,7 +3423,7 @@ class AnnotationCanvas extends TatorElement
       that._draw.drawPolygon(boxCoords,
                              colorReq,
                              defaultDrawWidth*that._draw.displayToViewportScale()[0]);
-      that.accentWithHandles(boxCoords, colorReq);
+      that.accentWithHandles(boxCoords, colorReq, defaultDrawWidth*that._draw.displayToViewportScale()[0]);
       that._draw.dispImage(true, true);
     }
     var drawLine=function(dragStart, dragEnd, colorReq)
@@ -3666,7 +3669,7 @@ class AnnotationCanvas extends TatorElement
             that.blackoutOutside(poly);
             this._draw.drawPolygon(poly, color.WHITE,
                                    Math.round(objType.line_width * this._draw.displayToViewportScale()[0]));
-            this.accentWithHandles(poly, color.WHITE);
+            this.accentWithHandles(poly, color.WHITE, Math.round(objType.line_width * this._draw.displayToViewportScale()[0]));
           }
           else if (objType.dtype == 'line')
           {
@@ -3680,7 +3683,7 @@ class AnnotationCanvas extends TatorElement
             that.drawCrosshair([x1,y1], color.WHITE, 128);
             that.blackoutOutside(fauxBoxCoords);
             this._draw.drawLine(line[0], line[1], color.WHITE, Math.round(objType.line_width * this._draw.displayToViewportScale()[0]));
-            this.accentWithHandles(line, color.WHITE);
+            this.accentWithHandles(line, color.WHITE, Math.round(objType.line_width * this._draw.displayToViewportScale()[0]));
           }
           else
           {
@@ -3753,7 +3756,7 @@ class AnnotationCanvas extends TatorElement
             that.drawCrosshair(poly[2], color.WHITE, 128);
             that.blackoutOutside(poly);
             this._draw.drawPolygon(poly, color.WHITE, width);
-            this.accentWithHandles(poly, color.WHITE);
+            this.accentWithHandles(poly, color.WHITE, width);
           }
           else if (type == 'line')
           {
@@ -3767,7 +3770,7 @@ class AnnotationCanvas extends TatorElement
             that.drawCrosshair([x1,y1], color.WHITE, 128);
             that.blackoutOutside(fauxBoxCoords);
             this._draw.drawLine(line[0],line[1], color.WHITE, width);
-            that.accentWithHandles(line,color.WHITE);
+            that.accentWithHandles(line,color.WHITE, width);
           }
           this._draw.dispImage(true, true);
         }
@@ -3814,13 +3817,13 @@ class AnnotationCanvas extends TatorElement
       {
         var poly = this.localizationToPoly(localization, drawContext, roi);
         drawContext.drawPolygon(poly, localization.color, width, alpha);
-        this.accentWithHandles(poly, localization.color, alpha);
+        this.accentWithHandles(poly, localization.color, width, alpha);
       }
       else if (type == 'line')
       {
         var line = this.localizationToLine(localization, drawContext, roi);
         drawContext.drawLine(line[0], line[1], localization.color, width, alpha);
-        this.accentWithHandles(line, localization.color, alpha);
+        this.accentWithHandles(line, localization.color, width, alpha);
       }
       else if (type == 'dot')
       {
@@ -3864,7 +3867,7 @@ class AnnotationCanvas extends TatorElement
           {
             var poly = this.localizationToPoly(localization, drawContext, roi);
             drawContext.drawPolygon(poly, localization.color, width, colorInfo.alpha);
-            this.accentWithHandles(poly, localization.color, colorInfo.alpha);
+            this.accentWithHandles(poly, localization.color, width, colorInfo.alpha);
             if (fill.style == "solid")
             {
               drawContext.fillPolygon(poly, width, fill.color, fill.alpha);
@@ -3882,7 +3885,7 @@ class AnnotationCanvas extends TatorElement
           {
             var line = this.localizationToLine(localization, drawContext, roi);
             drawContext.drawLine(line[0], line[1], localization.color, width, colorInfo.alpha);
-            this.accentWithHandles(line, localization.color, colorInfo.alpha);
+            this.accentWithHandles(line, localization.color, width, colorInfo.alpha);
           }
           else if (type == 'dot')
           {
