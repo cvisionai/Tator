@@ -2649,12 +2649,13 @@ class AnnotationCanvas extends TatorElement
       {
         var poly = this.localizationToPoly(localization);
         this._draw.drawPolygon(poly, drawColor, width);
-        this.accentWithHandles(poly, drawColor, width);
+        this.accentWithHandles(poly, drawColor);
       }
       else if (meta.dtype == "line")
       {
         var line = this.localizationToLine(localization);
         this._draw.drawLine(line[0], line[1], drawColor, width);
+        this.accentWithHandles(line, drawColor);
       }
       else if (meta.dtype == 'dot')
       {
@@ -2858,6 +2859,7 @@ class AnnotationCanvas extends TatorElement
           else if (meta.dtype == 'line')
           {
             that._draw.drawLine(line[0], line[1], getColorForFrame(frameIdx), width, alpha);
+            that.accentWithHandles(line, getColorForFrame(frameIdx), alpha);
           }
           else if (meta.dtype == 'dot')
           {
@@ -3325,7 +3327,6 @@ class AnnotationCanvas extends TatorElement
         max_idx = idx;
       }
     }
-    console.info(`${min_idx} / ${max_idx}`);
     let x0 = box[min_idx][0];
     let y0 = box[min_idx][1];
     let x1 = box[max_idx][0];
@@ -3334,21 +3335,33 @@ class AnnotationCanvas extends TatorElement
     return new_box;
   }
 
-  accentWithHandles(box, color, alpha)
+  accentWithHandles(item, color, alpha)
   {
-    box = this.fix_box(box);
     const dotWidth = Math.round(defaultHandleWidth * this._draw.displayToViewportScale()[0]);
-    const halfX = (box[0][0]+box[1][0])/2;
-    const halfY = (box[0][1]+box[3][1])/2;
-    this._draw.drawCircle(box[0], dotWidth, color, alpha);
-    this._draw.drawCircle([halfX,box[0][1]], dotWidth, color, alpha);
-    this._draw.drawCircle(box[1], dotWidth, color, alpha);
-    this._draw.drawCircle([box[1][0],halfY], dotWidth, color, alpha);
-    this._draw.drawCircle(box[2], dotWidth, color, alpha);
-    this._draw.drawCircle([halfX,box[2][1]], dotWidth, color, alpha);
-    this._draw.drawCircle(box[3], dotWidth, color, alpha);
-    this._draw.drawCircle([box[3][0],halfY], dotWidth, color, alpha);
+    if (item.length == 4)
+    {
+      item = this.fix_box(item);
+      const halfX = (item[0][0]+item[1][0])/2;
+      const halfY = (item[0][1]+item[3][1])/2;
+      this._draw.drawCircle(item[0], dotWidth, color, alpha);
+      this._draw.drawCircle([halfX,item[0][1]], dotWidth, color, alpha);
+      this._draw.drawCircle(item[1], dotWidth, color, alpha);
+      this._draw.drawCircle([item[1][0],halfY], dotWidth, color, alpha);
+      this._draw.drawCircle(item[2], dotWidth, color, alpha);
+      this._draw.drawCircle([halfX,item[2][1]], dotWidth, color, alpha);
+      this._draw.drawCircle(item[3], dotWidth, color, alpha);
+      this._draw.drawCircle([item[3][0],halfY], dotWidth, color, alpha);
+    }
+    else if (item.length == 2)
+    {
+      const halfX = (item[0][0]+item[1][0])/2;
+      const halfY = (item[0][1]+item[1][1])/2;
+      this._draw.drawCircle(item[0], dotWidth, color, alpha);
+      this._draw.drawCircle(item[1], dotWidth, color, alpha);
+      this._draw.drawCircle([halfX,halfY], dotWidth, color, alpha);
+    }
   }
+
   blackoutOutside(box)
   {
     box = this.fix_box(box);
@@ -3432,6 +3445,7 @@ class AnnotationCanvas extends TatorElement
                           lineCoords[1],
                           colorReq,
                           defaultDrawWidth*that._draw.displayToViewportScale()[0]);
+      that.accentWithHandles(lineCoords, colorReq);
       that._draw.dispImage(true, true);
     }
     if (this._mouseMode == MouseMode.PAN)
@@ -3666,6 +3680,7 @@ class AnnotationCanvas extends TatorElement
             that.drawCrosshair([x1,y1], color.WHITE, 128);
             that.blackoutOutside(fauxBoxCoords);
             this._draw.drawLine(line[0], line[1], color.WHITE, Math.round(objType.line_width * this._draw.displayToViewportScale()[0]));
+            this.accentWithHandles(line, color.WHITE);
           }
           else
           {
@@ -3752,6 +3767,7 @@ class AnnotationCanvas extends TatorElement
             that.drawCrosshair([x1,y1], color.WHITE, 128);
             that.blackoutOutside(fauxBoxCoords);
             this._draw.drawLine(line[0],line[1], color.WHITE, width);
+            that.accentWithHandles(line,color.WHITE);
           }
           this._draw.dispImage(true, true);
         }
@@ -3804,6 +3820,7 @@ class AnnotationCanvas extends TatorElement
       {
         var line = this.localizationToLine(localization, drawContext, roi);
         drawContext.drawLine(line[0], line[1], localization.color, width, alpha);
+        this.accentWithHandles(line, localization.color, alpha);
       }
       else if (type == 'dot')
       {
@@ -3865,6 +3882,7 @@ class AnnotationCanvas extends TatorElement
           {
             var line = this.localizationToLine(localization, drawContext, roi);
             drawContext.drawLine(line[0], line[1], localization.color, width, colorInfo.alpha);
+            this.accentWithHandles(line, localization.color, colorInfo.alpha);
           }
           else if (type == 'dot')
           {
