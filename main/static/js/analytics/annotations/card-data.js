@@ -15,8 +15,6 @@ class AnnotationCardData extends HTMLElement {
         this.cardList.filterState = filterState;
         this.cardList.paginationState = paginationState;
 
-        console.log(filterState);
-
         this.cardList.total = await this._modelData.getFilteredLocalizations("count", filterState.conditionsObject, filterState.paramString);
         this.localizations = await this._modelData.getFilteredLocalizations("objects", filterState.conditionsObject, filterState.paramString, paginationState.start, paginationState.stop);
         await this.getCardList(this.localizations);
@@ -40,7 +38,6 @@ class AnnotationCardData extends HTMLElement {
 
             for(let [i, l] of localizations.entries()){
                 let id = l.id;
-                console.log(l);
 
                 let entityType = this.findMetaDetails( l.meta );
                 //let metaDetails = {name : "sample name", type : "sample type"};

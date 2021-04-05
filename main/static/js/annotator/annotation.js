@@ -1145,6 +1145,7 @@ class AnnotationCanvas extends TatorElement
   // needs to. It can allow recovery from an openGL lost context.
   reinitCanvas()
   {
+    console.log("reinitCanvas");
     // Remove the old one
     this._shadow.removeChild(this._canvas);
     this._canvas=document.createElement("canvas");
@@ -1303,6 +1304,7 @@ class AnnotationCanvas extends TatorElement
       const typeObj = evt.detail.typeObj;
       if (typeObj.isLocalization) {
         let currentFrame = this.currentFrame();
+
         // Clean out old annotations for the type
         this._framedData.forEach((frameObj, frameIdx, map) => {
           frameObj.delete(typeObj.id);
@@ -1633,6 +1635,9 @@ class AnnotationCanvas extends TatorElement
     // We are hot if the frame being described is currently displayed
     var needRefresh=false;
     var currentFrame = this.currentFrame();
+
+    console.log("What data is being inserted here?");
+    console.log(data);
 
     for (var idx = 0; idx < data.length; idx++)
     {
@@ -3766,6 +3771,7 @@ class AnnotationCanvas extends TatorElement
 
   drawAnnotations(frameInfo, drawContext, roi, focusLoc = -1)
   {
+    console.log("Draw annotations start");
     if (drawContext == undefined)
     {
       drawContext = this._draw;
@@ -3831,6 +3837,8 @@ class AnnotationCanvas extends TatorElement
         {
           
           var localization=localList[localIdx];
+
+          console.log("Did we get here?"+localization.id+"Focus loc is"+focusLoc);
 
           // If we're focusing on one (ie. localization viewer) ignore the others
           // @TODO future only send through the 1 loc's data instead of fetching and hitting this loop

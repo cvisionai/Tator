@@ -11,24 +11,26 @@ class AnnotationData extends HTMLElement {
     this._localizationMediaIds = new Array();
   }
 
-  init(dataTypes, version, projectId, mediaId, update, allowNonTrackStateData) {
+  init(dataTypes, version, projectId, mediaId, update, allowNonTrackStateData, focusLoc) {
     // Update defaults to true
     if (update == undefined)
     {
       update = true;
     }
 
-    for (const dataType of dataTypes){
-      if (dataType.dtype == "state"){
-        if (allowNonTrackStateData == undefined || dataType.isTrack == true) {
-          this._stateMediaIds.push(mediaId);
+    if(focusLoc == null){
+      for (const dataType of dataTypes){
+        if (dataType.dtype == "state"){
+          if (allowNonTrackStateData == undefined || dataType.isTrack == true) {
+            this._stateMediaIds.push(mediaId);
+          }
+          else if (allowNonTrackStateData) {
+            this._stateMediaIds.push(mediaId);
+          }
         }
-        else if (allowNonTrackStateData) {
-          this._stateMediaIds.push(mediaId);
+        else {
+          this._localizationMediaIds.push(mediaId);
         }
-      }
-      else {
-        this._localizationMediaIds.push(mediaId);
       }
     }
 
@@ -37,26 +39,36 @@ class AnnotationData extends HTMLElement {
 
     if (update)
     {
-      for (const dataType of dataTypes) {
-        this._dataTypesRaw.push(dataType);
-      }
-      this.updateAll(dataTypes, version)
-      .then(() => {
+      console.log("update is true... calling update all");
+      this._dataTypesRaw.push(dataTypes);
+      if(focusLoc !== null && focusLoc.hasData){
+        this.updateTypeWithFocusData(focusLoc);
         this.dispatchEvent(new Event("initialized"));
-      });
+      } else {
+        for (const dataType of dataTypes) {
+          this._dataTypesRaw.push(dataType);
+        }
+        this.updateAll(dataTypes, version)
+        .then(() => {
+          this.dispatchEvent(new Event("initialized"));
+        });
+      }
     }
 
     // Convert datatypes array to a map for faster access
-    for (const dataType of dataTypes) {
-      let dataTypeRegistered = dataType.id in this._dataTypes;
-      if (!dataTypeRegistered) {
-        this._dataTypes[dataType.id] = dataType;
-        this._dataTypesRaw.push(dataType);
+    if(focusLoc == null){
+      for (const dataType of dataTypes) {
+        let dataTypeRegistered = dataType.id in this._dataTypes;
+        if (!dataTypeRegistered) {
+          this._dataTypes[dataType.id] = dataType;
+          this._dataTypesRaw.push(dataType);
+        }
       }
     }
   }
 
   initialUpdate() {
+    console.log("inside initialUpdate");
     this.updateAll(this._dataTypesRaw, this._version)
     .then(() => {
       this.dispatchEvent(new Event("initialized"));
@@ -65,6 +77,7 @@ class AnnotationData extends HTMLElement {
 
   // Returns a promise when done
   setVersion(version) {
+    console.log("inside setVersion");
     this._version = version;
     return this.updateAll(this._dataTypesRaw, version);
   }
@@ -76,6 +89,7 @@ class AnnotationData extends HTMLElement {
 
   // Returns a promise when done
   updateAll(dataTypes, version) {
+    console.log("Inside updateAll");
     const trackTypeIds=[];
     const localTypeIds=[];
 
@@ -90,6 +104,7 @@ class AnnotationData extends HTMLElement {
       }
     }
 
+    // Get the data via URL
     // Define function for getting data url.
     const getDataUrl = (dataType) => {
       const dataEndpoint = dataType.dtype == "state" ? "States" : "Localizations";
@@ -147,6 +162,9 @@ class AnnotationData extends HTMLElement {
     });
 
     return initDone;
+    
+
+    
   }
 
   updateLocalizations(callback, search) {
@@ -222,6 +240,7 @@ class AnnotationData extends HTMLElement {
       }
       this._dataByType.get(typeId).splice(index, 1);
     }
+    console.log("Fresh data from updateTypeLocal");
     this.dispatchEvent(new CustomEvent("freshData", {
       detail: {
         typeObj: typeObj,
@@ -246,6 +265,8 @@ class AnnotationData extends HTMLElement {
     searchParams.set('version',[...this._version.bases,this._version.id]);
     url.search = searchParams;
 
+    // @TODO this is where we are fetching all the annotations
+    console.log("Fetching new data in update Type!");
     // Fetch new ones from server
     fetchRetry(url)
     .then(response => {
@@ -260,6 +281,10 @@ class AnnotationData extends HTMLElement {
     .then(json => {
       json.forEach(obj => {obj.meta = typeId});
       this._dataByType.set(typeId, json);
+      console.log("Fresh data from updateType");
+      console.log(json);
+      console.log(typeObj);
+      
       this.dispatchEvent(new CustomEvent("freshData", {
         detail: {
           typeObj: typeObj,
@@ -270,6 +295,25 @@ class AnnotationData extends HTMLElement {
         callback();
       }
     });
+  }
+
+  updateTypeWithFocusData(focusLoc, callback) {
+    let typeObj = focusLoc.typeObj;
+    let json = focusLoc.data;
+    
+    typeObj.isLocalization = true;
+
+    console.log(json);
+    console.log(typeObj);
+
+    // calling fn expects promise to be returned
+    console.log("Fresh data from updateTypeWithFocusData");
+    this.dispatchEvent(new CustomEvent("freshData", {
+      detail: {
+        typeObj: typeObj, //@TODO follow this
+        data: [json]
+      }
+    }));
   }
 }
 

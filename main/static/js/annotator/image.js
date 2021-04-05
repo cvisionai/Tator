@@ -107,6 +107,7 @@ class ImageCanvas extends AnnotationCanvas
 
   loadFromURL(URL, dims)
   {
+    console.log("load from url "+URL);
     // The browser can't handle 4k images for various overlay
     // effects (notable preview dim). Because we only display the image
     // at the client width, we can scale the dims here to be more efficient

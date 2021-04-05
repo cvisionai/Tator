@@ -507,6 +507,7 @@ class DrawGL
   // sx, sy, sWidth, sHeight are in relative coordinates (0.0-1.0)
   pushImage(frameIdx, frameData, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight, dirty)
   {
+    console.log("push image");
     // local namespacing
     var gl = this.gl;
 
@@ -531,6 +532,7 @@ class DrawGL
     frameInfo.dirty=dirty;
     frameInfo.frame=frameIdx;
 
+    console.log(this._pushCallback);
     if (this._pushCallback)
       frameInfo.drawBuffer=this._pushCallback(frameInfo);
     else

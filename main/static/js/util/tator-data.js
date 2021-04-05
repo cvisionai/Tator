@@ -661,4 +661,22 @@ class TatorData {
     var outData = await this._getData(outputType, mediaGroups, "", dataStart, dataStop, null, null, sectionIds);
     return outData;
   }
+
+  _getMediaTypeById(id){
+    for(let mediaType of this._mediaTypes){
+      if(mediaType.id == id){
+        return mediaType;
+      }
+    }
+    return null;
+  }
+
+  _getLocTypeById(id){
+    for(let localizationType of this._localizationTypes){
+      if( localizationType.id == id ){
+        return localizationType;
+      }
+    }
+    return null;
+  }
 }
