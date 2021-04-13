@@ -18,6 +18,22 @@ class EnumInput extends TatorElement {
     this._select.setAttribute("class", "form-select has-border select-sm col-8");
     this.label.appendChild(this._select);
 
+    // Add unselectable option for null values.
+    this._null = document.createElement("option");
+    this._null.setAttribute("value", "");
+    this._null.setAttribute("disabled", "");
+    this._null.setAttribute("hidden", "");
+    this._null.textContent = "null";
+    this._select.appendChild(this._null);
+
+    // Add unselectable option for undefined values.
+    this._undefined = document.createElement("option");
+    this._undefined.setAttribute("value", "");
+    this._undefined.setAttribute("disabled", "");
+    this._undefined.setAttribute("hidden", "");
+    this._undefined.textContent = "undefined";
+    this._select.appendChild(this._undefined);
+
     const svg = document.createElementNS(svgNamespace, "svg");
     svg.setAttribute("class", "text-gray");
     svg.setAttribute("id", "icon-chevron-down");
@@ -57,6 +73,7 @@ class EnumInput extends TatorElement {
   }
 
   set choices(val) {
+    // Add attribute type choices.
     for (const choice of val) {
       const option = document.createElement("option");
       option.setAttribute("value", choice.value);
@@ -86,7 +103,7 @@ class EnumInput extends TatorElement {
     if (typeof this._default !== "undefined") {
       this.setValue(this._default);
     } else {
-      this._select.selectedIndex = 0;
+      this._undefined.setAttribute("selected", "");
     }
   }
 
@@ -97,12 +114,18 @@ class EnumInput extends TatorElement {
 
   setValue(val) {
     let idx = 0;
-    for (const option of this._select.options) {
-      if (option.value == val) {
-        this._select.selectedIndex = idx;
-        break;
+    if (typeof val === "undefined") {
+      this._undefined.setAttribute("selected", "");
+    } else if (val === null) {
+      this._null.setAttribute("selected", "");
+    } else {
+      for (const option of this._select.options) {
+        if (option.value == val) {
+          this._select.selectedIndex = idx;
+          break;
+        }
+        idx++;
       }
-      idx++;
     }
   }
 
