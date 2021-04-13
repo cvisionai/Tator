@@ -163,7 +163,13 @@ class TextInput extends TatorElement {
   }
 
   setValue(val) {
-    this._input.value = val;
+    if (typeof val === "undefined") {
+      this._input.value = "";
+    } else if (val === null) {
+      this._input.value = "";
+    } else {
+      this._input.value = val;
+    }
   }
 
   set autocomplete(config)
