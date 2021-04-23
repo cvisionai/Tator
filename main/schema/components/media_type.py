@@ -38,7 +38,7 @@ media_type_properties = {
         'items': {'$ref': '#/components/schemas/ArchiveConfig'},
     },
     'streaming_config': {
-        'description': 'Streaming config defintion. If null, the default will be used.',
+        'description': 'Streaming config definition. If null, the default will be used.',
         'type': 'array',
         'items': {'$ref': '#/components/schemas/ResolutionConfig'},
     },
