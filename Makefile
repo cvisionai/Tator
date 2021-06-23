@@ -385,6 +385,7 @@ FILES = \
     annotation/annotation-player.js \
     annotation/annotation-image.js \
     annotation/annotation-multi.js \
+    annotation/annotation-live.js \
     annotation/attribute-panel.js \
     annotation/modify-track-dialog.js \
     annotation/progress-dialog.js \
@@ -430,6 +431,7 @@ FILES = \
     analytics/visualization/visualization.js \
     analytics/reports/reports.js \
     third_party/autocomplete.js \
+    third_party/webrtcstreamer.js \
     utilities.js
 
 JSDIR = main/static/js
