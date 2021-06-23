@@ -519,7 +519,7 @@ class TatorSearch:
         tzinfo = entity.created_datetime.tzinfo
         aux['_indexed_datetime'] = datetime.datetime.now(tzinfo).isoformat()
         duplicates = []
-        if entity.meta.dtype in ['image', 'video', 'multi']:
+        if entity.meta.dtype in ['image', 'video', 'multi', 'live']:
             aux['_media_relation'] = 'media'
             aux['filename'] = entity.name
             aux['_exact_name'] = entity.name

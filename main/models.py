@@ -660,7 +660,7 @@ def temporary_file_delete(sender, instance, **kwargs):
 # Entity types
 
 class MediaType(Model):
-    dtype = CharField(max_length=16, choices=[('image', 'image'), ('video', 'video'), ('multi','multi')])
+    dtype = CharField(max_length=16, choices=[('image', 'image'), ('video', 'video'), ('multi','multi'), ('live','live')])
     project = ForeignKey(Project, on_delete=CASCADE, null=True, blank=True, db_column='project')
     name = CharField(max_length=64)
     description = CharField(max_length=256, blank=True)
