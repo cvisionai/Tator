@@ -382,6 +382,7 @@ FILES = \
     annotator/annotation.js \
     annotator/video.js \
     annotator/image.js \
+    annotator/live-video.js \
     annotation/annotation-player.js \
     annotation/annotation-image.js \
     annotation/annotation-multi.js \
