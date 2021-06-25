@@ -15,6 +15,7 @@ class LiveCanvas extends AnnotationCanvas
     this._feedVids = [];
     this._streamers = [];
     this._resolutions = [];
+    this._connectTime = 0;
   }
 
   // Images are neither playing or paused
@@ -53,6 +54,10 @@ class LiveCanvas extends AnnotationCanvas
 
   play()
   {
+    if (Date.now() - this._connectTime > 5000)
+    {
+      this.reloadFeeds();
+    }
     let currentVideo = this._feedVids[this._playIdx];
     let onplay = () => {
       currentVideo.removeEventListener("playing", onplay);
@@ -81,6 +86,7 @@ class LiveCanvas extends AnnotationCanvas
 
   refresh()
   {
+    let currentVideo = this._feedVids[this._playIdx]
     const cWidth=this._canvas.width;
     const cHeight=this._canvas.height;
     // Calculate scaled image height, such that
@@ -118,7 +124,7 @@ class LiveCanvas extends AnnotationCanvas
       else
       {
         this._draw.pushImage(0,
-          this._videoElement,
+          currentVideo,
           this._roi[0],this._roi[1], //No clipping
           this._roi[2],this._roi[3], //Image size
           leftSide,0, //Place 'full-screen'
@@ -127,7 +133,7 @@ class LiveCanvas extends AnnotationCanvas
          );
 
         this.updateOffscreenBuffer(0,
-                this._videoElement,
+                currentVideo,
                 this._dims[0],
                 this._dims[1],
                 this._roi);
@@ -138,6 +144,18 @@ class LiveCanvas extends AnnotationCanvas
     return promise;
   }
 
+  reloadFeeds()
+  {
+    let keys = Object.keys(this._feeds);
+    for (let idx = 0; idx < keys.length; idx++)
+    {
+        let feed = keys[idx];
+        let streamer = this._streamers[idx];
+        streamer.disconnect();
+        streamer.connect(feed, feed);
+    }
+    this._connectTime = Date.now();
+  }
   loadFeeds(info)
   {
     this._url = info.url;
@@ -158,6 +176,7 @@ class LiveCanvas extends AnnotationCanvas
       streamer.connect(feed, feed);
       this._streamers.push(streamer);
     }
+    this._connectTime = Date.now();
 
     window.addEventListener("beforeunload", () => {
       for (let streamer of this._streamers)
