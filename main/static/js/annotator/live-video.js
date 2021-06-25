@@ -11,21 +11,27 @@ class LiveCanvas extends AnnotationCanvas
     this._draw.resizeViewport(1920,1080);
     this.resetRoi();
     this._playThread = null;
+    this._pauseTimer = null;
     this._playIdx = 0;
     this._feedVids = [];
     this._streamers = [];
     this._resolutions = [];
     this._connectTime = 0;
+    this._paused = true;
   }
 
   // Images are neither playing or paused
   isPaused()
   {
-    return this._playThread == null;
+    return this._paused;
   }
 
   playThread()
   {
+    if (this._paused)
+    {
+      return;
+    }
     // TODO We may need a bit more here
     let currentVideo = this._feedVids[this._playIdx];
     // Handle when live source stalls out
@@ -54,9 +60,14 @@ class LiveCanvas extends AnnotationCanvas
 
   play()
   {
-    if (Date.now() - this._connectTime > 5000)
+    this._paused = false;
+    clearTimeout(this._pauseTimer);
+    this._pauseTimer = null;
+    if (Date.now() - this._connectTime > 10000)
     {
       this.reloadFeeds();
+      setTimeout(this.play.bind(this), 1000);
+      return true;
     }
     let currentVideo = this._feedVids[this._playIdx];
     let onplay = () => {
@@ -70,10 +81,21 @@ class LiveCanvas extends AnnotationCanvas
 
   pause()
   {
+    this._paused = true;
     let currentVideo = this._feedVids[this._playIdx];
     currentVideo.pause();
+    this._connectTime = Date.now();
     clearTimeout(this._playThread);
     this._playThread = null;
+    this._pauseTimer = setTimeout(()=>{
+      console.log("Disconnecting from RTC server.")
+      this._connectTime = 0;
+      for (let idx = 0; idx < this._streamers.length; idx++)
+      {
+        let streamer = this._streamers[idx];
+        streamer.disconnect();
+      }
+    }, 10000);
   }
 
   setVolume(level)
@@ -121,7 +143,7 @@ class LiveCanvas extends AnnotationCanvas
                                    this._dims[1],
                                    this._roi);
       }
-      else
+      else if (this.connectTime > 0)
       {
         this._draw.pushImage(0,
           currentVideo,
