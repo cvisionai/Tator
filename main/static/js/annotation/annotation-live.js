@@ -101,7 +101,10 @@ class AnnotationLive extends TatorElement {
     this._volume_control = document.createElement("volume-control");
     settingsDiv.appendChild(this._volume_control);
     this._volume_control.addEventListener("volumeChange", (evt) => {
-      this._video.setVolume(evt.detail.volume);
+      for (let video of this._videos)
+      {
+        video.setVolume(evt.detail.volume);
+      }
     });
     const fullscreen = document.createElement("video-fullscreen");
     settingsDiv.appendChild(fullscreen);

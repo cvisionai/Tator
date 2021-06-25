@@ -71,6 +71,14 @@ class LiveCanvas extends AnnotationCanvas
     this._playThread = null;
   }
 
+  setVolume(level)
+  {
+    for (let video of this._feedVids)
+    {
+      video.volume = Number(level)/100;
+    }
+  }
+
   refresh()
   {
     const cWidth=this._canvas.width;
