@@ -87,6 +87,8 @@ class LiveCanvas extends AnnotationCanvas
     this._connectTime = Date.now();
     clearTimeout(this._playThread);
     this._playThread = null;
+    this._realData = true;
+
     this._pauseTimer = setTimeout(()=>{
       console.log("Disconnecting from RTC server.")
       this._connectTime = 0;
@@ -124,18 +126,33 @@ class LiveCanvas extends AnnotationCanvas
     const leftSide=margin/2;
 
     const promise = new Promise(resolve => {
+      this._draw.clear();
       if (this._playThread == null)
       {
-        let x = (cWidth/2) - (this._poster.width/4);
-        let y = (cHeight/2) - (this._poster.height/4);
-        this._draw.pushImage(0,
-                             this._poster,
-                             this._roi[0],this._roi[1], //No clipping
-                             this._roi[2],this._roi[3], //Image size
-                             x,0-y, //Place 'centered'
-                             this._poster.width/2,this._poster.height/2, // Use canvas size
-                             this._dirty
-                            );
+        if (this._realData)
+        {
+          this._draw.pushImage(0,
+            currentVideo,
+            this._roi[0],this._roi[1], //No clipping
+            this._roi[2],this._roi[3], //Image size
+            leftSide,0, //Place 'full-screen'
+            sWidth,sHeight, // Use canvas size
+            this._dirty
+            );
+        }
+        else
+        {
+          let x = (cWidth/2) - (this._poster.width/4);
+          let y = (cHeight/2) - (this._poster.height/4);
+          this._draw.pushImage(0,
+                              this._poster,
+                              this._roi[0],this._roi[1], //No clipping
+                              this._roi[2],this._roi[3], //Image size
+                              x,0-y, //Place 'centered'
+                              this._poster.width/2,this._poster.height/2, // Use canvas size
+                              this._dirty
+                              );
+        }
 
         this.updateOffscreenBuffer(0,
                                    this._poster,
