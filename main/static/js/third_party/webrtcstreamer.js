@@ -6,12 +6,13 @@ var WebRtcStreamer = (function() {
  * @param {string} videoElement - id of the video element tag
  * @param {string} srvurl -  url of webrtc-streamer (default is current location)
 */
-var WebRtcStreamer = function WebRtcStreamer (videoElement, srvurl) {
+var WebRtcStreamer = function WebRtcStreamer (videoElement, srvurl, track_callback) {
 	if (typeof videoElement === "string") {
 		this.videoElement = document.getElementById(videoElement);
 	} else {
 		this.videoElement = videoElement;
 	}
+	this._callback = track_callback;
 	this.srvurl           = srvurl || location.protocol+"//"+window.location.hostname+":"+window.location.port;
 	this.pc               = null;    
 
@@ -241,13 +242,9 @@ WebRtcStreamer.prototype.onAddStream = function(event) {
 	console.log("Remote track added:" +  JSON.stringify(event));
 	
 	this.videoElement.srcObject = event.stream;
-	var promise = this.videoElement.play();
-	if (promise !== undefined) {
-	  var bind = this;
-	  promise.catch(function(error) {
-		console.warn("error:"+error);
-		bind.videoElement.setAttribute("controls", true);
-	  });
+	if (this._callback)
+	{
+		this._callback();
 	}
 }
 		

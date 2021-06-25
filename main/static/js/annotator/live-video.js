@@ -5,57 +5,74 @@ class LiveCanvas extends AnnotationCanvas
   constructor()
   {
     super();
-    this._imageElement=document.createElement("img");
-    this._imageElement.crossOrigin = "anonymous";
-    this._good=false;
-  }
-
-  set mediaInfo(val) {
-    super.mediaInfo = val;
-    this._dims = [val.width, val.height];
+    this._poster = document.createElement("img");
+    this._poster.setAttribute("src", "/static/images/tator-logo.png");
+    this._dims = [1920,1080]; // default size
+    this._draw.resizeViewport(1920,1080);
     this.resetRoi();
-    this._videoObject = val;
-
-    // Have to wait for canvas to draw.
-    new Promise(async resolve => {
-      while (true) {
-        if (this._canvas.clientHeight > 0) {
-          break;
-        }
-        await new Promise(res => setTimeout(res, 10));
-      }
-      let url = null;
-      if (val.media_files) {
-        if (val.media_files.image) {
-          url = val.media_files.image[0].path;
-        }
-      }
-      this.loadFromURL(url, this._dims)
-      .then(() => {
-        this._good = true;
-        this.refresh()
-      })
-      .then(() => {
-        this.dispatchEvent(new Event("canvasReady", {
-          composed: true
-        }));
-      });
-    });
+    this._playThread = null;
+    this._playIdx = 0;
+    this._feedVids = [];
+    this._streamers = [];
+    this._resolutions = [];
   }
-
 
   // Images are neither playing or paused
   isPaused()
   {
+    return this._playThread == null;
+  }
+
+  playThread()
+  {
+    // TODO We may need a bit more here
+    let currentVideo = this._feedVids[this._playIdx];
+    // Handle when live source stalls out
+    let onstall = () => {
+      console.log("Live feed is stalled");
+      currentVideo.removeEventListener("stalled", onstall);
+      let onplay = () => {
+        currentVideo.removeEventListener("playing", onplay);
+        this._playThread = requestAnimationFrame(this.playThread.bind(this));
+      };
+      currentVideo.addEventListener("playing", onplay);
+    };
+    currentVideo.addEventListener("stalled", onstall);
+
+    this._draw.pushImage(0,
+      currentVideo,
+      this._roi[0],this._roi[1],
+      this._roi[2],this._roi[3], //Image size
+      0,0, //Place 'full-screen'
+      this._dims[0],this._dims[1], // Use canvas size
+      this._dirty
+     );
+     this._draw.dispImage(false);
+     this._playThread = requestAnimationFrame(this.playThread.bind(this));
+  }
+
+  play()
+  {
+    let currentVideo = this._feedVids[this._playIdx];
+    let onplay = () => {
+      currentVideo.removeEventListener("playing", onplay);
+      this._playThread = requestAnimationFrame(this.playThread.bind(this));
+    };
+    currentVideo.addEventListener("playing", onplay);
+    currentVideo.play();
     return true;
   }
+
+  pause()
+  {
+    let currentVideo = this._feedVids[this._playIdx];
+    currentVideo.pause();
+    clearTimeout(this._playThread);
+    this._playThread = null;
+  }
+
   refresh()
   {
-    // Prevent image buffer from loading prior to localizations
-    if (this._good==false)
-    {
-      return;
-    }
     const cWidth=this._canvas.width;
     const cHeight=this._canvas.height;
     // Calculate scaled image height, such that
@@ -71,57 +88,75 @@ class LiveCanvas extends AnnotationCanvas
     const leftSide=margin/2;
 
     const promise = new Promise(resolve => {
-      if (this._draw.canPlay())
+      if (this._playThread == null)
       {
-        this._draw.updateImage(this._roi[0],this._roi[1], //No clipping
-                               this._roi[2],this._roi[3], //Image size
-                               leftSide,0, //Place 'full-screen'
-                               sWidth,sHeight, // Use canvas size
-                              );
-        this.moveOffscreenBuffer(this._roi);
-      }
-      else
-      {
+        let x = (cWidth/2) - (this._poster.width/4);
+        let y = (cHeight/2) - (this._poster.height/4);
         this._draw.pushImage(0,
-                             this._imageElement,
+                             this._poster,
                              this._roi[0],this._roi[1], //No clipping
                              this._roi[2],this._roi[3], //Image size
-                             leftSide,0, //Place 'full-screen'
-                             sWidth,sHeight, // Use canvas size
+                             x,0-y, //Place 'centered'
+                             this._poster.width/2,this._poster.height/2, // Use canvas size
                              this._dirty
                             );
 
         this.updateOffscreenBuffer(0,
-                                   this._imageElement,
+                                   this._poster,
                                    this._dims[0],
                                    this._dims[1],
                                    this._roi);
       }
-      // Images are always paused.
-      this.onPause();
+      else
+      {
+        this._draw.pushImage(0,
+          this._videoElement,
+          this._roi[0],this._roi[1], //No clipping
+          this._roi[2],this._roi[3], //Image size
+          leftSide,0, //Place 'full-screen'
+          sWidth,sHeight, // Use canvas size
+          this._dirty
+         );
+
+        this.updateOffscreenBuffer(0,
+                this._videoElement,
+                this._dims[0],
+                this._dims[1],
+                this._roi);
+      }
       this._draw.dispImage(true);
       resolve();
     });
     return promise;
   }
 
-  loadFromURL(URL, dims)
+  loadFeeds(info)
   {
-    // The browser can't handle 4k images for various overlay
-    // effects (notable preview dim). Because we only display the image
-    // at the client width, we can scale the dims here to be more efficient
-    // from a graphics pipeline perspective.
-    // Note: dims[0] is width.
-    // Because we don't display using full screen (approx 70% max out the
-    // viewport at that)
-    this._imageScale = (window.screen.width*0.70) / dims[0];
-    this._dims=[Math.round(dims[0]*this._imageScale),
-                Math.round(dims[1]*this._imageScale)];
-    this._draw.resizeViewport(this._dims[0], this._dims[1]);
-    this._imageElement.setAttribute("src", URL);
+    this._url = info.url;
+    this._feeds = info.feeds;
+    this._feedVids = [];
+    this._streamers = [];
+    this._resolutions = [];
+    console.info(info);
+    for (let feed of Object.keys(this._feeds))
+    {
+      let resolution = this._feeds[feed];
+      let video = document.createElement("video");
+      this._feedVids.push(video);
+      this._resolutions.push(resolution);
+      let streamer = new WebRtcStreamer(video,this._url, () => {
+        console.info(`Notice: Feed ${feed} (${resolution}) reports ready`);
+      });
+      streamer.connect(feed, feed);
+      this._streamers.push(streamer);
+    }
 
-    this.setupResizeHandler(dims);
-    return this._imageElement.decode();
+    window.addEventListener("beforeunload", () => {
+      for (let streamer of this._streamers)
+      {
+        streamer.disconnect();
+      }
+    });
   }
 
   // 'Media Interface' implementations
