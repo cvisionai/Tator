@@ -251,12 +251,14 @@
     <script src={% static "js/analytics/collections/collections.js" %}></script>
     <script src={% static "js/analytics/visualization/visualization.js" %}></script>
     <script src={% static "js/analytics/reports/reports.js" %}></script>
+    <script src={% static "js/third_party/adapter.min.js" %}></script>
     <script src={% static "js/third_party/autocomplete.js" %}></script>
     <script src={% static "js/third_party/d3.v6.min.js" %}></script>
     <script src={% static "js/third_party/marked.min.js" %}></script>
     <script src={% static "js/third_party/webrtcstreamer.js" %}></script>
     <script src={% static "js/utilities.js" %}></script>
     {% else %}
+    <script src={% static "js/third_party/adapter.min.js" %}></script>
     <script src={% static "js/third_party/d3.v6.min.js" %}></script>
     <script src={% static "js/third_party/marked.min.js" %}></script>
     <script src={% static "js/tator/tator.min.js" %}></script>
