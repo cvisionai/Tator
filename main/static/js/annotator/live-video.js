@@ -6,7 +6,7 @@ class LiveCanvas extends AnnotationCanvas
   {
     super();
     this._poster = document.createElement("img");
-    this._poster.setAttribute("src", "/static/images/tator-logo.png");
+    this._poster.setAttribute("src", "/static/images/please_stand_by.jpg");
     this._dims = [1920,1080]; // default size
     this._draw.resizeViewport(1920,1080);
     this.resetRoi();
@@ -142,14 +142,14 @@ class LiveCanvas extends AnnotationCanvas
         }
         else
         {
-          let x = (cWidth/2) - (this._poster.width/4);
-          let y = (cHeight/2) - (this._poster.height/4);
+          let x = 0;//(cWidth/2) - (this._poster.width/4);
+          let y = 0;//(cHeight/2) - (this._poster.height/4);
           this._draw.pushImage(0,
                               this._poster,
-                              this._roi[0],this._roi[1], //No clipping
-                              this._roi[2],this._roi[3], //Image size
-                              x,0-y, //Place 'centered'
-                              this._poster.width/2,this._poster.height/2, // Use canvas size
+                              0,0, //No clipping
+                              1,1, 
+                              x,0-y, 
+                              sWidth,sHeight, // Use canvas size
                               this._dirty
                               );
         }
