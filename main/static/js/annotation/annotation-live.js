@@ -752,20 +752,31 @@ class AnnotationLive extends TatorElement {
       return;
     }
 
+    
     const paused = this.is_paused();
     if (paused) {
-      let playing = false;
+      let promises = [];
+      document.body.style.cursor = "wait";
+      this._play._button.setAttribute("disabled","");
+	    this._play.removeAttribute("is-paused");
       for (let idx = 0; idx < this._videos.length; idx++)
       {
-	      let video = this._videos[idx];
-	      playing |= video.play();
+        let p = new Promise((resolve)=>{
+	        let video = this._videos[idx];
+          let handler = () => {
+            video.removeEventListener('playing', handler);
+            resolve();
+          };
+          video.addEventListener('playing', handler);
+	        video.play();
+        });
+        promises.push(p);
       }
-      document.body.style.cursor = "wait";
-      if (playing)
-      {
-        this._play._button.setAttribute("disabled","");
-	      this._play.removeAttribute("is-paused");
-      }
+      Promise.all(promises).then(() => {
+        document.body.style.cursor = null;
+        this._play._button.removeAttribute("disabled");
+      });
+
     }
   }
 
