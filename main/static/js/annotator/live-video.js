@@ -6,7 +6,9 @@ class LiveCanvas extends AnnotationCanvas
   {
     super();
     this._poster = document.createElement("img");
-    this._poster.setAttribute("src", "/static/images/please_stand_by.jpg");
+    this._poster.setAttribute("src", "/static/images/tator-logo-symbol-only.png");
+    this._loading = document.createElement("img");
+    this._loading.setAttribute("src", "/static/images/please_stand_by.jpg");
     this._dims = [1920,1080]; // default size
     this._draw.resizeViewport(1920,1080);
     this.resetRoi();
@@ -63,6 +65,7 @@ class LiveCanvas extends AnnotationCanvas
     this._paused = false;
     clearTimeout(this._pauseTimer);
     this._pauseTimer = null;
+    this.showPoster();
     if (Date.now() - this._connectTime > 10000)
     {
       this.reloadFeeds();
@@ -72,6 +75,7 @@ class LiveCanvas extends AnnotationCanvas
     let currentVideo = this._feedVids[this._playIdx];
     let onplay = () => {
       currentVideo.removeEventListener("playing", onplay);
+      this.dispatchEvent(new CustomEvent("playing", {composed: true}));
       this._playThread = requestAnimationFrame(this.playThread.bind(this));
     };
     currentVideo.addEventListener("playing", onplay);
@@ -108,6 +112,22 @@ class LiveCanvas extends AnnotationCanvas
     }
   }
 
+  showPoster()
+  {
+    let x = 0;//(cWidth/2) - (this._poster.width/4);
+    let y = 0;//(cHeight/2) - (this._poster.height/4);
+    this._draw.clear();
+    this._draw.pushImage(0,
+                         this._loading,
+                         0,0, //No clipping
+                         1,1, 
+                         x,0-y, 
+                         this._dims[0],this._dims[1], // Use canvas size
+                         true
+                         );
+    this._draw.dispImage(true);
+  }
+
   refresh()
   {
     let currentVideo = this._feedVids[this._playIdx]
@@ -142,14 +162,14 @@ class LiveCanvas extends AnnotationCanvas
         }
         else
         {
-          let x = 0;//(cWidth/2) - (this._poster.width/4);
-          let y = 0;//(cHeight/2) - (this._poster.height/4);
+          let x = (cWidth/2) - (this._poster.width/2);
+          let y = (cHeight/2) - (this._poster.height/2);
           this._draw.pushImage(0,
                               this._poster,
                               0,0, //No clipping
                               1,1, 
                               x,0-y, 
-                              sWidth,sHeight, // Use canvas size
+                              this._poster.width,this._poster.height, // Use canvas size
                               this._dirty
                               );
         }

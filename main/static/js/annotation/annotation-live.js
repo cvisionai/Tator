@@ -216,11 +216,11 @@ class AnnotationLive extends TatorElement {
 
   enableRateChange()
   {
-    this._rateControl.removeAttribute("disabled");
+    //pass
   }
   disableRateChange()
   {
-    this._rateControl.setAttribute("disabled", "");
+    //pass
   }
 
   /**
@@ -740,9 +740,17 @@ class AnnotationLive extends TatorElement {
     return this._play.hasAttribute("is-paused");
   }
 
+  is_disabled()
+  {
+    return this._play._button.hasAttribute("disabled");
+  }
+
   play()
   {
-    //this.dispatchEvent(new Event("playing", {composed: true}));
+    if (this.is_disabled() == true)
+    {
+      return;
+    }
 
     const paused = this.is_paused();
     if (paused) {
@@ -752,16 +760,28 @@ class AnnotationLive extends TatorElement {
 	      let video = this._videos[idx];
 	      playing |= video.play();
       }
+      document.body.style.cursor = "wait";
       if (playing)
       {
+        this._play._button.setAttribute("disabled","");
 	      this._play.removeAttribute("is-paused");
       }
     }
   }
 
+  onPlaying()
+  {
+    document.body.style.cursor = null;
+    this._play._button.removeAttribute("disabled");
+  }
+
 
   pause()
   {
+    if (this.is_disabled() == true)
+    {
+      return;
+    }
     const paused = this.is_paused();
     if (paused == false) {
       for (let video of this._videos)
