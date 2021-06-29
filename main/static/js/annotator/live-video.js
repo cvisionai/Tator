@@ -102,10 +102,10 @@ class LiveCanvas extends AnnotationCanvas
     let errorCatch = () => {
       this.error(null, "Server did not respond in 20 seconds.");
     };
-    setTimeout(errorCatch, 20000);
+    let errorTimeout = setTimeout(errorCatch, 20000);
     let currentVideo = this._feedVids[this._playIdx];
     let onplay = () => {
-      clearTimeout(errorCatch);
+      clearTimeout(errorTimeout);
       clearTimeout(this._posterTimeout);
       this.clearCounter();
       this._diagThread = setTimeout(this.diagThread.bind(this), 1000);
@@ -139,6 +139,7 @@ class LiveCanvas extends AnnotationCanvas
       return;
     }
     this.clearCounter();
+    clearTimeout(this._diagThread);
     this._paused = true;
     let currentVideo = this._feedVids[this._playIdx];
     currentVideo.pause();
