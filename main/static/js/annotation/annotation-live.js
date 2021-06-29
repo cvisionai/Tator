@@ -31,6 +31,7 @@ class AnnotationLive extends TatorElement {
 
     this._qualityControl = document.createElement("quality-control");
     settingsDiv.appendChild(this._qualityControl);
+    this._qualityControl.hideAdvanced();
 
     const timelineDiv = document.createElement("div");
     timelineDiv.setAttribute("class", "scrub__bar d-flex flex-items-center flex-grow px-4");
@@ -119,7 +120,7 @@ class AnnotationLive extends TatorElement {
     this._headerFooterPad = 100; // Another magic number based on the header and padding below controls footer
 
     const searchParams = new URLSearchParams(window.location.search);
-    this._quality = 720;
+    this._quality = 1080;
     this._focusQuality = 1080;
     this._dockQuality = 144;
     if (searchParams.has("quality"))
@@ -379,8 +380,18 @@ class AnnotationLive extends TatorElement {
 
     this._playbackReadyId = 0;
     this._numVideos = val.media_files['live'].length;
+    this._resolutions = [];
     for (let vid_id = 0; vid_id < this._numVideos; vid_id++)
     {
+      if (vid_id == 0)
+      {
+        let feeds = val.media_files['live'][vid_id]['feeds'];
+        let keys = Object.keys(feeds);
+        for (let key of keys)
+        {
+          this._resolutions.push(feeds[key][0]);
+        }
+      }
       const wrapper_div = document.createElement("div");
       wrapper_div.setAttribute("class", "annotation__multi-grid-entry d-flex");
       this._videoDivs[vid_id] = wrapper_div;
@@ -402,6 +413,8 @@ class AnnotationLive extends TatorElement {
       this.setupMultiMenu(vid_id);
       idx += 1;
     }
+    this._qualityControl.resolutions = this._resolutions;
+    this._qualityControl.show();
   }
 
   /**
@@ -824,7 +837,10 @@ class AnnotationLive extends TatorElement {
 
 
   setQuality(quality, buffer, isDefault) {
-    // TODO
+    for (let video of this._videos)
+    {
+      video.setQuality(quality, buffer);
+    }
   }
 
   /**
@@ -949,6 +965,7 @@ class AnnotationLive extends TatorElement {
   }
 
   getVideoSettings() {
+   //none
   }
 
 }

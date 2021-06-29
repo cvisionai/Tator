@@ -245,6 +245,11 @@ class VideoSettingsDialog extends ModalDialog {
   mode(mode, medias) {
     this._mode = mode;
     this._medias = medias;
+    if (this._mode == "live")
+    {
+      //TODO implement this
+      return;
+    }
 
     let mainVideo = this._medias[0];
     let sourceList = [];
@@ -274,6 +279,10 @@ class VideoSettingsDialog extends ModalDialog {
       this._divOptions["dockPlayback"].textDiv.style.display = "block";
       this._divOptions["focusPlayback"].choiceDiv.style.display = "block";
       this._divOptions["dockPlayback"].choiceDiv.style.display = "block";
+    }
+    else if (mode == "live")
+    {
+      // TODO
     }
     this.applyDefaults();
   }

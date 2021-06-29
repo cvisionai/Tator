@@ -135,6 +135,7 @@ class LiveCanvas extends AnnotationCanvas
     clearTimeout(this._playThread);
     this._playThread = null;
     this._realData = true;
+    this.dispatchEvent(new CustomEvent("paused", {composed: true}));
 
     this._pauseTimer = setTimeout(()=>{
       console.log("Disconnecting from RTC server.")
@@ -312,7 +313,20 @@ class LiveCanvas extends AnnotationCanvas
 
   setQuality(quality)
   {
-    
+    this.pause();
+    let distance = Math.max(1080,this._resolutions[0][0]);
+    let matchingIdx = 0;
+    for (let idx = 0; idx < this._resolutions.length; idx++)
+    {
+      let thisDistance = Math.abs(quality - this._resolutions[idx][0]);
+      if (thisDistance < distance)
+      {
+        matchingIdx = idx;
+        distance = thisDistance;
+      }
+    }
+    this._playIdx = matchingIdx;
+    console.info(`Live quality is now at ${this._resolutions[this._playIdx]}`);
   }
 
   captureFrame(localizations)

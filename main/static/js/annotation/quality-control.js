@@ -11,9 +11,10 @@ class QualityControl extends TatorElement {
     this._div.setAttribute("class", "px-1");
     summary.appendChild(this._div);
 
-    const advancedSettings = document.createElement("button");
+    let advancedSettings = document.createElement("button");
     advancedSettings.setAttribute("class", "btn-clear d-flex rounded-1 f2 text-gray hover-text-white");
     summary.appendChild(advancedSettings);
+    this._advancedSettings = advancedSettings;
 
     const advancedSettingsSvg = document.createElementNS(svgNamespace, "svg");
     advancedSettingsSvg.setAttribute("id", "icon-advanced-video-settings");
@@ -55,6 +56,17 @@ class QualityControl extends TatorElement {
   {
     this.style.visibility = 'visible';
   }
+
+  hideAdvanced()
+  {
+    this._advancedSettings.style.visibility = 'hidden';
+  }
+
+  showAdvanced()
+  {
+    this._advancedSettings.style.visibility = 'visible';
+  }
+
 
   set quality(quality)
   {

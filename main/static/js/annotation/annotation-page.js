@@ -275,7 +275,7 @@ class AnnotationPage extends TatorPage {
                 this._getMetadataTypes(player, live._canvas);
               }
               //this._browser.canvas = player._video;
-              //this._videoSettingsDialog.mode("single", [data]);
+              this._videoSettingsDialog.mode("live", [data]);
               this._settings._capture.addEventListener(
                 'captureFrame',
                 (e) =>
@@ -547,7 +547,9 @@ class AnnotationPage extends TatorPage {
           canvas.setRate(evt.detail.rate);
         }
       });
+    }
 
+    if (this._player._qualityControl) {
       this._player._qualityControl.addEventListener("qualityChange", evt => {
         if ("setQuality" in canvas) {
           canvas.setQuality(evt.detail.quality);
