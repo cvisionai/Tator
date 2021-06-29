@@ -23,6 +23,9 @@ class LiveCanvas extends AnnotationCanvas
     this._currentFrame = 0;
     this._diagLastFrame = 0;
     this._fps = 60;
+
+    this._counterText = this._textOverlay.addText(0.5,0.75, "0");
+    this._textOverlay.toggleTextDisplay(this._counterText,false);
   }
 
   // Images are neither playing or paused
@@ -95,9 +98,16 @@ class LiveCanvas extends AnnotationCanvas
       setTimeout(this.play.bind(this), 1000);
       return true;
     }
+
+    let errorCatch = () => {
+      this.error(null, "Server did not respond in 20 seconds.");
+    };
+    setTimeout(errorCatch, 20000);
     let currentVideo = this._feedVids[this._playIdx];
     let onplay = () => {
+      clearTimeout(errorCatch);
       clearTimeout(this._posterTimeout);
+      clearCounter();
       this._diagThread = setTimeout(this.diagThread.bind(this), 1000);
       currentVideo.removeEventListener("playing", onplay);
       this.dispatchEvent(new CustomEvent("playing", {composed: true}));
@@ -128,6 +138,7 @@ class LiveCanvas extends AnnotationCanvas
     {
       return;
     }
+    this.clearCounter();
     this._paused = true;
     let currentVideo = this._feedVids[this._playIdx];
     currentVideo.pause();
@@ -170,6 +181,24 @@ class LiveCanvas extends AnnotationCanvas
                          true
                          );
     this._draw.dispImage(true);
+
+    this._count = 0;
+    this._textOverlay.modifyText(this._counterText, {"content": `${this._count}`}, true);
+    this.counterThread();
+  }
+
+  counterThread()
+  {
+      clearTimeout(this._counterThreadIdx);
+      this._textOverlay.modifyText(this._counterText, {"content": `${this._count}`}, true);
+      this._count += 1;
+      this._counterThreadIdx = setTimeout(this.counterThread.bind(this), 1000);
+  }
+
+  clearCounter()
+  {
+      clearTimeout(this._counterThreadIdx);
+      this._textOverlay.toggleTextDisplay(this._counterText, false);
   }
 
   refresh()
