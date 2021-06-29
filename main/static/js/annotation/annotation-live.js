@@ -387,6 +387,10 @@ class AnnotationLive extends TatorElement {
 
       let roi_vid = document.createElement("live-canvas");
       roi_vid.setupResizeHandler([1920,1080], this._multi_layout[0], this._videoHeightPadObject);
+      roi_vid.addEventListener("error", (evt) =>{
+        Utilities.warningAlert(evt.detail.msg, '#ff3e1d', true);
+        this.pause();
+      });
       roi_vid.loadFeeds(val.media_files['live'][vid_id]);
       this._videoGridInfo[vid_id] = {row: Math.floor(idx / this._multi_layout[1])+1, col: (idx % this._multi_layout[1])+1, video: roi_vid};
 

@@ -233,6 +233,13 @@ class MediaCard extends TatorElement {
       {
         valid = true;
       }
+      if (!('thumbnail' in this._media.media_files) && 'live' in this._media.media_files)
+      {
+        // Default to tator thumbnail
+        // TODO: Have some visual indication if stream is active.
+        this._img.setAttribute("src", "/static/images/live-thumb.png");
+
+      }
     }
     if (valid == false)
     {

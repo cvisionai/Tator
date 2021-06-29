@@ -20,12 +20,30 @@ class LiveCanvas extends AnnotationCanvas
     this._resolutions = [];
     this._connectTime = 0;
     this._paused = true;
+    this._currentFrame = 0;
+    this._diagLastFrame = 0;
+    this._fps = 60;
   }
 
   // Images are neither playing or paused
   isPaused()
   {
     return this._paused;
+  }
+
+  diagThread()
+  {
+    if (this._paused)
+    {
+      return;
+    }
+    clearTimeout(this._diagThread);
+    if (this._currentFrame - this._diagLastFrame < 10)
+    {
+      this.error(null, "Remote Video feed has stopped.");
+    }
+    this._diagLastFrame = this._currentFrame;
+    this._diagThread = setTimeout(this.diagThread.bind(this), 1000);
   }
 
   playThread()
@@ -48,6 +66,8 @@ class LiveCanvas extends AnnotationCanvas
       currentVideo.addEventListener("playing", onplay);
     };
     currentVideo.addEventListener("stalled", onstall);
+
+    this._currentFrame += 1;
 
     this._draw.pushImage(0,
       currentVideo,
@@ -78,6 +98,7 @@ class LiveCanvas extends AnnotationCanvas
     let currentVideo = this._feedVids[this._playIdx];
     let onplay = () => {
       clearTimeout(this._posterTimeout);
+      this._diagThread = setTimeout(this.diagThread.bind(this), 1000);
       currentVideo.removeEventListener("playing", onplay);
       this.dispatchEvent(new CustomEvent("playing", {composed: true}));
       this._playThread = requestAnimationFrame(this.playThread.bind(this));
@@ -87,8 +108,26 @@ class LiveCanvas extends AnnotationCanvas
     return true;
   }
 
+  error(error, msg)
+  {
+    this.dispatchEvent(new CustomEvent("error", {composed: true,
+      detail: {
+      obj: error,
+      msg: msg
+    }
+    }));
+    if (this._paused == false)
+    {
+      this.pause();
+    }
+  }
+
   pause()
   {
+    if (this._paused)
+    {
+      return;
+    }
     this._paused = true;
     let currentVideo = this._feedVids[this._playIdx];
     currentVideo.pause();
@@ -237,8 +276,10 @@ class LiveCanvas extends AnnotationCanvas
         console.info(`Notice: Feed ${feed} (${resolution}) reports ready`);
       });
       streamer.onError = (error) => {
+        const msg = `Live stream '${feed}' from ${this._url} is not available.`;
         console.error(error);
-        Utilities.warningAlert(`Live stream '${feed}' from ${this._url} is not available.`, '#ff3e1d', false);
+        console.error(msg)
+        this.error(error, msg);
       };
       streamer.connect(feed, feed);
       this._streamers.push(streamer);
