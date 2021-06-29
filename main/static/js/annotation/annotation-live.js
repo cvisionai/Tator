@@ -400,7 +400,7 @@ class AnnotationLive extends TatorElement {
       roi_vid.setupResizeHandler([1920,1080], this._multi_layout[0], this._videoHeightPadObject);
       roi_vid.addEventListener("error", (evt) =>{
         roi_vid.pause();
-        Utilities.warningAlert(evt.detail.msg, '#ff3e1d', true);
+        Utilities.warningAlert(evt.detail.msg, '#ff3e1d', false);
         this.pause(true);
       });
       roi_vid.loadFeeds(val.media_files['live'][vid_id]);

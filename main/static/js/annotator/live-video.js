@@ -107,7 +107,7 @@ class LiveCanvas extends AnnotationCanvas
     let onplay = () => {
       clearTimeout(errorCatch);
       clearTimeout(this._posterTimeout);
-      clearCounter();
+      this.clearCounter();
       this._diagThread = setTimeout(this.diagThread.bind(this), 1000);
       currentVideo.removeEventListener("playing", onplay);
       this.dispatchEvent(new CustomEvent("playing", {composed: true}));
