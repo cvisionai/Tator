@@ -40,6 +40,7 @@ class LiveCanvas extends AnnotationCanvas
     let onstall = () => {
       console.log("Live feed is stalled");
       currentVideo.removeEventListener("stalled", onstall);
+      this.showLoading();
       let onplay = () => {
         currentVideo.removeEventListener("playing", onplay);
         this._playThread = requestAnimationFrame(this.playThread.bind(this));
@@ -65,7 +66,9 @@ class LiveCanvas extends AnnotationCanvas
     this._paused = false;
     clearTimeout(this._pauseTimer);
     this._pauseTimer = null;
-    this.showPoster();
+    this._posterTimeout = setTimeout(() => {
+      this.showLoading();
+    }, 250);
     if (Date.now() - this._connectTime > 10000)
     {
       this.reloadFeeds();
@@ -74,6 +77,7 @@ class LiveCanvas extends AnnotationCanvas
     }
     let currentVideo = this._feedVids[this._playIdx];
     let onplay = () => {
+      clearTimeout(this._posterTimeout);
       currentVideo.removeEventListener("playing", onplay);
       this.dispatchEvent(new CustomEvent("playing", {composed: true}));
       this._playThread = requestAnimationFrame(this.playThread.bind(this));
@@ -112,7 +116,7 @@ class LiveCanvas extends AnnotationCanvas
     }
   }
 
-  showPoster()
+  showLoading()
   {
     let x = 0;//(cWidth/2) - (this._poster.width/4);
     let y = 0;//(cHeight/2) - (this._poster.height/4);
@@ -232,6 +236,10 @@ class LiveCanvas extends AnnotationCanvas
       let streamer = new WebRtcStreamer(video,this._url, () => {
         console.info(`Notice: Feed ${feed} (${resolution}) reports ready`);
       });
+      streamer.onError = (error) => {
+        console.error(error);
+        Utilities.warningAlert(`Live stream '${feed}' from ${this._url} is not available.`, '#ff3e1d', false);
+      };
       streamer.connect(feed, feed);
       this._streamers.push(streamer);
     }
