@@ -100,9 +100,9 @@ class LiveCanvas extends AnnotationCanvas
     }
 
     let errorCatch = () => {
-      this.error(null, "Server did not respond in 20 seconds.");
+      this.error(null, "Server did not respond in 30 seconds.");
     };
-    let errorTimeout = setTimeout(errorCatch, 20000);
+    let errorTimeout = setTimeout(errorCatch, 30000);
     let currentVideo = this._feedVids[this._playIdx];
     let onplay = () => {
       clearTimeout(errorTimeout);
@@ -297,9 +297,9 @@ class LiveCanvas extends AnnotationCanvas
     this._streamers = [];
     this._resolutions = [];
     console.info(info);
-    for (let feed of Object.keys(this._feeds))
+    for (let feed of this._feeds)
     {
-      let resolution = this._feeds[feed];
+      let resolution = feed.resolution;
       let video = document.createElement("video");
       this._feedVids.push(video);
       this._resolutions.push(resolution);
@@ -312,7 +312,7 @@ class LiveCanvas extends AnnotationCanvas
         console.error(msg)
         this.error(error, msg);
       };
-      streamer.connect(feed, feed);
+      streamer.connect(feed.name, feed.name);
       this._streamers.push(streamer);
     }
     this._connectTime = Date.now();

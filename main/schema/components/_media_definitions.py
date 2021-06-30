@@ -186,6 +186,41 @@ file_definition = {
     },
 }
 
+live_definition = {
+    'type': 'object',
+    'required': ['url', 'feeds'],
+    'properties': {
+        'url': {
+            'type': 'string',
+            'description': 'URL to streaming server.',
+        },
+        'feeds': {'type': 'array', 'items': {'$ref': '#/components/schemas/FeedDefinition'}}
+    },
+}
+
+feed_definition = {
+    'type': 'object',
+    'required': ['name', 'resolution'],
+    'properties': {
+        'name': {
+            'type': 'string',
+            'description': 'Name of the feed.',
+        },
+        'resolution': {
+            'description': 'Resolution of the video in pixels (height, width).',
+            'type': 'array',
+            'minItems': 2,
+            'maxItems': 2,
+            'items': {
+                'type': 'integer',
+                'minimum': 1,
+            },
+        },
+    },
+}
+
+
+
 media_files = {
     'description': 'Object containing upload urls for the transcoded file and '
                    'corresponding `VideoDefinition`.',
@@ -198,6 +233,7 @@ media_files = {
         'attachment': {'type': 'array', 'items': {'$ref': '#/components/schemas/FileDefinition'}},
         'thumbnail': {'type': 'array', 'items': {'$ref': '#/components/schemas/ImageDefinition'}},
         'thumbnail_gif': {'type': 'array', 'items': {'$ref': '#/components/schemas/ImageDefinition'}},
+        'live': {'type': 'array', 'items': {'$ref': '#/components/schemas/LiveDefinition'}},
         **multi_definition['properties'],
     },
 }

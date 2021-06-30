@@ -386,10 +386,9 @@ class AnnotationLive extends TatorElement {
       if (vid_id == 0)
       {
         let feeds = val.media_files['live'][vid_id]['feeds'];
-        let keys = Object.keys(feeds);
-        for (let key of keys)
+        for (let feed of feeds)
         {
-          this._resolutions.push(feeds[key][0]);
+          this._resolutions.push(feed.resolution[0]);
         }
       }
       const wrapper_div = document.createElement("div");
