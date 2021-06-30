@@ -349,6 +349,12 @@ class AnnotationLive extends TatorElement {
     this._playbackReadyId = 0;
     this._numVideos = val.media_files['live'].length;
     this._resolutions = [];
+    let pad_digit = (number, size) => {
+      var s = String(number);
+      while (s.length < (size || 2)) {s = "0" + s;}
+      return s;
+    };
+
     for (let vid_id = 0; vid_id < this._numVideos; vid_id++)
     {
       let roi_vid = document.createElement("live-canvas");
@@ -356,8 +362,9 @@ class AnnotationLive extends TatorElement {
       {
         roi_vid.addEventListener("healthy", () => {
           const d = new Date();
-          const date_str = `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDay()}T${d.getUTCHours()}:${d.getUTCMinutes()}:${d.getUTCSeconds()}Z`;
-          this._currentTimeText.textContent = date_str;
+          const date_str = `${d.getUTCFullYear()}-${pad_digit(d.getUTCMonth()+1,2)}-${pad_digit(d.getUTCDay(),2)}`
+          const time_str = `${pad_digit(d.getUTCHours(),2)}:${pad_digit(d.getUTCMinutes(),2)}:${pad_digit(d.getUTCSeconds(),2)}Z`;
+          this._currentTimeText.textContent = `${date_str}T${time_str}`;
         });
         let feeds = val.media_files['live'][vid_id]['feeds'];
         for (let feed of feeds)
