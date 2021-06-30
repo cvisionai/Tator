@@ -42,22 +42,12 @@ class AnnotationLive extends TatorElement {
     timeDiv.setAttribute("class", "d-flex flex-items-center flex-justify-between");
     playButtons.appendChild(timeDiv);
 
-    this._currentTimeInput = document.createElement("input");
-    this._currentTimeInput.setAttribute("class", "form-control input-sm1 f2 text-center");
-    this._currentTimeInput.setAttribute("type", "text");
-    this._currentTimeInput.style.display = "none";
-    this._currentTimeInput.style.width = "100px";
-    playButtons.appendChild(this._currentTimeInput);
-
     this._currentTimeText = document.createElement("div");
-    this._currentTimeText.textContent = "0:00";
-    this._currentTimeText.style.width = "35px";
+    this._currentTimeText.textContent = "";
+    //this._currentTimeText.style.width = "35px";
+    this._currentTimeText.style.paddingLeft = "15px";
+    this._currentTimeText.setAttribute("tooltip", "Last Update");
     playButtons.appendChild(this._currentTimeText);
-
-    this._totalTime = document.createElement("div");
-    this._totalTime.setAttribute("class", "px-2 text-gray");
-    this._totalTime.textContent = "/ 0:00";
-    playButtons.appendChild(this._totalTime);
 
     var outerDiv = document.createElement("div");
     outerDiv.setAttribute("class", "py-2");
@@ -76,28 +66,6 @@ class AnnotationLive extends TatorElement {
     const frameDiv = document.createElement("div");
     frameDiv.setAttribute("class", "d-flex flex-items-center flex-justify-between");
     playButtons.appendChild(frameDiv);
-
-    const framePrev = document.createElement("frame-prev");
-    frameDiv.appendChild(framePrev);
-
-    const currentFrameWrapper = document.createElement("div");
-    frameDiv.appendChild(currentFrameWrapper);
-
-    this._currentFrameInput = document.createElement("input");
-    this._currentFrameInput.setAttribute("class", "form-control input-sm1 f2 text-center");
-    this._currentFrameInput.setAttribute("type", "text");
-    this._currentFrameInput.style.display = "none";
-    this._currentFrameInput.style.width = "100px";
-    frameDiv.appendChild(this._currentFrameInput);
-
-    this._currentFrameText = document.createElement("div");
-    this._currentFrameText.setAttribute("class", "f2 text-center");
-    this._currentFrameText.textContent = "0";
-    this._currentFrameText.style.minWidth = "15px";
-    currentFrameWrapper.appendChild(this._currentFrameText);
-
-    const frameNext = document.createElement("frame-next");
-    frameDiv.appendChild(frameNext);
 
     this._volume_control = document.createElement("volume-control");
     settingsDiv.appendChild(this._volume_control);
@@ -383,8 +351,14 @@ class AnnotationLive extends TatorElement {
     this._resolutions = [];
     for (let vid_id = 0; vid_id < this._numVideos; vid_id++)
     {
+      let roi_vid = document.createElement("live-canvas");
       if (vid_id == 0)
       {
+        roi_vid.addEventListener("healthy", () => {
+          const d = new Date();
+          const date_str = `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDay()}T${d.getUTCHours()}:${d.getUTCMinutes()}:${d.getUTCSeconds()}Z`;
+          this._currentTimeText.textContent = date_str;
+        });
         let feeds = val.media_files['live'][vid_id]['feeds'];
         for (let feed of feeds)
         {
@@ -393,9 +367,8 @@ class AnnotationLive extends TatorElement {
       }
       const wrapper_div = document.createElement("div");
       wrapper_div.setAttribute("class", "annotation__multi-grid-entry d-flex");
-      this._videoDivs[vid_id] = wrapper_div;
 
-      let roi_vid = document.createElement("live-canvas");
+      this._videoDivs[vid_id] = wrapper_div;
       roi_vid.setupResizeHandler([1920,1080], this._multi_layout[0], this._videoHeightPadObject);
       roi_vid.addEventListener("error", (evt) =>{
         roi_vid.pause();

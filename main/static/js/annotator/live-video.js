@@ -45,6 +45,10 @@ class LiveCanvas extends AnnotationCanvas
     {
       this.error(null, "Remote Video feed has stopped.");
     }
+    else
+    {
+      this.dispatchEvent(new CustomEvent("healthy", {composed: true}));
+    }
     this._diagLastFrame = this._currentFrame;
     this._diagThread = setTimeout(this.diagThread.bind(this), 1000);
   }
