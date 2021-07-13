@@ -6,6 +6,8 @@ from .algorithm import AlgorithmDetailAPI
 from .save_algorithm_manifest import SaveAlgorithmManifestAPI
 from .analysis import AnalysisListAPI
 from .analysis import AnalysisDetailAPI
+from .announcement import AnnouncementListAPI
+from .announcement import AnnouncementDetailAPI
 from .attribute_type import AttributeTypeListAPI
 from .audio_file import AudioFileListAPI
 from .audio_file import AudioFileDetailAPI
@@ -19,6 +21,8 @@ from .download_info import DownloadInfoAPI
 from .email import EmailAPI
 from .favorite import FavoriteListAPI
 from .favorite import FavoriteDetailAPI
+from .file import FileListAPI
+from .file import FileDetailAPI
 from .get_clip import GetClipAPI
 from .get_frame import GetFrameAPI
 from .image_file import ImageFileListAPI
@@ -54,6 +58,7 @@ from .membership import MembershipDetailAPI
 from .notify import NotifyAPI
 from .organization import OrganizationListAPI
 from .organization import OrganizationDetailAPI
+from .password_reset import PasswordResetListAPI
 from .permalink import PermalinkAPI
 from .project import ProjectListAPI
 from .project import ProjectDetailAPI

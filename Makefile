@@ -196,29 +196,55 @@ FILES = \
     util/fetch-retry.js \
     util/has-permission.js \
     util/join-params.js \
+    util/filter-utilities.js \
     util/tator-data.js \
     util/same-origin-credentials.js \
     components/tator-element.js \
+    components/buttons/entity-frame-link-button.js \
     components/inputs/feature/color-inputs.js \
     components/inputs/feature/thumb-inputs.js \
     components/inputs/feature/checkbox-set.js \
     components/inputs/array-input.js \
+    components/inputs/user-input.js \
     components/inputs/bool-input.js \
     components/inputs/checkbox-input.js \
     components/inputs/enum-input.js \
     components/inputs/text-area.js \
+    components/inputs/datetime-input.js \
     components/inputs/text-input.js \
     components/labeled-checkbox.js \
-    components/modal-close.js \
-    components/modal-warning.js \
-    components/modal-success.js \
+    components/markdown-div.js \
+    components/svg-definitions/chevron-right.js \
+    components/svg-definitions/modal-close.js \
+    components/svg-definitions/modal-warning.js \
+    components/svg-definitions/modal-success.js \
+    components/svg-definitions/more-icon.js \
+    components/svg-definitions/all-svg.js \
     components/modal-dialog.js \
     components/modal-notify.js \
     components/upload-dialog.js \
+    components/announcement-dialog.js \
     components/cancel-button.js \
     components/cancel-confirm.js \
+    components/canvas-ctxmenu.js \
     components/big-upload-form.js \
     components/upload-element.js \
+    components/entity-gallery/entity-gallery-card.js \
+    components/entity-gallery/entity-gallery-resize.js \
+    components/entity-gallery/entity-gallery-aspect-ratio.js \
+    components/entity-gallery/entity-gallery-paginator.js \
+    components/entity-gallery/entity-gallery-labels.js \
+    components/entity-gallery/entity-gallery-sort.js \
+    components/entity-gallery/entity-gallery-slider.js \
+    components/entity-gallery/entity-gallery_h-slide.js \
+    components/entity-gallery/entity-gallery_grid.js \
+    components/entity-gallery/entity-gallery-more-menu.js \
+    components/entity-panel/entity-panel-navigation.js \
+    components/entity-panel/entity-panel-localization.js \
+    components/entity-panel/entity-panel-form.js \
+    components/entity-panel/entity-panel-top.js \
+    components/entity-panel/entity-panel-container.js \
+    components/entity-panel/entity-panel.js \
     components/header-notification.js \
     components/header-menu.js \
     components/header-user.js \
@@ -229,24 +255,23 @@ FILES = \
     components/nav-main.js \
     components/keyboard-shortcuts.js \
     components/tator-page.js \
-    components/more-icon.js \
     components/form-text.js \
     components/form-file.js \
-    components/chevron-right.js \
     components/text-autocomplete.js \
-    components/canvas-ctxmenu.js \
     components/success-light.js \
     components/warning-light.js \
     components/name-dialog.js \
-    components/filter-attribute-field.js \
-    components/filter-attribute-type.js \
+    components/filter-data-button.js \
+    components/filter-condition.js \
+    components/filter-condition-group.js \
     components/filter-dialog.js \
     components/filter-interface.js \
     components/filter-data.js \
     components/removable-pill.js \
-    components/user-input.js \
     components/user-data.js \
     registration/registration-page.js \
+    password-reset/password-reset-request-page.js \
+    password-reset/password-reset-page.js \
     projects/settings-button.js \
     projects/project-remove.js \
     projects/project-nav.js \
@@ -258,7 +283,6 @@ FILES = \
     projects/delete-project.js \
     projects/projects-dashboard.js \
     account-profile/account-profile.js \
-    token/token-page.js \
     new-project/new-project-close.js \
     new-project/custom/custom-form.js \
     new-project/custom/custom.js \
@@ -266,6 +290,7 @@ FILES = \
     project-detail/algorithm-menu.js \
     project-detail/algorithm-button.js \
     project-detail/confirm-run-algorithm.js \
+    project-detail/analytics-button.js \
     project-detail/activity-button.js \
     project-detail/project-text.js \
     project-detail/project-search.js \
@@ -284,6 +309,7 @@ FILES = \
     project-detail/media-more.js \
     project-detail/media-description.js \
     project-detail/media-card.js \
+    project-detail/attachment-dialog.js \
     project-detail/section-prev.js \
     project-detail/section-next.js \
     project-detail/section-expand.js \
@@ -296,6 +322,7 @@ FILES = \
     project-detail/new-algorithm-form.js \
     project-detail/project-detail.js \
     components/loading-spinner.js \
+    project-settings/settings-breadcrumbs.js \
     project-settings/type-form-validation.js \
     project-settings/settings-input-helpers.js \
     project-settings/settings-box-helpers.js \
@@ -324,7 +351,7 @@ FILES = \
     annotation/annotation-breadcrumbs.js \
     annotation/lock-button.js \
     annotation/fill-boxes-button.js \
-		annotation/toggle-text-button.js \
+    annotation/toggle-text-button.js \
     annotation/media-capture-button.js \
     annotation/bookmark-button.js \
     annotation/media-link-button.js \
@@ -357,9 +384,11 @@ FILES = \
     annotator/annotation.js \
     annotator/video.js \
     annotator/image.js \
+    annotator/live-video.js \
     annotation/annotation-player.js \
     annotation/annotation-image.js \
     annotation/annotation-multi.js \
+    annotation/annotation-live.js \
     annotation/attribute-panel.js \
     annotation/modify-track-dialog.js \
     annotation/progress-dialog.js \
@@ -375,8 +404,9 @@ FILES = \
     annotation/entity-next-button.js \
     annotation/entity-delete-button.js \
     annotation/entity-redraw-button.js \
-		annotation/entity-frame-button.js \
+    annotation/entity-frame-button.js \
     annotation/entity-track-button.js \
+    annotation/entity-detection-button.js \
     annotation/entity-more.js \
     annotation/entity-selector.js \
     annotation/annotation-browser.js \
@@ -390,12 +420,22 @@ FILES = \
     annotation/video-settings-dialog.js \
     annotation/volume-control.js \
     analytics/analytics-breadcrumbs.js \
+    analytics/analytics-settings.js \
     analytics/dashboard/dashboard.js \
-    analytics/annotations/annotations.js \
+    analytics/localizations/card.js \
+    analytics/localizations/gallery.js \
+    analytics/localizations/panel-data.js \
+    analytics/localizations/card-data.js \
+    analytics/localizations/localizations.js \
+    analytics/collections/slide-data.js \
+    analytics/collections/card.js \
+    analytics/collections/gallery.js \
     analytics/collections/collections.js \
+    analytics/collections/collections-data.js \
     analytics/visualization/visualization.js \
     analytics/reports/reports.js \
     third_party/autocomplete.js \
+    third_party/webrtcstreamer.js \
     utilities.js
 
 JSDIR = main/static/js
@@ -548,3 +588,22 @@ docs:
 .PHONY: check_schema
 check_schema: tator-image
 	docker run -it --rm -e DJANGO_SECRET_KEY=1337 -e ELASTICSEARCH_HOST=127.0.0.1 -e TATOR_DEBUG=false -e TATOR_USE_MIN_JS=false localhost:5000/tator_online:$(GIT_VERSION) python3 manage.py getschema
+
+ifdef PROJECT_ID
+ANNOUNCE_CMD=python3 manage.py announce --file /tmp/announce.md --project $(PROJECT_ID)
+else ifdef USER_ID
+ANNOUNCE_CMD=python3 manage.py announce --file /tmp/announce.md --user $(USER_ID)
+else
+ANNOUNCE_CMD=python3 manage.py announce --file /tmp/announce.md
+endif
+# Makes an announcement
+# System-wide announcement:
+# make announce FILE=blah.md
+# Project-wide announcement:
+# make announce FILE=blah.md PROJECT_ID=1
+# User-specific announcement:
+# make announce FILE=blah.md USER_ID=1
+.PHONY: announce
+announce:
+	kubectl cp $(FILE) $$(kubectl get pod -l "app=gunicorn" -o name | head -n 1 | sed 's/pod\///'):/tmp/announce.md
+	kubectl exec $$(kubectl get pod -l "app=gunicorn" -o name | head -n 1 | sed 's/pod\///') -- $(ANNOUNCE_CMD) 

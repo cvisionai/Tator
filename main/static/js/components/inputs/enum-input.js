@@ -128,7 +128,15 @@ class EnumInput extends TatorElement {
       }
     }
   }
-
+  
+  /**
+   * Clears the options. Useful for resetting the menu options.
+   */
+  clear() {
+    while (this._select.options.length > 0) {
+      this._select.options.remove(0);
+    }
+  }
 }
 
 customElements.define("enum-input", EnumInput);

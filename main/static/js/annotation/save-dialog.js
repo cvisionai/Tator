@@ -93,6 +93,7 @@ class SaveDialog extends TatorElement {
     // For the save dialog, the track search bar doesn't need to be shown.
     // The user only needs to modify the attributes in the dialog window.
     this._attributes.displaySlider(false);
+    this._attributes.displayGoToLocalization(false);
     this._attributes.displayGoToTrack(false);
 
     // Set choices on type selector.

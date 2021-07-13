@@ -8,6 +8,8 @@ from .attribute_type import AttributeTypeListSchema
 from .save_algorithm_manifest import SaveAlgorithmManifestSchema
 from .analysis import AnalysisListSchema
 from .analysis import AnalysisDetailSchema
+from .announcement import AnnouncementListSchema
+from .announcement import AnnouncementDetailSchema
 from .audio_file import AudioFileListSchema
 from .audio_file import AudioFileDetailSchema
 from .bookmark import BookmarkListSchema
@@ -20,6 +22,8 @@ from .download_info import DownloadInfoSchema
 from .email import EmailSchema
 from .favorite import FavoriteListSchema
 from .favorite import FavoriteDetailSchema
+from .file import FileListSchema
+from .file import FileDetailSchema
 from .get_frame import GetFrameSchema
 from .get_clip import GetClipSchema
 from .image_file import ImageFileListSchema
@@ -56,6 +60,7 @@ from .membership import MembershipDetailSchema
 from .notify import NotifySchema
 from .organization import OrganizationListSchema
 from .organization import OrganizationDetailSchema
+from .password_reset import PasswordResetListSchema
 from .permalink import PermalinkSchema
 from .project import ProjectListSchema
 from .project import ProjectDetailSchema

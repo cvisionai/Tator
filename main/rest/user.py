@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from ..models import User
 from ..models import Invitation
 from ..models import Affiliation
+from ..models import PasswordReset
 from ..serializers import UserSerializerBasic
 from ..schema import UserExistsSchema
 from ..schema import UserListSchema
@@ -150,6 +151,16 @@ class UserDetailAPI(BaseDetailView):
             if existing.count() > 0:
                 raise RuntimeError(f"User with email {params['email']} already exists!")
             user.email = params['email']
+        if 'password' in params:
+            if 'reset_token' not in params:
+                raise RuntimeError(f"Password cannot be changed without reset token!")
+            resets = PasswordReset.objects.filter(reset_token=params['reset_token'],
+                                                  user=user)
+            if resets.count() == 0:
+                raise ValueError("Reset token is expired or invalid!")
+            else:
+                user.set_password(params['password'])
+                user.failed_login_count = 0
         user.save()
         return {'message': f'Updated user {params["id"]} successfully!'}
 

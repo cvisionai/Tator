@@ -110,6 +110,13 @@ class EntityBrowser extends TatorElement {
         }
         this._evt = evt;
         this._drawControls();
+
+        if (this._selectEntityId != null) {
+          for (let group in this._selectors) {
+            this._selectors[group].selectEntityWithId(this._selectEntityId, true);
+          }
+          this._selectEntityId = null;
+        }
       }
     });
     this._search.addEventListener("filterAnnotations", evt => {
@@ -270,6 +277,10 @@ class EntityBrowser extends TatorElement {
         delete this._attributes[group];
       }
     }
+  }
+
+  selectEntityOnUpdate(entityId) {
+    this._selectEntityId = entityId;
   }
 
   selectEntity(obj) {

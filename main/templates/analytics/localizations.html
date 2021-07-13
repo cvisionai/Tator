@@ -3,15 +3,15 @@
 {% load static %}
 
 {% block head %}
-<title>Tator | Analytics | Annotations</title>
+<title>Tator | Analytics | Localization Gallery</title>
 {% endblock head %}
 
 {% block body %}
-<analytics-annotations  
+<analytics-localizations
     username="{{ user|stringformat:'s' }}"
     email="{{ user.email }}"
     project-id="{{ project.id }}"
     project-name="{{ project.name }}"
     token="{{ token }}">
-</analytics-annotations>
+</analytics-localizations>
 {% endblock body %}

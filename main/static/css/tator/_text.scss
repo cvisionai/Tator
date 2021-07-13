@@ -48,16 +48,29 @@
   text-align: left;
 }
 
+.text-right {
+  text-align: right;
+}
+
+
 .text-center {
   text-align: center;
 }
 
-.text-normal {
-  font-weight: normal !important;
+.text-top {
+  vertical-align: text-top;
+}
+
+.text-bold {
+  font-weight: 600;
 }
 
 .text-semibold {
   font-weight: $weight-semibold !important;
+}
+
+.text-normal {
+  font-weight: normal !important;
 }
 
 .text-uppercase {
@@ -70,6 +83,10 @@
 
 .text-gray {
   color: $color-gray--light;
+}
+
+.text-dark-gray {
+  color: $color-gray--dark;
 }
 
 .text-red {

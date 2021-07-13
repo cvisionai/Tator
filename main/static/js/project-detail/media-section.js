@@ -201,6 +201,49 @@ class MediaSection extends TatorElement {
     }
   }
 
+  _loadMedia() {
+    const sectionQuery = this._sectionParams();
+    // Find an interval for use with "after". Super page size of
+    // 5000 guarantees that any start/stop fully falls within a
+    // super page interval.
+    let afterPromise = Promise.resolve("");
+    if (this._stop < 10000) {
+      sectionQuery.append("start", this._start);
+      sectionQuery.append("stop", this._stop);
+    } else {
+      const afterIndex = 5000 * Math.floor(this._start / 5000);
+      const start = this._start % afterIndex;
+      let stop = this._stop % afterIndex;
+      if (stop < start) {
+        stop += 5000;
+      }
+      sectionQuery.append("start", start);
+      sectionQuery.append("stop", stop);
+      afterPromise = this._getAfter(afterIndex);
+    }
+    return afterPromise.then(afterName => {
+      if (afterName) {
+        sectionQuery.append("after", afterName);
+      }
+      return fetch(`/rest/Medias/${this._project}?${sectionQuery.toString()}&presigned=28800`, {
+        method: "GET",
+        credentials: "same-origin",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken"),
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        }
+      })
+      .then(response => response.json())
+      .then(media => {
+        this._files.numMedia = this._paginator._numFiles;
+        this._files.startMediaIndex = this._start;
+        this._files.cardInfo = media;
+        this._reload.ready();
+      });
+    });
+  }
+
   reload() {
     this._reload.busy();
     const sectionQuery = this._sectionParams();
@@ -216,45 +259,7 @@ class MediaSection extends TatorElement {
     .then(response => response.json())
     .then(count => this.numMedia = count)
     .then(() => {
-      // Find an interval for use with "after". Super page size of
-      // 5000 guarantees that any start/stop fully falls within a
-      // super page interval.
-      let afterPromise = Promise.resolve("");
-      if (this._stop < 10000) {
-        sectionQuery.append("start", this._start);
-        sectionQuery.append("stop", this._stop);
-      } else {
-        const afterIndex = 5000 * Math.floor(this._start / 5000);
-        const start = this._start % afterIndex;
-        let stop = this._stop % afterIndex;
-        if (stop < start) {
-          stop += 5000;
-        }
-        sectionQuery.append("start", start);
-        sectionQuery.append("stop", stop);
-        afterPromise = this._getAfter(afterIndex);
-      }
-      return afterPromise.then(afterName => {
-        if (afterName) {
-          sectionQuery.append("after", afterName);
-        }
-        return fetch(`/rest/Medias/${this._project}?${sectionQuery.toString()}&presigned=28800`, {
-          method: "GET",
-          credentials: "same-origin",
-          headers: {
-            "X-CSRFToken": getCookie("csrftoken"),
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-          }
-        })
-        .then(response => response.json())
-        .then(media => {
-          this._files.numMedia = this._paginator._numFiles;
-          this._files.startMediaIndex = this._start;
-          this._files.cardInfo = media;
-          this._reload.ready();
-        });
-      });
+      this._loadMedia();
     });
   }
 
@@ -620,7 +625,7 @@ class MediaSection extends TatorElement {
   _setPage(evt) {
     this._start = evt.detail.start;
     this._stop = evt.detail.stop;
-    this.reload();
+    this._loadMedia();
   }
 
   _findAfters() {

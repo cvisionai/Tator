@@ -103,20 +103,17 @@ def get_attribute_es_query(query_params, query, bools, project,
             if len(attr_query['media'][key]) > 0:
                 query['query']['bool'][key] = attr_query['media'][key]
 
-        search = query_params.get('search', None)
+        search = query_params.get('search')
         if search is not None:
-            search_query = {'bool': {
-                'should': [
-                    {'query_string': {'query': search}},
-                    {'has_child': {
-                        'type': 'annotation',
-                        'query': {'query_string': {'query': search}},
-                        },
-                    },
-                ],
-                'minimum_should_match': 1,
-            }}
+            search_query = {'query_string': {'query': search}}
             query['query']['bool']['filter'].append(search_query)
+
+        annotation_search = query_params.get('annotation_search')
+        if annotation_search is not None:
+            annotation_search_query = {'has_child': {'type': 'annotation',
+                                                     'query': {'query_string': {'query': annotation_search}}}}
+            query['query']['bool']['filter'].append(annotation_search_query)
+
     else:
         # Construct query for annotations
         has_parent = False
@@ -149,18 +146,14 @@ def get_attribute_es_query(query_params, query, bools, project,
 
         search = query_params.get('search', None)
         if search is not None:
-            search_query = {'bool': {
-                'should': [
-                    {'query_string': {'query': search}},
-                    {'has_parent': {
-                        'parent_type': 'media',
-                        'query': {'query_string': {'query': search}},
-                        },
-                    },
-                ],
-                'minimum_should_match': 1,
-            }}
+            search_query = {'query_string': {'query': search}}
             query['query']['bool']['filter'].append(search_query)
+
+        media_search = query_params.get('media_search')
+        if media_search is not None:
+            media_search_query = {'has_parent': {'parent_type': 'media',
+                                                 'query': {'query_string': {'query': media_search}}}}
+            query['query']['bool']['filter'].append(media_search_query)
 
         if modified is not None:
             # Get modified + null or not modified + null
@@ -174,6 +167,7 @@ def get_attribute_es_query(query_params, query, bools, project,
                 'minimum_should_match': 1,
             }}
             query['query']['bool']['filter'].append(modified_query)
+        
 
     return query
 

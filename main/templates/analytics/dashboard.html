@@ -7,11 +7,12 @@
 {% endblock head %}
 
 {% block body %}
-<h1>Dashboard</h1>
+
 <analytics-dashboard  
     username="{{ user|stringformat:'s' }}"
     email="{{ user.email }}"
     project-id="{{ project.id }}"
+    project-name="{{ project.name }}"
     token="{{ token }}">
 </analytics-dashboard>
 {% endblock body %}

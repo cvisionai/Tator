@@ -2,17 +2,17 @@ class TextInput extends TatorElement {
   constructor() {
     super();
 
-    const label = document.createElement("label");
-    label.setAttribute("class", "d-flex flex-justify-between flex-items-center py-1");
-    this._shadow.appendChild(label);
+    this.label = document.createElement("label");
+    this.label.setAttribute("class", "d-flex flex-justify-between flex-items-center py-1");
+    this._shadow.appendChild(this.label);
 
     this._name = document.createTextNode("");
-    label.appendChild(this._name);
+    this.label.appendChild(this._name);
 
     this._input = document.createElement("input");
     this._input.setAttribute("class", "form-control input-sm col-8");
     this._input.setAttribute("type", "text");
-    label.appendChild(this._input);
+    this.label.appendChild(this._input);
 
     this._input.addEventListener("change", () => {
       if (this.getValue() === null) {

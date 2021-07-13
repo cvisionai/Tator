@@ -7,12 +7,15 @@ from django.conf import settings
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.auth.views import PasswordChangeDoneView
 from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import LoginView
 
 from rest_framework.schemas import get_schema_view
 
 from .views import APIBrowserView
 from .views import MainRedirect
 from .views import RegistrationView
+from .views import PasswordResetRequestView
+from .views import PasswordResetView
 from .views import ProjectsView
 from .views import AccountProfileView
 from .views import TokenView
@@ -22,7 +25,7 @@ from .views import AnnotationView
 from .views import AuthProjectView
 from .views import AuthAdminView
 from .views import AnalyticsDashboardView
-from .views import AnalyticsAnnotationsView
+from .views import AnalyticsLocalizationsView
 from .views import AnalyticsCollectionsView
 from .views import AnalyticsVisualizationView
 from .views import AnalyticsReportsView
@@ -43,33 +46,43 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('', MainRedirect.as_view(), name='home'),
-    path('accounts/account-profile/', AccountProfileView.as_view(), name='account-profile'),
-    path('<int:project_id>/analytics/', AnalyticsDashboardView.as_view(), name='analytics-dashboard'),
-    path('<int:project_id>/analytics/annotations', AnalyticsAnnotationsView.as_view(), name='analytics-annotations'),
-    path('<int:project_id>/analytics/collections', AnalyticsCollectionsView.as_view(), name='analytics-collections'),
-    path('<int:project_id>/analytics/visualization', AnalyticsVisualizationView.as_view(), name='analytics-visualization'),
-    path('<int:project_id>/analytics/reports', AnalyticsReportsView.as_view(), name='analytics-reports'),
+    path('accounts/account-profile/',
+         AccountProfileView.as_view(), name='account-profile'),
+    path('<int:project_id>/analytics/',
+         AnalyticsDashboardView.as_view(), name='analytics-dashboard'),
+    path('<int:project_id>/analytics/localizations',
+         AnalyticsLocalizationsView.as_view(), name='analytics-localizations'),
+    path('<int:project_id>/analytics/collections',
+         AnalyticsCollectionsView.as_view(), name='analytics-collections'),
+    path('<int:project_id>/analytics/visualization',
+         AnalyticsVisualizationView.as_view(), name='analytics-visualization'),
+    path('<int:project_id>/analytics/reports',
+         AnalyticsReportsView.as_view(), name='analytics-reports'),
     path('projects/', ProjectsView.as_view(), name='projects'),
     path('<int:project_id>/project-detail', ProjectDetailView.as_view(), name='project-detail'),
     path('<int:project_id>/project-settings', ProjectSettingsView.as_view(), name='project-settings'),
     path('<int:project_id>/annotation/<int:id>', AnnotationView.as_view(), name='annotation'),
     path('auth-project', AuthProjectView.as_view()),
     path('auth-admin', AuthAdminView.as_view()),
-    path('anonymous-gateway', AnonymousGatewayAPI.as_view(), name='anonymous-gateway'),
+    path('anonymous-gateway', AnonymousGatewayAPI.as_view(),
+         name='anonymous-gateway'),
     path('registration', RegistrationView.as_view(), name='registration'),
     path('token', TokenView.as_view(), name='token'),
+    path('accounts/password_change/', PasswordChangeView.as_view()),
+    path('accounts/password_change/done/', PasswordChangeDoneView.as_view(),
+         name='password_change_done'),
+    path('accounts/logout/', LogoutView.as_view()),
+    path('accounts/login/', LoginView.as_view(extra_context={'email_enabled': settings.TATOR_EMAIL_ENABLED}), name='login'),
 ]
 
 if settings.COGNITO_ENABLED:
     urlpatterns += [
-        path('accounts/password_change/', PasswordChangeView.as_view()),
-        path('accounts/password_change/done/', PasswordChangeDoneView.as_view(),
-             name='password_change_done'),
-        path('accounts/logout/', LogoutView.as_view()),
         path('jwt-gateway/', JwtGatewayAPI.as_view(), name='jwt-gateway')]
-else:
+
+if settings.TATOR_EMAIL_ENABLED:
     urlpatterns += [
-        path('accounts/', include('django.contrib.auth.urls'))]
+        path('password-reset-request', PasswordResetRequestView.as_view(), name='password-reset-request'),
+        path('password-reset', PasswordResetView.as_view(), name='password-reset')]
 
 # This is used for REST calls
 urlpatterns += [
@@ -109,6 +122,14 @@ urlpatterns += [
         AnalysisDetailAPI.as_view(),
     ),
     path(
+        'rest/Announcements',
+        AnnouncementListAPI.as_view(),
+    ),
+    path(
+        'rest/Announcement/<int:id>',
+        AnnouncementDetailAPI.as_view(),
+    ),
+    path(
         'rest/AttributeType/<int:id>',
         AttributeTypeListAPI.as_view(),
     ),
@@ -130,44 +151,50 @@ urlpatterns += [
     ),
     path('rest/Buckets/<int:organization>',
          BucketListAPI.as_view(),
-    ),
+         ),
     path('rest/Bucket/<int:id>',
          BucketDetailAPI.as_view(),
-    ),
+         ),
     path('rest/ChangeLog/<int:project>',
          ChangeLogListAPI.as_view(),
-    ),
+         ),
     path('rest/CloneMedia/<int:project>',
          CloneMediaListAPI.as_view(),
-    ),
+         ),
     path('rest/DownloadInfo/<int:project>',
          DownloadInfoAPI.as_view(),
-    ),
+         ),
     path(
         'rest/Email/<int:project>',
         EmailAPI.as_view(),
     ),
     path('rest/Favorites/<int:project>',
          FavoriteListAPI.as_view(),
-    ),
+         ),
     path('rest/Favorite/<int:id>',
          FavoriteDetailAPI.as_view(),
     ),
+    path('rest/Files/<int:id>',
+         FileListAPI.as_view(),
+    ),
+    path('rest/File/<int:id>',
+         FileDetailAPI.as_view(),
+    ),
     path('rest/GetFrame/<int:id>',
          GetFrameAPI.as_view(),
-    ),
+         ),
     path('rest/GetClip/<int:id>',
          GetClipAPI.as_view(),
-    ),
+         ),
     path('rest/ImageFiles/<int:id>',
          ImageFileListAPI.as_view(),
-    ),
+         ),
     path('rest/ImageFile/<int:id>',
          ImageFileDetailAPI.as_view(),
     ),
     path('rest/Invitations/<int:organization>',
          InvitationListAPI.as_view(),
-    ),
+         ),
     path('rest/Invitation/<int:id>',
          InvitationDetailAPI.as_view(),
     ),
@@ -234,9 +261,9 @@ urlpatterns += [
         LocalizationTypeDetailAPI.as_view(),
     ),
     path('rest/LocalizationGraphic/<int:id>',
-        LocalizationGraphicAPI.as_view(),
-        name='LocalizationGraphic',
-    ),
+         LocalizationGraphicAPI.as_view(),
+         name='LocalizationGraphic',
+         ),
     path(
         'rest/Medias/<int:project>',
         MediaListAPI.as_view(),
@@ -295,6 +322,10 @@ urlpatterns += [
     path(
         'rest/Organization/<int:id>',
         OrganizationDetailAPI.as_view(),
+    ),
+    path(
+        'rest/PasswordReset',
+        PasswordResetListAPI.as_view(),
     ),
     path(
         'rest/Permalink/<int:id>',
@@ -367,7 +398,7 @@ urlpatterns += [
     ),
     path('rest/Token',
          TokenAPI.as_view(),
-    ),
+         ),
     path(
         'rest/Transcode/<int:project>',
         TranscodeAPI.as_view(),

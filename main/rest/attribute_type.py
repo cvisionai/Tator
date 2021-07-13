@@ -1,4 +1,6 @@
 from typing import Dict
+from django.db import transaction
+import logging
 
 from ..models import (
     MediaType,
@@ -23,6 +25,7 @@ from ._attributes import (
 )
 from ._permissions import ProjectFullControlPermission
 
+logger = logging.getLogger(__name__)
 
 ENTITY_TYPES = {
     "MediaType": (MediaType, Media),
@@ -74,7 +77,7 @@ class AttributeTypeListAPI(BaseListView):
         """
         parent_id = params["id"]
         models = AttributeTypeListAPI._get_models(params["entity_type"])
-        entity_type = models[0].objects.filter(pk=parent_id)[0]
+        entity_type = models[0].objects.select_for_update(nowait=True).get(pk=parent_id)
         model = models[1]
         obj_qs = model.objects.filter(meta=parent_id)
         return entity_type, obj_qs
@@ -100,15 +103,17 @@ class AttributeTypeListAPI(BaseListView):
                     and instance.id not in id_set
                 ):
                     id_set.add(instance.id)
-                    objects.append((instance, entity.objects.filter(meta=instance.id)))
+                    objects.append((instance, entity.objects.select_for_update(nowait=True)\
+                                                            .filter(meta=instance.id)))
 
         return objects
 
     def _delete(self, params: Dict) -> Dict:
         """Delete an existing attribute on a type."""
         attribute_to_delete = params["attribute_to_delete"]
-        entity_type, obj_qs = self._get_objects(params)
-        TatorSearch().delete_alias(entity_type, attribute_to_delete).save()
+        with transaction.atomic():
+            entity_type, obj_qs = self._get_objects(params)
+            TatorSearch().delete_alias(entity_type, attribute_to_delete).save()
 
         if obj_qs.exists():
             bulk_delete_attributes([attribute_to_delete], obj_qs)
@@ -127,101 +132,105 @@ class AttributeTypeListAPI(BaseListView):
         attribute_renamed = old_name != new_name
 
         # Get the old and new dtypes
-        entity_type, obj_qs = self._get_objects(params)
-        related_objects = self._get_related_objects(entity_type, old_name)
-        if related_objects and global_operation == "false":
-            raise ValueError(
-                f"Attempted to mutate attribute '{old_name}' without the global flag set to 'true',"
-                " but it exists on other types."
-            )
-
-        for attribute_type in entity_type.attribute_types:
-            if attribute_type["name"] == old_name:
-                old_dtype = attribute_type["dtype"]
-                old_attribute_type = dict(attribute_type)
-                break
-        else:
-            raise ValueError(
-                f"Could not find attribute name {old_name} in entity type "
-                f"{type(entity_type)} ID {entity_type.id}"
-            )
-
-        # Determine if the attribute is being mutated
-        attribute_mutated = False
-        for key, new_value in new_attribute_type.items():
-            # Ignore differences in `name` values, those are handled by a rename
-            if key == "name":
-                continue
-            old_value = old_attribute_type.get(key)
-            if old_value is None or old_value != new_value:
-                attribute_mutated = True
-                break
-
-        # Atomic validation of all changes; TatorSearch.check_* methods raise if there is a problem
-        # that would cause either a rename or a mutation to fail.
-        if attribute_renamed:
-            ts.check_rename(entity_type, old_name, new_name)
-            for instance, _ in related_objects:
-                ts.check_rename(instance, old_name, new_name)
-        if attribute_mutated:
-            self._check_attribute_type(new_attribute_type)
-            ts.check_mutation(entity_type, old_name, new_attribute_type)
-            for instance, _ in related_objects:
-                ts.check_mutation(instance, old_name, new_attribute_type)
-
-        # List of success messages to return
-        messages = []
-
-        # Renames the attribute alias for the entity type in PSQL and ES
-        if attribute_renamed:
-            # Update entity type alias
-            updated_types = ts.rename_alias(entity_type, related_objects, old_name, new_name)
-            for instance in updated_types:
-                instance.save()
-            entity_type.project.save()
-
-            # Update entity alias
-            if obj_qs.exists():
-                bulk_rename_attributes({old_name: new_name}, obj_qs)
-            for _, qs in related_objects:
-                if qs.exists():
-                    bulk_rename_attributes({old_name: new_name}, qs)
-
-            messages.append(f"Attribute '{old_name}' renamed to '{new_name}'.")
-
-            # refresh entity_type and queryset after a rename
+        with transaction.atomic():
             entity_type, obj_qs = self._get_objects(params)
-            related_objects = self._get_related_objects(entity_type, new_name)
+            related_objects = self._get_related_objects(entity_type, old_name)
+            if related_objects and global_operation == "false":
+                raise ValueError(
+                    f"Attempted to mutate attribute '{old_name}' without the global flag set to 'true',"
+                    " but it exists on other types."
+                )
 
-        if attribute_mutated:
-            # Update entity type attribute type
-            ts.mutate_alias(entity_type, new_name, new_attribute_type).save()
-            for instance, _ in related_objects:
-                ts.mutate_alias(instance, new_name, new_attribute_type).save()
+            for attribute_type in entity_type.attribute_types:
+                if attribute_type["name"] == old_name:
+                    old_dtype = attribute_type["dtype"]
+                    old_attribute_type = dict(attribute_type)
+                    break
+            else:
+                raise ValueError(
+                    f"Could not find attribute name {old_name} in entity type "
+                    f"{type(entity_type)} ID {entity_type.id}"
+                )
 
-            # Convert entity values
-            if obj_qs.exists():
-                # Get the new attribute type to convert the existing value
-                new_attribute = None
-                for attribute_type in entity_type.attribute_types:
-                    if attribute_type["name"] == new_name:
-                        new_attribute = attribute_type
-                        break
+            # Determine if the attribute is being mutated
+            attribute_mutated = False
+            dtype_mutated = False
+            for key, new_value in new_attribute_type.items():
+                # Ignore differences in `name` values, those are handled by a rename
+                if key == "name":
+                    continue
+                old_value = old_attribute_type.get(key)
+                if old_value is None or old_value != new_value:
+                    attribute_mutated = True
+                    if key == "dtype":
+                        dtype_mutated = True
 
-                # Mutate the entity attribute values
-                bulk_mutate_attributes(new_attribute, obj_qs)
+            # Atomic validation of all changes; TatorSearch.check_* methods raise if there is a problem
+            # that would cause either a rename or a mutation to fail.
+            if attribute_renamed:
+                ts.check_rename(entity_type, old_name, new_name)
+                for instance, _ in related_objects:
+                    ts.check_rename(instance, old_name, new_name)
+            if attribute_mutated:
+                self._check_attribute_type(new_attribute_type)
+                ts.check_mutation(entity_type, old_name, new_attribute_type)
+                for instance, _ in related_objects:
+                    ts.check_mutation(instance, old_name, new_attribute_type)
 
-            for _, qs in related_objects:
-                if qs.exists():
-                    # Get the new attribute type to convert the existing value
-                    new_attribute = None
-                    for attribute_type in entity_type.attribute_types:
-                        if attribute_type["name"] == new_name:
-                            new_attribute = attribute_type
-                            break
+            # List of success messages to return
+            messages = []
 
-                    # Mutate the entity attribute values
-                    bulk_mutate_attributes(new_attribute, qs)
+            # Renames the attribute alias for the entity type in PSQL and ES
+            if attribute_renamed:
+                # Update entity type alias
+                updated_types = ts.rename_alias(entity_type, related_objects, old_name, new_name)
+                for instance in updated_types:
+                    instance.save()
+                entity_type.project.save()
+
+                # Update entity alias
+                if obj_qs.exists():
+                    bulk_rename_attributes({old_name: new_name}, obj_qs)
+                for _, qs in related_objects:
+                    if qs.exists():
+                        bulk_rename_attributes({old_name: new_name}, qs)
+
+                messages.append(f"Attribute '{old_name}' renamed to '{new_name}'.")
+
+                # refresh entity_type and queryset after a rename
+                entity_type, obj_qs = self._get_objects(params)
+                related_objects = self._get_related_objects(entity_type, new_name)
+
+            if attribute_mutated:
+                # Update entity type attribute type
+                ts.mutate_alias(entity_type, new_name, new_attribute_type).save()
+                for instance, _ in related_objects:
+                    ts.mutate_alias(instance, new_name, new_attribute_type).save()
+
+                # Convert entity values
+                if dtype_mutated:
+                    if obj_qs.exists():
+                        # Get the new attribute type to convert the existing value
+                        new_attribute = None
+                        for attribute_type in entity_type.attribute_types:
+                            if attribute_type["name"] == new_name:
+                                new_attribute = attribute_type
+                                break
+
+                        # Mutate the entity attribute values
+                        bulk_mutate_attributes(new_attribute, obj_qs)
+
+                    for _, qs in related_objects:
+                        if qs.exists():
+                            # Get the new attribute type to convert the existing value
+                            new_attribute = None
+                            for attribute_type in entity_type.attribute_types:
+                                if attribute_type["name"] == new_name:
+                                    new_attribute = attribute_type
+                                    break
+
+                            # Mutate the entity attribute values
+                            bulk_mutate_attributes(new_attribute, qs)
 
             messages.append(
                 f"Attribute '{new_name}' mutated from:\n{old_attribute_type}\nto:\n{new_attribute_type}"
@@ -232,22 +241,23 @@ class AttributeTypeListAPI(BaseListView):
     def _post(self, params: Dict) -> Dict:
         """Adds an attribute to a type."""
         ts = TatorSearch()
-        entity_type, obj_qs = self._get_objects(params)
         new_attribute_type = params["addition"]
         new_name = new_attribute_type["name"]
+        with transaction.atomic():
+            entity_type, obj_qs = self._get_objects(params)
 
-        # Check that the attribute type is valid and it is valid to add it to the desired entity
-        # type
-        self._check_attribute_type(new_attribute_type)
-        ts.check_addition(entity_type, new_attribute_type)
+            # Check that the attribute type is valid and it is valid to add it to the desired entity
+            # type
+            self._check_attribute_type(new_attribute_type)
+            ts.check_addition(entity_type, new_attribute_type)
 
-        # Add the attribute to the desired entity type
-        if entity_type.attribute_types:
-            entity_type.attribute_types.append(new_attribute_type)
-        else:
-            entity_type.attribute_types = []
-            entity_type.attribute_types.append(new_attribute_type)
-        entity_type.save()
+            # Add the attribute to the desired entity type
+            if entity_type.attribute_types:
+                entity_type.attribute_types.append(new_attribute_type)
+            else:
+                entity_type.attribute_types = []
+                entity_type.attribute_types.append(new_attribute_type)
+            entity_type.save()
 
         # Add new field to all existing attributes if there is a default value
         if obj_qs.exists() and "default" in new_attribute_type:

@@ -50,8 +50,7 @@ class UploadElement extends TatorElement {
 
   _checkFile(file, gid) {
     // File extension can have multiple components in archives
-    let comps = file.name.split(".");
-    comps.shift() // Remove filename proper
+    let comps = file.name.split(".").slice(-1);
     let ext = comps.join('.'); // rejoin extension
 
     const isImage = ext.match(/(tiff|tif|bmp|jpe|jpg|jpeg|png|gif)$/i);

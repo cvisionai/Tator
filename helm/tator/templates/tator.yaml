@@ -1,5 +1,5 @@
 
-{{- $gunicornSettings := dict "Values" .Values "name" "gunicorn-deployment" "app" "gunicorn" "selector" "webServer: \"yes\""  "command" "[gunicorn]" "args" "[\"--workers\", \"3\", \"--worker-class=gevent\", \"--timeout\", \"600\",\"--reload\", \"-b\", \":8000\", \"tator_online.wsgi\"]" "init" "[echo]" "replicas" .Values.hpa.gunicornMinReplicas }}
+{{- $gunicornSettings := dict "Values" .Values "name" "gunicorn-deployment" "app" "gunicorn" "selector" "webServer: \"yes\""  "command" "[gunicorn]" "args" "[\"--workers\", \"3\", \"--worker-class=gevent\", \"--timeout\", \"600\",\"--reload\", \"-b\", \":8000\", \"--access-logfile='-'\", \"--statsd-host=tator-prometheus-statsd-exporter:9125\", \"--access-logformat='%(h)s %(l)s %(u)s %(t)s \\\"%(r)s\\\" %(s)s %(b)s \\\"%(f)s\\\" \\\"%(p)s\\\" \\\"%(D)s\\\"'\", \"tator_online.wsgi\"]" "init" "[echo]" "replicas" .Values.hpa.gunicornMinReplicas }}
 {{include "tator.template" $gunicornSettings }}
 ---
 {{- if .Values.maintenanceCron.enabled }}
@@ -44,6 +44,12 @@
 ---
 {{- $expireSettings := dict "Values" .Values "name" "expire-invitations-cron" "app" "expire-invitations" "selector" "webServer: \"yes\""  "command" "[python3]" "args" "[\"manage.py\", \"expireinvitations\"]" "schedule" "50 2 * * *" }}
 {{include "tatorCron.template" $expireSettings }}
+---
+{{- $expireAnnouncementSettings := dict "Values" .Values "name" "expire-announcements-cron" "app" "expire-announcements" "selector" "webServer: \"yes\""  "command" "[python3]" "args" "[\"manage.py\", \"expireannouncements\"]" "schedule" "50 3 * * *" }}
+{{include "tatorCron.template" $expireAnnouncementSettings }}
+---
+{{- $expirePasswordResetSettings := dict "Values" .Values "name" "expire-password-resets-cron" "app" "expire-password-resets" "selector" "webServer: \"yes\""  "command" "[python3]" "args" "[\"manage.py\", \"expirepasswordresets\"]" "schedule" "40 * * * *" }}
+{{include "tatorCron.template" $expirePasswordResetSettings }}
 ---
 {{- end }}
 {{- if .Values.requireHttps }}

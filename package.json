@@ -6,6 +6,6 @@
   "dependencies": {
     "babel-minify": "^0.5.0",
     "sass": "1.20.3",
-    "tus-js-client": "^2.1.1"
+    "marked": "2.0.3"
   }
 }

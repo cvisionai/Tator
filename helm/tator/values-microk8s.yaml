@@ -167,6 +167,8 @@ minio:
     name: tator
 kube-prometheus-stack:
   enabled: false
+prometheus-adapter:
+  enabled: false
 remoteTranscodes:
   # Typically for dev processing is done on the same machine.
   enabled: false
@@ -205,3 +207,9 @@ anonymousRegistration:
   # Enable to require email confirmation for anonymous registration. Automatic email 
   # must be configured.
   emailConfirmation: false
+organizations:
+  # Autocreate on new user registration.
+  autocreate: true
+  # Disable to allow POST for staff only.
+  allowPost: true
+

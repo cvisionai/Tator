@@ -17,7 +17,7 @@ class MediaCard extends TatorElement {
     this._link.appendChild(this._img);
 
     const div = document.createElement("div");
-    div.setAttribute("class", "py-2 px-2 lh-default");
+    div.setAttribute("class", "flex-column py-2 px-2 lh-default");
     this._li.appendChild(div);
 
     const titleDiv = document.createElement("div");
@@ -34,13 +34,44 @@ class MediaCard extends TatorElement {
     this._more.style.opacity = 0;
     titleDiv.appendChild(this._more);
 
+    const lowerDiv = document.createElement("div");
+    lowerDiv.setAttribute("class", "d-flex flex-justify-between");
+    div.appendChild(lowerDiv);
+
+    const extDiv = document.createElement("div");
+    extDiv.setAttribute("class", "d-flex flex-items-center");
+    lowerDiv.appendChild(extDiv);
+
     this._ext = document.createElement("span");
     this._ext.setAttribute("class", "f3 text-gray");
-    div.appendChild(this._ext);
+    extDiv.appendChild(this._ext);
 
     this._pos_text = document.createElement("span");
     this._pos_text.setAttribute("class", "f3 text-gray px-2");
-    div.appendChild(this._pos_text);
+    extDiv.appendChild(this._pos_text);
+
+    this._emblemDiv = document.createElement("div");
+    lowerDiv.appendChild(this._emblemDiv);
+
+    this._attachmentButton = document.createElement("button");
+    this._attachmentButton.setAttribute("class", "px-0 btn-clear h2 text-gray hover-text-white");
+    this._attachmentButton.style.display = "none";
+    this._emblemDiv.appendChild(this._attachmentButton);
+
+    const svg = document.createElementNS(svgNamespace, "svg");
+    svg.setAttribute("width", "16");
+    svg.setAttribute("height", "16");
+    svg.setAttribute("viewBox", "0 0 24 24");
+    svg.setAttribute("stroke", "currentColor");
+    svg.setAttribute("stroke-width", "2");
+    svg.setAttribute("stroke-linecap", "round");
+    svg.setAttribute("stroke-linejoin", "round");
+    svg.style.fill = "none";
+    this._attachmentButton.appendChild(svg);
+
+    const path = document.createElementNS(svgNamespace, "path");
+    path.setAttribute("d", "M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48");
+    svg.appendChild(path);
 
     this.addEventListener("mouseenter", () => {
       this._more.style.opacity = 1;
@@ -116,6 +147,13 @@ class MediaCard extends TatorElement {
           mediaName: this._name.textContent
         },
         composed: true
+      }));
+    });
+
+    this._attachmentButton.addEventListener("click", () => {
+      this.dispatchEvent(new CustomEvent("attachments", {
+        composed: true,
+        detail: this._attachments,
       }));
     });
   }
@@ -195,6 +233,13 @@ class MediaCard extends TatorElement {
       {
         valid = true;
       }
+      if (!('thumbnail' in this._media.media_files) && 'live' in this._media.media_files)
+      {
+        // Default to tator thumbnail
+        // TODO: Have some visual indication if stream is active.
+        this._img.setAttribute("src", "/static/images/live-thumb.png");
+
+      }
     }
     if (valid == false)
     {
@@ -221,6 +266,15 @@ class MediaCard extends TatorElement {
 
   get media() {
     return this._media;
+  }
+
+  set attachments(val) {
+    this._attachments = val;
+    if (val.length > 0) {
+      this._attachmentButton.style.display = "flex";
+    } else {
+      this._attachmentButton.style.display = "none";
+    }
   }
 }
 

@@ -47,6 +47,7 @@ class AnnotationData extends HTMLElement {
     }
 
     // Convert datatypes array to a map for faster access
+    this._dataByType = new Map();
     for (const dataType of dataTypes) {
       let dataTypeRegistered = dataType.id in this._dataTypes;
       if (!dataTypeRegistered) {
@@ -164,6 +165,28 @@ class AnnotationData extends HTMLElement {
         this.updateType(dataType, callback, search);
       }
     }
+  }
+
+  /**
+   * #TODO Update this to allow states
+   */
+  updateTypeWithData(typeObj, data) {
+    const typeId = typeObj.id;
+
+    if (this._dataByType.has(typeId)) {
+      this._dataByType.get(typeId).push(data);
+    }
+    else {
+      this._dataByType.set(typeId, []);
+      this._dataByType.get(typeId).push(data);
+    }
+
+    this.dispatchEvent(new CustomEvent("freshData", {
+      detail: {
+        typeObj: typeObj,
+        data: this._dataByType.get(typeId),
+      }
+    }));
   }
 
   updateTypeLocal(method, id, body, typeObj) {

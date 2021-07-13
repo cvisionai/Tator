@@ -38,6 +38,12 @@ Follow these steps to test the annotation tools.
 1. Go back to the project detail page and attempt to download annotations for the Images section.
 1. Repeat steps 18-26 on a video.
 1. Perform cut and paste with a localization
+1. Verify selecting a localization with a URL highlights it with the white border
+1. Verify selecting a localization-associated track with a URL highlights it with the white border
+1. Verify deselecting and selecting a localization with mouse clicks changes the color between the colorMap and white
+1. Use the auto frame jump to select entities in the browser. Verify the localization is highlighted with white.
+1. Turn off auto frame jump in the entity browser and verify the localization select/deselect works in the canvas.
+1. Perform the above with multi-view
 
 ### State Related Tests
 1. Perform the following steps to test out state types in a single video
@@ -102,6 +108,7 @@ Steps
 1. Repeat step 18 using the current time in the timeline.
 1. Repeat the above steps with a multi-view video.
 1. Open both single video and multi-view medias in a new tab. Verify there are no errors and video starts downloading when switching to the tab.
+1. Open a single video. Zoom in a section in the video timeline. Scrub using the zoomed scrub bar and verify scrub works and the bounds are within the zoomed section. Repeat with a multi-view video.
 
 
 ## Video Settings Tests
@@ -123,3 +130,27 @@ Steps
 1. Change the quality in the dropdown box on the main annotator header. Verify in the video settings the 1x playback has changed. Change the 1x playback and verify the dropdown box has changed.
 1. Restore defaults and verify playbacks and scrubbing are the same as normal/on document load.
 1. Repeat the above steps with a single-view video, ignoring the steps with focus/docks source verification.
+
+
+## Annotation Analytics Tests
+-----------------------
+Follow these steps to test the annotation analytics view.
+
+Steps
+1. Setup a project with create_analytics_test_project.py
+1. Upload images and videos to the new project
+1. Run the create_analytics_annotations.py tool with the appropriate --host <host> --token <token> --project <project> parameters. Save the output. This will be used to test the filtering options.
+1. Open the annotation analytics view and verify the number of localizations match.
+1. Using the filtering module add/remove conditions ability, apply the filters provided by output from the create_analytics_annotations.py tool above. Verify the number of annotations match the expected amounts.
+1. Verify removing the filter condition pill boxes changes the search.
+1. Click on an image annotation and verify the attributes and media show up. Verify the annotator links work.
+1. Do the same annotation panel check with an annotation in a video.
+1. Verify the lock changes the ability to change attributes in the annotation panel.
+1. Clear all the filters before doing the next two steps.
+1. Change a localization attribute value, change to a different page and select the same card. Verify the information is different. Go back to the original annotation and verify the attribute was still changed.
+1. Perform the previous step using a media attribute.
+1. Load a filter condition and jump to a page. Reload the page and verify you land on the same filter / page combination. Do the same with using the link button from the header.
+1. Change the page size and verify the number of pages matches on both the top and bottom paginators.
+1. Navigate the pages with both paginators and verify the annotation count in sequential order.
+1. Verify the aspect/fill toggle changes the thumbnails
+1. Verify the thumbnail size slider changes the card/thumbnail sizes.

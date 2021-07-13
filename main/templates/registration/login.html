@@ -27,7 +27,15 @@
     </div>
   </form>
   <div class="main__header d-flex flex-column flex-items-center flex-justify-center py-1">
+   {% if email_enabled %}
+    <div class="d-flex flex-row flex-items-center flex-justify-between"
+         style="width:400px">
+      <a href="/anonymous-gateway" class="text-white">Continue as guest</a>
+      <a href="/password-reset-request" class="text-white">Reset password</a>
+    </div>
+    {% else %}
     <a href="/anonymous-gateway" class="text-white">Continue as guest</a>
+    {% endif %}
   </div>
   <div class="main__header d-flex flex-column flex-items-center flex-justify-center py-6">
     {% if form.non_field_errors %}

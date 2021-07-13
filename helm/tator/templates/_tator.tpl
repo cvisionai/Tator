@@ -197,6 +197,16 @@ spec:
             {{- else }}
               value: "FALSE"
             {{- end }}
+            {{- if hasKey .Values "organizations" }}
+            {{- if .Values.organizations.autocreate }}
+            - name: AUTOCREATE_ORGANIZATIONS
+              value: "TRUE"
+            {{- end }}
+            {{- if .Values.organizations.allowPost }}
+            - name: ALLOW_ORGANIZATION_POST
+              value: "TRUE"
+            {{- end }}
+            {{- end }}
           ports:
             - containerPort: 8000
               name: gunicorn

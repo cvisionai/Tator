@@ -10,6 +10,7 @@ from .algorithm import algorithm_manifest
 from .algorithm import algorithm_manifest_spec
 from .analysis import analysis_spec
 from .analysis import analysis
+from .announcement import announcement
 from .attribute_type import (
     autocomplete_service,
     attribute_type,
@@ -78,6 +79,7 @@ from .membership import membership
 from .notify import notify_spec
 from .organization import organization_spec
 from .organization import organization
+from .password_reset import password_reset_spec
 from .project import project_spec
 from .project import project_update
 from .project import project
@@ -118,6 +120,10 @@ from ._media_definitions import video_definition
 from ._media_definitions import audio_definition
 from ._media_definitions import image_definition
 from ._media_definitions import multi_definition
+from ._media_definitions import file_definition
+from ._media_definitions import feed_definition
+from ._media_definitions import live_definition
+from ._media_definitions import live_update_definition
 from ._media_definitions import media_files
 from ._streaming_config import resolution_config
 from ._color import rgb_color

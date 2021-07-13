@@ -66,6 +66,13 @@ spec:
         - name: nginx-exporter
           image: "nginx/nginx-prometheus-exporter:0.8.0"
           imagePullPolicy: "IfNotPresent"
+          resources:
+            limits:
+              cpu: "250m"
+              memory: "1Gi"
+            requests:
+              cpu: "50m"
+              memory: "200Mi"
           args:
             - "-nginx.scrape-uri=http://localhost:80/status"
           ports:

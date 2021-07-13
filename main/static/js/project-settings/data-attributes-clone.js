@@ -30,11 +30,11 @@ class AttributesData {
         }
       }
   
-    createClones(){
+    createClones() {
       //create form data & post promise array for the attribute forms, and submit
       this.successMessages = "";
       this.failedMessages = "";
-      let promises  = [];
+      let promise = Promise.resolve();
   
       for(let data of this.selectedData){
         let cloneValue = JSON.parse(data); //parse data attribute
@@ -49,48 +49,26 @@ class AttributesData {
           "addition": this.attributeForm._getAttributeFormData()
         };
 
-        let promise = this._fetchPostPromise({
+        promise = promise.then(() => {return this._fetchPostPromise({
           "formData" : formJSON
+        });})
+        .then(response => response.json().then(data => ({response: response, data: data})))
+        .then(obj => {
+          let currentMessage = obj.data.message;
+          let succussIcon = document.createElement("modal-success");
+          let warningIcon = document.createElement("modal-warning");
+          let iconWrap = document.createElement("span");
+          if(obj.response.ok){
+            iconWrap.appendChild(succussIcon);
+            this.successMessages += `${iconWrap.innerHTML} ${currentMessage}<br/><br/>`;
+          } else {
+            iconWrap.appendChild(warningIcon);
+            this.failedMessages += `${iconWrap.innerHTML} ${currentMessage}<br/><br/>`;
+          }
         });
-
-        promises.push(promise);
       }
-
-      return Promise.all(promises).then( async( respArray ) => {
-        //console.log(respArray);
-        let responses = [];
-        respArray.forEach((item, i) => {
-          responses.push( item.json() )
-        });
-          
-        return Promise.all( responses )
-          .then ( dataArray => {
-            for(let o in dataArray) {
-              let status = respArray[o].status;
-              let data = dataArray[o];
-
-              let currentMessage = data.message;
-              let succussIcon = document.createElement("modal-success");
-              let warningIcon = document.createElement("modal-warning");
-              let iconWrap = document.createElement("span");
-      
-              //console.log("Clone status "+ status);
-              
-              if(respArray[o].ok){
-                iconWrap.appendChild(succussIcon);
-                this.successMessages += `${iconWrap.innerHTML} ${currentMessage}<br/><br/>`;
-              } else {
-                iconWrap.appendChild(warningIcon);
-                this.failedMessages += `${iconWrap.innerHTML} ${currentMessage}<br/><br/>`;
-              }
-            }
-            this.responseMessage += this.successMessages+this.failedMessages;
-            //console.log(this.responseMessage);
-
-            return this.responseMessage
-          });
-          
-        });
+      promise = promise.then(() => {return this.successMessages + this.failedMessages;});
+      return promise;
     }
   
 }

@@ -58,6 +58,35 @@ class VideoSettingsDialog extends ModalDialog {
     overlayOption.reset();
     overlayGridDiv.appendChild(overlayOption);
 
+    const safeModeGridDiv = document.createElement("div");
+    safeModeGridDiv.setAttribute("class", "video__settings py-4 px-4 text-gray");
+    this._main.appendChild(safeModeGridDiv);
+
+    const safeModeHeaderDiv = document.createElement("div");
+    safeModeHeaderDiv.style.gridColumn = 1;
+    safeModeHeaderDiv.style.gridRow = 1;
+    safeModeGridDiv.appendChild(safeModeHeaderDiv);
+
+    const safeModeHeader = document.createElement("div");
+    safeModeHeader.textContent = "Safe Mode";
+    safeModeHeader.setAttribute("class", "h3 d-flex flex-items-center text-uppercase")
+    safeModeHeaderDiv.appendChild(safeModeHeader);
+
+    const safeModeSubHeader = document.createElement("div");
+    safeModeSubHeader.textContent = "Allow safe mode to occur";
+    safeModeSubHeader.setAttribute("class", "text-gray f2");
+    safeModeHeaderDiv.appendChild(safeModeSubHeader);
+
+    const safeModeOption = document.createElement("bool-input");
+    safeModeOption.setAttribute("class", "col-12");
+    safeModeOption.style.gridColumn = 2;
+    safeModeOption.style.gridRow = 1;
+    safeModeOption.setAttribute("name", "");
+    safeModeOption.setAttribute("off-text", "Off");
+    safeModeOption.setAttribute("on-text", "On");
+    safeModeOption.setValue(true);
+    safeModeGridDiv.appendChild(safeModeOption);
+
     const apply = document.createElement("button");
     apply.setAttribute("class", "btn btn-clear");
     apply.textContent = "Apply";
@@ -92,6 +121,16 @@ class VideoSettingsDialog extends ModalDialog {
           displayDiagnostic: overlayOption.getValue()
         }
       }));
+    });
+
+    // Enable/disable safe mode
+    safeModeOption.addEventListener("change", () => {
+      this.dispatchEvent(new CustomEvent("allowSafeMode", {
+        composed: true,
+        detail: {
+          allowSafeMode: safeModeOption.getValue()
+        }
+      }))
     });
 
     this._divOptions = {};
@@ -206,6 +245,11 @@ class VideoSettingsDialog extends ModalDialog {
   mode(mode, medias) {
     this._mode = mode;
     this._medias = medias;
+    if (this._mode == "live")
+    {
+      //TODO implement this
+      return;
+    }
 
     let mainVideo = this._medias[0];
     let sourceList = [];
@@ -235,6 +279,10 @@ class VideoSettingsDialog extends ModalDialog {
       this._divOptions["dockPlayback"].textDiv.style.display = "block";
       this._divOptions["focusPlayback"].choiceDiv.style.display = "block";
       this._divOptions["dockPlayback"].choiceDiv.style.display = "block";
+    }
+    else if (mode == "live")
+    {
+      // TODO
     }
     this.applyDefaults();
   }

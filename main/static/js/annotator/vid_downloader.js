@@ -164,7 +164,7 @@ class VideoDownloader
    * @param {float} fps
    * @param {integer} maxFrame - Last valid frame number
    */
-  setupOnDemandDownload(direction, frame, mediaFileIndex, fps, maxFrame)
+  setupOnDemandDownload(direction, frame, mediaFileIndex, fps, maxFrame, id)
   {
     this._onDemandConfig = {};
     this._onDemandConfig["direction"] = direction;
@@ -176,10 +176,11 @@ class VideoDownloader
     this._onDemandConfig["lastStartByte"] = -1;
     this._onDemandConfig["fps"] = fps;
     this._onDemandConfig["maxFrame"] = maxFrame;
+    this._onDemandConfig["id"] = id;
 
-    console.log(`setupOnDemandDownload (direction/frame/fileIndex/fps/maxFrame): ${direction} ${frame} ${mediaFileIndex} ${fps} ${maxFrame}`);
+    console.log(`setupOnDemandDownload (direction/frame/fileIndex/fps/maxFrame/ID): ${direction} ${frame} ${mediaFileIndex} ${fps} ${maxFrame} ${id}`);
 
-    postMessage({"type": "onDemandInit"});
+    postMessage({"type": "onDemandInit", "id": id});
   }
 
   /**
@@ -483,13 +484,13 @@ class VideoDownloader
     this._onDemandConfig["currentPacket"] = packetIndex;
     this._onDemandConfig["lastStartByte"] = startByte;
     var downloadSize = currentSize - 1;
+    var onDemandId = this._onDemandConfig["id"];
 
-    //console.log(`onDemand downloading '${downloadSize}' at '${startByte}' (next segment idx - ${packetIndex})`);
+    //console.log(`onDemand downloading '${downloadSize}' at '${startByte}' (next segment idx - ${packetIndex}) ID: ${onDemandId}`);
 
     let headers = {'range':`bytes=${startByte}-${startByte+downloadSize}`,
                    ...self._headers};
 
-    var that = this;
     fetch(this._media_files[mediaFileIndex].path,
           {headers: headers}
          ).then(
@@ -501,7 +502,8 @@ class VideoDownloader
                   var data={"type": "onDemand",
                            "buf_idx" : mediaFileIndex,
                            "offsets": offsets,
-                           "buffer": buffer};
+                           "buffer": buffer,
+                           "id": onDemandId};
                   postMessage(data, [data.buffer]);
                 });
             });
@@ -704,30 +706,16 @@ onmessage = function(e)
   {
     if (ref.specificBufferInitialized(msg.buf_idx))
     {
-      if (ref.inOnDemandMode())
-      {
-        ref.saveDownloadNextSegmentRequest(msg.buf_idx);
-      }
-      else
-      {
         ref.downloadNextSegment(msg.buf_idx);
-      }
     }
   }
   else if (type == 'seek')
   {
-    if (ref.inOnDemandMode())
-    {
-      ref.saveSeekRequest(msg.buf_idx, msg['frame'], msg['time'])
-    }
-    else
-    {
       ref.downloadForFrame(msg.buf_idx, msg['frame'], msg['time']);
-    }
   }
   else if (type == 'onDemandInit')
   {
-    ref.setupOnDemandDownload(msg['direction'], msg['frame'], msg['mediaFileIndex'], msg['fps'], msg['maxFrame']);
+    ref.setupOnDemandDownload(msg['direction'], msg['frame'], msg['mediaFileIndex'], msg['fps'], msg['maxFrame'], msg['id']);
   }
   else if (type == 'onDemandDownload')
   {

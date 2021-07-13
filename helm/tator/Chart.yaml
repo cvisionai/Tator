@@ -1,6 +1,6 @@
 apiVersion: v2
 name: tator
-version: 0.0.1
+version: 0.1.0
 kubeVersion: ">=1.14.3-r0"
 description: "A web application for video hosting, annotation, and algorithm deployment."
 type: application
@@ -8,10 +8,6 @@ home: https://github.com/cvisionai/tator
 sources:
   - https://github.com/cvisionai/tator
 dependencies:
-  - name: metrics-server
-    version: 5.3.3
-    repository: https://charts.bitnami.com/bitnami
-    condition: metrics-server.enabled
   - name: metallb
     version: 0.1.21
     repository: https://charts.bitnami.com/bitnami
@@ -37,9 +33,17 @@ dependencies:
     repository: https://helm.min.io
     condition: minio.enabled
   - name: kube-prometheus-stack
-    version: 12.11.3
+    version: 14.4.0
     repository: https://prometheus-community.github.io/helm-charts
     condition: kube-prometheus-stack.enabled
+  - name: prometheus-adapter
+    version: 2.12.1
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus-adapter.enabled
+  - name: prometheus-statsd-exporter
+    version: 0.3.1
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus-statsd-exporter.enabled
 maintainers:
   - name: CVision AI
     email: info@cvisionai.com

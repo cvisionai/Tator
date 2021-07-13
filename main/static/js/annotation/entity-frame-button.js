@@ -2,9 +2,9 @@ class EntityFrameButton extends TatorElement {
   constructor() {
     super();
 
-    const button = document.createElement("button");
-    button.setAttribute("class", "btn-clear d-flex flex-justify-center px-2 py-2 rounded-2 f2 text-white entity__button");
-    this._shadow.appendChild(button);
+    this.button = document.createElement("button");
+    this.button.setAttribute("class", "btn-clear d-flex flex-justify-center px-2 py-2 rounded-2 f2 text-white entity__button");
+    this._shadow.appendChild(this.button);
 
     const svg = document.createElementNS(svgNamespace, "svg");
     svg.setAttribute("viewBox", "0 0 24 24");
@@ -15,7 +15,7 @@ class EntityFrameButton extends TatorElement {
     svg.setAttribute("stroke-linecap", "round");
     svg.setAttribute("stroke-linejoin", "round");
     svg.style.fill = "none";
-    button.appendChild(svg);
+    this.button.appendChild(svg);
 
     const title = document.createElementNS(svgNamespace, "title");
     title.textContent = "Go to entity's frame";

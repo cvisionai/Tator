@@ -16,29 +16,54 @@
     <script src={% static "js/util/fetch-retry.js" %}></script>
     <script src={% static "js/util/has-permission.js" %}></script>
     <script src={% static "js/util/join-params.js" %}></script>
+    <script src={% static "js/util/filter-utilities.js" %}></script>
     <script src={% static "js/util/tator-data.js" %}></script>
     <script src={% static "js/util/same-origin-credentials.js" %}></script>
+    <script src={% static "js/components/buttons/entity-frame-link-button.js" %}></script>
     <script src={% static "js/components/inputs/array-input.js" %}></script>
+    <script src={% static "js/components/inputs/user-input.js" %}></script>
     <script src={% static "js/components/inputs/bool-input.js" %}></script>
     <script src={% static "js/components/inputs/checkbox-input.js" %}></script>
     <script src={% static "js/components/inputs/enum-input.js" %}></script>
     <script src={% static "js/components/inputs/text-area.js" %}></script>
+    <script src={% static "js/components/inputs/datetime-input.js" %}></script>
     <script src={% static "js/components/inputs/text-input.js" %}></script>
     <script src={% static "js/components/inputs/feature/checkbox-set.js" %}></script>
     <script src={% static "js/components/inputs/feature/color-inputs.js" %}></script>
     <script src={% static "js/components/inputs/feature/thumb-inputs.js" %}></script>
     <script src={% static "js/components/labeled-checkbox.js" %}></script>
-    <script src={% static "js/components/modal-close.js" %}></script>
-    <script src={% static "js/components/modal-warning.js" %}></script>
-    <script src={% static "js/components/modal-success.js" %}></script>
+    <script src={% static "js/components/markdown-div.js" %}></script>
     <script src={% static "js/components/modal-dialog.js" %}></script>
     <script src={% static "js/components/modal-notify.js" %}></script>
     <script src={% static "js/components/upload-dialog.js" %}></script>
+    <script src={% static "js/components/announcement-dialog.js" %}></script>
     <script src={% static "js/components/cancel-button.js" %}></script>
     <script src={% static "js/components/cancel-confirm.js" %}></script>
     <script src={% static "js/components/canvas-ctxmenu.js" %}></script>
     <script src={% static "js/components/big-upload-form.js" %}></script>
     <script src={% static "js/components/upload-element.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery-card.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery-resize.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery-aspect-ratio.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery-paginator.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery-labels.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery-sort.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery-slider.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery_grid.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery_h-slide.js" %}></script>
+    <script src={% static "js/components/entity-gallery/entity-gallery-more-menu.js" %}></script>
+    <script src={% static "js/components/entity-panel/entity-panel-navigation.js" %}></script>
+    <script src={% static "js/components/entity-panel/entity-panel-form.js" %}></script>
+    <script src={% static "js/components/entity-panel/entity-panel-top.js" %}></script>
+    <script src={% static "js/components/entity-panel/entity-panel-container.js" %}></script>
+    <script src={% static "js/components/entity-panel/entity-panel.js" %}></script>
+    <script src={% static "js/components/entity-panel/entity-panel-localization.js" %}></script>
+    <script src={% static "js/components/svg-definitions/chevron-right.js" %}></script>
+    <script src={% static "js/components/svg-definitions/modal-close.js" %}></script>
+    <script src={% static "js/components/svg-definitions/modal-warning.js" %}></script>
+    <script src={% static "js/components/svg-definitions/modal-success.js" %}></script>
+    <script src={% static "js/components/svg-definitions/more-icon.js" %}></script>
+    <script src={% static "js/components/svg-definitions/all-svg.js" %}></script>
     <script src={% static "js/components/header-notification.js" %}></script>
     <script src={% static "js/components/header-menu.js" %}></script>
     <script src={% static "js/components/header-user.js" %}></script>
@@ -49,23 +74,24 @@
     <script src={% static "js/components/nav-main.js" %}></script>
     <script src={% static "js/components/keyboard-shortcuts.js" %}></script>
     <script src={% static "js/components/tator-page.js" %}></script>
-    <script src={% static "js/components/more-icon.js" %}></script>
     <script src={% static "js/components/form-text.js" %}></script>
-    <script src={% static "js/components/form-file.js" %}></script>
-    <script src={% static "js/components/chevron-right.js" %}></script>
+    <script src={% static "js/components/form-file.js" %}></script> 
     <script src={% static "js/components/text-autocomplete.js" %}></script>
     <script src={% static "js/components/success-light.js" %}></script>
     <script src={% static "js/components/warning-light.js" %}></script>
     <script src={% static "js/components/name-dialog.js" %}></script>
-    <script src={% static "js/components/filter-attribute-field.js" %}></script>
-    <script src={% static "js/components/filter-attribute-type.js" %}></script>
+    <script src={% static "js/components/filter-data-button.js" %}></script>
+    <script src={% static "js/components/filter-condition.js" %}></script>
+    <script src={% static "js/components/filter-condition-group.js" %}></script>
     <script src={% static "js/components/filter-dialog.js" %}></script>
     <script src={% static "js/components/filter-interface.js" %}></script>
     <script src={% static "js/components/filter-data.js" %}></script>
     <script src={% static "js/components/removable-pill.js" %}></script>
-    <script src={% static "js/components/user-input.js" %}></script>
     <script src={% static "js/components/user-data.js" %}></script>
+    <script src={% static "js/components/inline-warning.js" %}></script>
     <script src={% static "js/registration/registration-page.js" %}></script>
+    <script src={% static "js/password-reset/password-reset-request-page.js" %}></script>
+    <script src={% static "js/password-reset/password-reset-page.js" %}></script>
     <script src={% static "js/projects/settings-button.js" %}></script>
     <script src={% static "js/projects/project-remove.js" %}></script>
     <script src={% static "js/projects/project-nav.js" %}></script>
@@ -85,6 +111,7 @@
     <script src={% static "js/project-detail/algorithm-menu.js" %}></script>
     <script src={% static "js/project-detail/algorithm-button.js" %}></script>
     <script src={% static "js/project-detail/confirm-run-algorithm.js" %}></script>
+    <script src={% static "js/project-detail/analytics-button.js" %}></script>
     <script src={% static "js/project-detail/activity-button.js" %}></script>
     <script src={% static "js/project-detail/project-text.js" %}></script>
     <script src={% static "js/project-detail/project-search.js" %}></script>
@@ -103,6 +130,7 @@
     <script src={% static "js/project-detail/media-more.js" %}></script>
     <script src={% static "js/project-detail/media-description.js" %}></script>
     <script src={% static "js/project-detail/media-card.js" %}></script>
+    <script src={% static "js/project-detail/attachment-dialog.js" %}></script>
     <script src={% static "js/project-detail/section-prev.js" %}></script>
     <script src={% static "js/project-detail/section-next.js" %}></script>
     <script src={% static "js/project-detail/section-expand.js" %}></script>
@@ -115,13 +143,13 @@
     <script src={% static "js/project-detail/new-algorithm-form.js" %}></script>
     <script src={% static "js/project-detail/project-detail.js" %}></script>
     <script src={% static "js/components/loading-spinner.js" %}></script>
+    <script src={% static "js/project-settings/settings-breadcrumbs.js" %}></script>
     <script src={% static "js/project-settings/type-form-validation.js" %}></script>
     <script src={% static "js/project-settings/settings-input-helpers.js" %}></script>
     <script src={% static "js/project-settings/settings-box-helpers.js" %}></script>
     <script src={% static "js/project-settings/type-delete.js" %}></script>
     <script src={% static "js/project-settings/type-form.js" %}></script>
     <script src={% static "js/project-settings/settings-nav.js" %}></script>
-    <script src={% static "js/components/inline-warning.js" %}></script>
     <script src={% static "js/project-settings/single-upload.js" %}></script>
     <script src={% static "js/project-settings/data-media-list.js" %}></script>
     <script src={% static "js/project-settings/data-project-types.js" %}></script>
@@ -176,9 +204,11 @@
     <script src={% static "js/annotator/annotation.js" %}></script>
     <script src={% static "js/annotator/video.js" %}></script>
     <script src={% static "js/annotator/image.js" %}></script>
+    <script src={% static "js/annotator/live-video.js" %}></script>
     <script src={% static "js/annotation/annotation-player.js" %}></script>
     <script src={% static "js/annotation/annotation-image.js" %}></script>
     <script src={% static "js/annotation/annotation-multi.js" %}></script>
+    <script src={% static "js/annotation/annotation-live.js" %}></script>
     <script src={% static "js/annotation/attribute-panel.js" %}></script>
     <script src={% static "js/annotation/modify-track-dialog.js" %}></script>
     <script src={% static "js/annotation/progress-dialog.js" %}></script>
@@ -195,6 +225,7 @@
     <script src={% static "js/annotation/entity-delete-button.js" %}></script>
     <script src={% static "js/annotation/entity-redraw-button.js" %}></script>
     <script src={% static "js/annotation/entity-frame-button.js" %}></script>
+    <script src={% static "js/annotation/entity-detection-button.js" %}></script>
     <script src={% static "js/annotation/entity-track-button.js" %}></script>
     <script src={% static "js/annotation/entity-more.js" %}></script>
     <script src={% static "js/annotation/entity-selector.js" %}></script>
@@ -209,22 +240,37 @@
     <script src={% static "js/annotation/video-settings-dialog.js" %}></script>
     <script src={% static "js/annotation/volume-control.js" %}></script>
     <script src={% static "js/analytics/analytics-breadcrumbs.js" %}></script>
+    <script src={% static "js/analytics/analytics-settings.js" %}></script>
     <script src={% static "js/analytics/dashboard/dashboard.js" %}></script>
-    <script src={% static "js/analytics/annotations/annotations.js" %}></script>
+    <script src={% static "js/analytics/localizations/card.js" %}></script>
+    <script src={% static "js/analytics/localizations/gallery.js" %}></script>
+    <script src={% static "js/analytics/localizations/panel-data.js" %}></script>
+    <script src={% static "js/analytics/localizations/card-data.js" %}></script>
+    <script src={% static "js/analytics/localizations/localizations.js" %}></script>
+    <script src={% static "js/analytics/collections/slide-data.js" %}></script>
+    <script src={% static "js/analytics/collections/card.js" %}></script>
+    <script src={% static "js/analytics/collections/gallery.js" %}></script>
+    <script src={% static "js/analytics/collections/collections-data.js" %}></script>
     <script src={% static "js/analytics/collections/collections.js" %}></script>
     <script src={% static "js/analytics/visualization/visualization.js" %}></script>
     <script src={% static "js/analytics/reports/reports.js" %}></script>
+    <script src={% static "js/third_party/adapter.min.js" %}></script>
     <script src={% static "js/third_party/autocomplete.js" %}></script>
     <script src={% static "js/third_party/d3.v6.min.js" %}></script>
+    <script src={% static "js/third_party/marked.min.js" %}></script>
+    <script src={% static "js/third_party/webrtcstreamer.js" %}></script>
     <script src={% static "js/utilities.js" %}></script>
     {% else %}
+    <script src={% static "js/third_party/adapter.min.js" %}></script>
     <script src={% static "js/third_party/d3.v6.min.js" %}></script>
+    <script src={% static "js/third_party/marked.min.js" %}></script>
     <script src={% static "js/tator/tator.min.js" %}></script>
     {% endif %}
     {% block head %}
     {% endblock head %}
   </head>
   <body>
+
     {% block body %}
     {% endblock body %}
   </body>

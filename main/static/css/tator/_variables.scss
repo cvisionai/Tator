@@ -3,6 +3,8 @@
 **/
 
 $color-purple: #696cff;
+$color-purple50: rgba($color-purple, 0.5);;
+
 $color-green: #85d81d;
 $color-blue: #1b9ffb;
 $color-yellow: #d8cd1d;
@@ -10,7 +12,11 @@ $color-coral: #ff6969;
 $color-red: #ff3e1d;
 $color-brown: #9e702b;
 
+$color-teal: rgb(64, 224, 208);
+$color-teal--50: rgba($color-teal, 0.5);
+
 $color-white: #ffffff;
+$color-white--75: rgba($color-white, 0.75);
 $color-white--50: rgba($color-white, 0.5);
 
 $color-gray--light: #a2afcd;
@@ -22,6 +28,8 @@ $color-charcoal--light: #262e3d;
 $color-charcoal--light70: rgba($color-charcoal--light, 0.7);
 $color-charcoal--medium: #151b28;
 $color-charcoal--medium70: rgba($color-charcoal--medium, 0.7);
+$color-charcoal--medium-dark: #0d1320;
+$color-charcoal--medium-dark70: rgba($color-charcoal--medium-dark, 0.7);
 $color-charcoal--dark: #00070d;
 $color-charcoal--dark70: rgba($color-charcoal--dark, 0.7);
 $color-charcoal--brown: #2e2314;

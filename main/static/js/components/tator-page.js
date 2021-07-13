@@ -30,6 +30,28 @@ class TatorPage extends TatorElement {
     this._dimmer = document.createElement("div");
     this._dimmer.setAttribute("class", "background-dimmer");
     this._shadow.appendChild(this._dimmer);
+
+    this._announcements = document.createElement("announcement-dialog");
+    this._shadow.appendChild(this._announcements);
+
+    this._announcements.addEventListener("close", evt => {
+      this.removeAttribute("has-open-modal");
+    });
+  }
+
+  connectedCallback() {
+    fetch("/rest/Announcements", {
+      method: "GET",
+      ...sameOriginCredentials(),
+    })
+    .then(response => response.json())
+    .then(announcements => {
+      if (announcements.length > 0) {
+        this._announcements.init(announcements);
+        this._announcements.setAttribute("is-open", "");
+        this.setAttribute("has-open-modal", "");
+      }
+    });
   }
 
   static get observedAttributes() {

@@ -1,8 +1,11 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
+from django.conf import settings
 
 from .notify import Notify
 from datetime import datetime,timezone,timedelta
+
+from .ses import TatorSES
 
 import logging
 logger = logging.getLogger(__name__)
@@ -67,3 +70,19 @@ class TatorAuth(ModelBackend):
                 msg = f"*SECURITY ALERT:* Bad Login Attempt for {user}/{user.id}"
                 msg += f" Attempt count = {user.failed_login_count}"
                 Notify.notify_admin_msg(msg)
+            # Send an email if the failed login count has been reached.
+            if (user.failed_login_count == LOCKOUT_LIMIT) and settings.TATOR_EMAIL_ENABLED:
+                email_response = TatorSES().email(
+                    sender=settings.TATOR_EMAIL_SENDER,
+                    recipients=[user.email],
+                    title=f"Tator account has been locked",
+                    text="This message is to notify you that your Tator account (username "
+                        f"{user.username}) has been locked due to {LOCKOUT_LIMIT} failed logins. "
+                         "Your account will be unlocked automatically after 10 minutes, or you "
+                         "can unlock your account now by resetting your password. To reset your "
+                         "password, follow the procedure described here:\n\n"
+                         "https://tator.io/tutorials/2021-06-11-reset-your-password/",
+                    html=None,
+                    attachments=[])
+                if email_response['ResponseMetadata']['HTTPStatusCode'] != 200:
+                    logger.error(email_response)

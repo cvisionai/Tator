@@ -8,7 +8,9 @@ alg_fields = SimpleNamespace(
     description='description',
     manifest='manifest',
     cluster='cluster',
-    files_per_job='files_per_job')
+    files_per_job='files_per_job',
+    categories='categories',
+    parameters='parameters')
 
 algorithm_post_properties = {
     alg_fields.name: {
@@ -35,6 +37,16 @@ algorithm_post_properties = {
         'type': 'integer',
         'description': 'Number of media files to be submitted to each workflow.',
     },
+    alg_fields.categories: {
+        'type': 'array',
+        'description': 'List of categories the algorithm workflow belongs to',
+        'items': {'type': 'string'},
+    },
+    alg_fields.parameters: {
+        'type': 'array',
+        'description': 'List of algorithm workflow parameters',
+        'items': {'$ref': '#/components/schemas/AlgorithmParameter'},
+    },
 }
 
 # Note: While project is required, it's part of the path parameter(s)
@@ -59,7 +71,7 @@ algorithm = {
             'description': 'Unique integer identifying the project associated with the algorithm.',
         },
         **algorithm_post_properties,
-    }, 
+    },
 }
 
 manifest_fields = SimpleNamespace(

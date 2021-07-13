@@ -55,6 +55,13 @@ class SectionFiles extends TatorElement {
         card.setAttribute("thumb-gif", media.media_files.thumbnail_gif[0].path);
       }
     }
+    if (media.media_files) {
+      if (media.media_files.attachment) {
+        card.attachments = media.media_files.attachment;
+      } else {
+        card.attachments = [];
+      }
+    }
     card.mediaParams = this._mediaParams();
     card.media = media;
     card.style.display = "block";

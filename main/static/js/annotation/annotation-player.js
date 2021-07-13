@@ -32,56 +32,72 @@ class AnnotationPlayer extends TatorElement {
     playButtons.appendChild(fastForward);
     this._fastForward = fastForward;
 
-    const timelineDiv = document.createElement("div");
-    timelineDiv.setAttribute("class", "d-flex flex-items-center flex-grow px-2");
-    div.appendChild(timelineDiv);
+    const settingsDiv = document.createElement("div");
+    settingsDiv.setAttribute("class", "d-flex flex-items-center");
+    div.appendChild(settingsDiv);
+
+    this._rateControl = document.createElement("rate-control");
+    settingsDiv.appendChild(this._rateControl);
+
+    this._qualityControl = document.createElement("quality-control");
+    settingsDiv.appendChild(this._qualityControl);
+
+    this._timelineDiv = document.createElement("div");
+    this._timelineDiv.setAttribute("class", "scrub__bar d-flex flex-items-center flex-grow px-4");
+    playerDiv.appendChild(this._timelineDiv);
 
     const timeDiv = document.createElement("div");
     timeDiv.setAttribute("class", "d-flex flex-items-center flex-justify-between");
-    timelineDiv.appendChild(timeDiv);
+    playButtons.appendChild(timeDiv);
 
     this._currentTimeInput = document.createElement("input");
     this._currentTimeInput.setAttribute("class", "form-control input-sm1 f2 text-center");
     this._currentTimeInput.setAttribute("type", "text");
     this._currentTimeInput.style.display = "none";
     this._currentTimeInput.style.width = "100px";
-    timeDiv.appendChild(this._currentTimeInput);
+    playButtons.appendChild(this._currentTimeInput);
 
     this._currentTimeText = document.createElement("div");
     this._currentTimeText.textContent = "0:00";
     this._currentTimeText.style.width = "35px";
-    timeDiv.appendChild(this._currentTimeText);
+    playButtons.appendChild(this._currentTimeText);
 
     this._totalTime = document.createElement("div");
     this._totalTime.setAttribute("class", "px-2 text-gray");
     this._totalTime.textContent = "/ 0:00";
-    timeDiv.appendChild(this._totalTime);
+    playButtons.appendChild(this._totalTime);
 
     this._timelineMore = document.createElement("entity-more");
     this._timelineMore.style.display = "block";
-    timelineDiv.appendChild(this._timelineMore);
+    this._timelineDiv.appendChild(this._timelineMore);
     this._displayTimelineLabels = false;
 
     var outerDiv = document.createElement("div");
-    outerDiv.setAttribute("class", "py-4");
     outerDiv.style.width="100%";
     var seekDiv = document.createElement("div");
     this._slider = document.createElement("seek-bar");
-    this._video.addEventListener("bufferLoaded",
-                               this._slider.onBufferLoaded.bind(this._slider));
     seekDiv.appendChild(this._slider);
     outerDiv.appendChild(seekDiv);
+
+    this._zoomSliderDiv = document.createElement("div");
+    this._zoomSliderDiv.style.marginTop = "10px";
+    outerDiv.appendChild(this._zoomSliderDiv);
+
+    this._zoomSlider = document.createElement("seek-bar");
+    this._zoomSlider.changeVisualType("zoom");
+    this._zoomSliderDiv.hidden = true;
+    this._zoomSliderDiv.appendChild(this._zoomSlider);
 
     var innerDiv = document.createElement("div");
     this._timelineD3 = document.createElement("timeline-d3");
     this._timelineD3.rangeInput = this._slider;
     innerDiv.appendChild(this._timelineD3);
     outerDiv.appendChild(innerDiv);
-    timelineDiv.appendChild(outerDiv);
+    this._timelineDiv.appendChild(outerDiv);
 
     const frameDiv = document.createElement("div");
     frameDiv.setAttribute("class", "d-flex flex-items-center flex-justify-between");
-    timelineDiv.appendChild(frameDiv);
+    playButtons.appendChild(frameDiv);
 
     const framePrev = document.createElement("frame-prev");
     frameDiv.appendChild(framePrev);
@@ -106,12 +122,14 @@ class AnnotationPlayer extends TatorElement {
     frameDiv.appendChild(frameNext);
 
     this._volume_control = document.createElement("volume-control");
-    div.appendChild(this._volume_control);
+    settingsDiv.appendChild(this._volume_control);
     this._volume_control.addEventListener("volumeChange", (evt) => {
       this._video.setVolume(evt.detail.volume);
     });
     const fullscreen = document.createElement("video-fullscreen");
-    div.appendChild(fullscreen);
+    settingsDiv.appendChild(fullscreen);
+
+    this._shortcutsDisabled = false;
 
     this._scrubInterval = 1000.0/Math.min(guiFPS,30);
     this._lastScrub = Date.now();
@@ -132,42 +150,33 @@ class AnnotationPlayer extends TatorElement {
     this._timelineMore.addEventListener("click", () => {
       this._displayTimelineLabels = !this._displayTimelineLabels;
       this._timelineD3.showFocus(this._displayTimelineLabels);
-      this._videoHeightPadObject.height = this._headerFooterPad + this._controls.offsetHeight;
+      this._videoHeightPadObject.height = this._headerFooterPad + this._controls.offsetHeight + this._timelineDiv.offsetHeight;
       window.dispatchEvent(new Event("resize"));
     });
 
+    this._video.addEventListener("bufferLoaded", evt => {
+
+      let frame = Math.round(evt.detail.percent_complete * Number(this._mediaInfo.num_frames)-1);
+      this._zoomSlider.setLoadProgress(frame);
+      this._slider.onBufferLoaded(evt);
+    });
+
+    // #TODO Combine with this._slider.addEventListener
+    this._zoomSlider.addEventListener("input", evt => {
+      this.handleSliderInput(evt);
+    });
+
+    // #TODO Combine with this._slider.addEventListener
+    this._zoomSlider.addEventListener("change", evt => {
+      this.handleSliderChange(evt);
+    });
+
     this._slider.addEventListener("input", evt => {
-      // Along allow a scrub display as the user is going
-      // slow
-      const now = Date.now();
-      const frame = Number(evt.target.value);
-      const waitOk = now - this._lastScrub > this._scrubInterval;
-      if (waitOk) {
-        play.setAttribute("is-paused","");
-        this._video.stopPlayerThread();
-        this._video.seekFrame(frame, this._video.drawFrame)
-        .then(this._lastScrub = Date.now());
-      }
+      this.handleSliderInput(evt);
     });
 
     this._slider.addEventListener("change", evt => {
-      play.setAttribute("is-paused","");
-      this.dispatchEvent(new Event("displayLoading", {composed: true}));
-      // Only use the current frame to prevent glitches
-      let frame = this._video.currentFrame();
-      if (evt.detail)
-      {
-        frame = evt.detail.frame;
-      }
-      this._video.stopPlayerThread();
-
-      // Use the hq buffer when the input is finalized
-      this._video.seekFrame(frame, this._video.drawFrame, true).then(() => {
-        this._lastScrub = Date.now()
-        this.dispatchEvent(new Event("hideLoading", {composed: true}));
-      }).catch(() => {
-        this.dispatchEvent(new Event("hideLoading", {composed: true}));
-      });
+      this.handleSliderChange(evt);
     });
 
     play.addEventListener("click", () => {
@@ -234,6 +243,7 @@ class AnnotationPlayer extends TatorElement {
     this._video.addEventListener("frameChange", evt => {
       const frame = evt.detail.frame;
       this._slider.value = frame;
+      this._zoomSlider.value = frame;
       const time = this._frameToTime(frame);
       this._currentTimeText.textContent = time;
       this._currentFrameText.textContent = frame;
@@ -249,6 +259,21 @@ class AnnotationPlayer extends TatorElement {
       this.safeMode();
     });
 
+    this._timelineD3.addEventListener("zoomedTimeline", evt => {
+      if (evt.detail.minFrame < 1 || evt.detail.maxFrame < 1) {
+        // Reset the slider
+        this._zoomSliderDiv.hidden = true;
+        this._zoomSlider.setAttribute("min", 0);
+        this._zoomSlider.setAttribute("max", Number(this._mediaInfo.num_frames)-1);
+      }
+      else {
+        this._zoomSliderDiv.hidden = false;
+        this._zoomSlider.setAttribute("min", evt.detail.minFrame);
+        this._zoomSlider.setAttribute("max", evt.detail.maxFrame);
+        this._zoomSlider.value = Number(this._currentFrameText.textContent);
+      }
+    });
+
     this._timelineD3.addEventListener("graphData", evt => {
       if (evt.detail.numericalData.length > 0 || evt.detail.stateData.length > 0) {
         this._timelineMore.style.display = "block";
@@ -256,6 +281,8 @@ class AnnotationPlayer extends TatorElement {
       else {
         this._timelineMore.style.display = "none";
       }
+      this._videoHeightPadObject.height = this._headerFooterPad + this._controls.offsetHeight + this._timelineDiv.offsetHeight;
+      window.dispatchEvent(new Event("resize"));
     });
 
     this._timelineD3.addEventListener("select", evt => {
@@ -319,10 +346,15 @@ class AnnotationPlayer extends TatorElement {
 
     document.addEventListener("keydown", evt => {
 
+      if (this._shortcutsDisabled) {
+        return;
+      }
+
       if (document.body.classList.contains("shortcuts-disabled"))
       {
         return;
       }
+
 
       if (evt.ctrlKey && (evt.key == "m")) {
         fullscreen.click();
@@ -330,6 +362,12 @@ class AnnotationPlayer extends TatorElement {
       else if (evt.code == "Space")
       {
         evt.preventDefault();
+        if (this._play._button.hasAttribute("disabled")) {
+          return;
+        }
+        if (this._playbackDisabled) {
+          return;
+        }
         if (this.is_paused())
         {
           this.play();
@@ -342,11 +380,135 @@ class AnnotationPlayer extends TatorElement {
       else if (evt.key == "r")
       {
         evt.preventDefault();
+        if (this._play._button.hasAttribute("disabled")) {
+          return;
+        }
         if (this.is_paused())
         {
           this.playBackwards();
         }
       }
+      else if (evt.key == 1) {
+        if (!this._rateControl.hasAttribute("disabled")) {
+          this._rateControl.setValue(1);
+        }
+      }
+      else if (evt.key == 2) {
+        if (!this._rateControl.hasAttribute("disabled")) {
+          this._rateControl.setValue(2);
+        }
+      }
+      else if (evt.key == 4) {
+        if (!this._rateControl.hasAttribute("disabled")) {
+          this._rateControl.setValue(4);
+        }
+      }
+    });
+  }
+
+  static get observedAttributes() {
+    return ["rate"];
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    switch (name) {
+      case "rate":
+        if (newValue >= 1) {
+          this._rateControl.textContent = Math.round(newValue) + "x";
+        } else {
+          this._rateControl.textContent = Number(newValue).toFixed(2) + "x";
+        }
+        break;
+    }
+  }
+
+  disableAutoDownloads() {
+    this._playerDownloadDisabled = true;
+    this._video.disableAutoDownloads();
+  }
+
+  enableShortcuts() {
+    this._shortcutsDisabled = false;
+    this._video.enableShortcuts();
+  }
+
+  disableShortcuts() {
+    this._shortcutsDisabled = true;
+    this._video.disableShortcuts();
+  }
+
+  set quality(val)
+  {
+    this._qualityControl.quality = val;
+  }
+
+  enableQualityChange()
+  {
+    this._qualityControl.removeAttribute("disabled");
+  }
+  disableQualityChange()
+  {
+    this._qualityControl.setAttribute("disabled", "");
+  }
+
+  enableRateChange()
+  {
+    this._rateControl.removeAttribute("disabled");
+  }
+  disableRateChange()
+  {
+    this._rateControl.setAttribute("disabled", "");
+  }
+
+  hideVideoControls() {
+    this._controls.style.display = "none";
+    this._timelineDiv.style.display = "none";
+  }
+
+  hideVideoText() {
+    this._video.toggleTextOverlays(false);
+  }
+
+  /**
+   * Callback used when user clicks on one of the seek bar sliders
+   */
+  handleSliderInput(evt) {
+    // Along allow a scrub display as the user is going slow
+    const now = Date.now();
+    const frame = Number(evt.target.value);
+    const waitOk = now - this._lastScrub > this._scrubInterval;
+    if (waitOk) {
+      this._play.setAttribute("is-paused","");
+      this._video.stopPlayerThread();
+      this._video.seekFrame(frame, this._video.drawFrame)
+      .then(this._lastScrub = Date.now());
+    }
+  }
+
+  /**
+   * Callback used when user slides one of the seek bars
+   */
+  handleSliderChange(evt) {
+    this._play.setAttribute("is-paused","");
+    this.dispatchEvent(new Event("displayLoading", {composed: true}));
+    // Only use the current frame to prevent glitches
+    let frame = this._video.currentFrame();
+    if (evt.detail)
+    {
+      frame = evt.detail.frame;
+    }
+    this._video.stopPlayerThread();
+
+    // Use the hq buffer when the input is finalized
+    this._video.seekFrame(frame, this._video.drawFrame, true).then(() => {
+      this._lastScrub = Date.now()
+      this._video.onDemandDownloadPrefetch(true);
+      this.handleNotReadyEvent();
+      this.dispatchEvent(new Event("hideLoading", {composed: true}));
+    }).catch((e) => {
+      console.error(`"ERROR: ${e}`)
+      throw e;
+      this.dispatchEvent(new Event("hideLoading", {composed: true}));
     });
   }
 
@@ -364,9 +526,9 @@ class AnnotationPlayer extends TatorElement {
     }
 
     const maxFrame = this._mediaInfo.num_frames - 1;
-    if (frame > maxFrame)
+    if (frame > maxFrame - 1)  // #TODO Fix in the future once video.js has been sorted out.
     {
-      frame = maxFrame;
+      frame = maxFrame - 1;
     }
     else if (frame < 0)
     {
@@ -376,6 +538,7 @@ class AnnotationPlayer extends TatorElement {
     this._currentFrameInput.classList.remove("has-border");
     this._currentFrameInput.classList.remove("is-invalid");
     this.goToFrame(frame);
+    this.checkReady();
   }
 
   /**
@@ -424,6 +587,7 @@ class AnnotationPlayer extends TatorElement {
     this._currentTimeInput.classList.remove("has-border");
     this._currentTimeInput.classList.remove("is-invalid");
     this.goToFrame(frame);
+    this.checkReady();
   }
 
   set permission(val) {
@@ -454,6 +618,7 @@ class AnnotationPlayer extends TatorElement {
         const seekInfo = this._video.getQuality("seek");
         const scrubInfo = this._video.getQuality("scrub");
         const playInfo = this._video.getQuality("play");
+        this.checkReady();
 
         this.dispatchEvent(new CustomEvent("defaultVideoSettings", {
           composed: true,
@@ -481,6 +646,20 @@ class AnnotationPlayer extends TatorElement {
       this._volume_control.style.display = "none";
     }
     this._volume_control.volume = this.mediaType['default_volume'];
+    if (val.media_files && 'streaming' in val.media_files)
+    {
+      let quality_list = [];
+      for (let media_file of val.media_files["streaming"])
+      {
+        quality_list.push(media_file.resolution[0]);
+      }
+      this._qualityControl.resolutions = quality_list;
+      this._qualityControl.show();
+    }
+    else
+    {
+      this._qualityControl.hide();
+    }
   }
 
   set annotationData(val) {
@@ -507,6 +686,87 @@ class AnnotationPlayer extends TatorElement {
     return this._play.hasAttribute("is-paused");
   }
 
+  checkReady()
+  {
+    if (this._video._onDemandPlaybackReady != true)
+    {
+      this.handleNotReadyEvent();
+    }
+  }
+  handleNotReadyEvent()
+  {
+    if (this._playerDownloadDisabled) {
+      // Don't bother attempting to check if playback is ready if downloads have been disabled.
+      return;
+    }
+
+    if (this._video.isInCompatibilityMode() == true)
+    {
+      // Compatibility videos are always ready to play.
+      return;
+    }
+
+    if (this._handleNotReadyTimeout != null)
+    {
+      console.log("Already handling a not ready event");
+      return;
+    }
+    this._play._button.setAttribute("disabled","");
+    // Use some spaces because the tooltip z-index is wrong
+    this._play.setAttribute("tooltip", "    Video is buffering");
+    this._rewind.setAttribute("disabled","")
+    this._fastForward.setAttribute("disabled","");
+
+    const timeouts = [1000, 2000, 4000, 8000, 16000];
+    let timeoutIndex = 0;
+
+    let check_ready = (checkFrame) => {
+      this._handleNotReadyTimeout = null;
+      let not_ready = false;
+      if (checkFrame != this._video.currentFrame()) {
+        console.log(`check_ready frame ${checkFrame} and current frame ${this._video.currentFrame()} do not match. restarting check_ready`)
+        timeoutIndex = 0;
+        this._handleNotReadyTimeout = setTimeout(() => {
+          this._handleNotReadyTimeout = null;
+          check_ready(this._video.currentFrame())}, timeouts[timeoutIndex]);
+        return;
+      }
+      if (this._video._onDemandPlaybackReady != true)
+      {
+        this._video.onDemandDownloadPrefetch(true);
+        not_ready = true;
+      }
+      if (not_ready == true)
+      {
+        timeoutIndex += 1;
+        if (timeoutIndex < timeouts.length) {
+          console.log(`Video playback check - Not ready: checking in ${timeouts[timeoutIndex]/1000} seconds [Now: ${new Date().toISOString()}]`);
+          this._handleNotReadyTimeout = setTimeout(() => {
+            this._handleNotReadyTimeout = null;
+            check_ready(checkFrame);
+          }, timeouts[timeoutIndex]);
+        }
+        else {
+          Utilities.warningAlert("Video player unable to reach ready state.", "#ff3e1d", false);
+          console.error(`Video player unable to reach ready state`);
+        }
+      }
+      if (not_ready == false)
+      {
+        console.log(`Video playback check - Ready [Now: ${new Date().toISOString()}]`);
+        this._play._button.removeAttribute("disabled");
+        this._rewind.removeAttribute("disabled")
+        this._fastForward.removeAttribute("disabled");
+        this._play.removeAttribute("tooltip");
+      }
+    };
+
+    // We can be faster in single play mode
+    console.log(`Video playback check - Not ready: checking in ${timeouts[timeoutIndex]/1000} seconds [Now: ${new Date().toISOString()}]`);
+    this._handleNotReadyTimeout = setTimeout(check_ready(this._video.currentFrame()), timeouts[timeoutIndex]);
+
+  }
+
   play()
   {
     if (this._rate > 4.0)
@@ -515,9 +775,15 @@ class AnnotationPlayer extends TatorElement {
       // at the current frame. If not, inform the user.
       if (!this._video.canPlayRate(this._rate))
       {
-        window.alert("Please wait until this portion of the video has been downloaded. Playing at speeds greater than 1x require the video to be buffered.")
+        window.alert("Please wait until this portion of the video has been downloaded. Playing at speeds greater than 4x require the video to be buffered.")
         return;
       }
+    }
+
+    if (this._video._onDemandPlaybackReady != true)
+    {
+      this.handleNotReadyEvent();
+      return;
     }
 
     this.dispatchEvent(new Event("playing", {composed: true}));
@@ -542,9 +808,15 @@ class AnnotationPlayer extends TatorElement {
       // at the current frame. If not, inform the user.
       if (!this._video.canPlayRate(this._rate))
       {
-        window.alert("Please wait until this portion of the video has been downloaded. Playing at speeds greater than 1x require the video to be buffered.")
+        window.alert("Please wait until this portion of the video has been downloaded. Playing at speeds greater than 4x require the video to be buffered.")
         return;
       }
+    }
+
+    if (this._video._onDemandPlaybackReady != true)
+    {
+      this.handleNotReadyEvent();
+      return;
     }
 
     this.dispatchEvent(new Event("playing", {composed: true}));
@@ -572,6 +844,7 @@ class AnnotationPlayer extends TatorElement {
       this._video.pause();
       this._play.setAttribute("is-paused", "")
     }
+    this.checkReady();
   }
 
   refresh() {
@@ -599,6 +872,7 @@ class AnnotationPlayer extends TatorElement {
       this.pause();
       this._video.setQuality(quality, buffer);
     }
+    this._video.onDemandDownloadPrefetch(true);
     this._video.refresh(true);
   }
 
@@ -718,6 +992,10 @@ class AnnotationPlayer extends TatorElement {
 
   displayVideoDiagnosticOverlay(display) {
     this._video.updateVideoDiagnosticOverlay(display);
+  }
+
+  allowSafeMode(allow) {
+    this._video.allowSafeMode = allow;
   }
 
   getVideoSettings() {

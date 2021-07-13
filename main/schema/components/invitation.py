@@ -1,6 +1,6 @@
 invitation_properties = {
     'email': {
-        'description': 'Unique integer identifying a user.',
+        'description': 'Email address of invitee.',
         'type': 'string',
     },
     'permission': {

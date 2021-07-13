@@ -33,8 +33,6 @@
   top: 0;
 }
 
-
-
 // Project Detail
 
 .project__main {
@@ -49,7 +47,7 @@
     &:hover:after,
     &:focus:after {
       text-decoration: underline;
-    } 
+    }
     &:after {
       color: $color-gray--dark;
       content: "… More";
@@ -106,7 +104,7 @@
 .project__files {
   display: grid;
   grid-gap: 20px;
-  grid-template-columns: repeat(auto-fill,minmax(272px,1fr));
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
 }
 
 .project__file {
@@ -134,12 +132,13 @@
   }
 }
 
-.project__file:hover .project__delete-file, .project__file:focus .project__delete-file {
+.project__file:hover .project__delete-file,
+.project__file:focus .project__delete-file {
   opacity: 1;
 }
 
 .project__file.is-processing img {
-  opacity: .08;
+  opacity: 0.08;
 }
 
 .project__file img {
@@ -175,16 +174,19 @@
   position: absolute;
   top: $spacing-3;
 
-  input, input + svg {
+  input,
+  input + svg {
     opacity: 0;
   }
 
-  input:checked, input:checked + svg {
+  input:checked,
+  input:checked + svg {
     opacity: 1;
   }
 }
 
-.project__file:hover .project__select input, .project__file:focus .project__select input {
+.project__file:hover .project__select input,
+.project__file:focus .project__select input {
   opacity: 1;
 }
 
@@ -206,7 +208,7 @@
   position: absolute;
   right: 12px;
   top: 12px;
-  transition-duration: .25s;
+  transition-duration: 0.25s;
   transition-property: color, opacity;
   width: 36px;
   &:hover,
@@ -237,10 +239,8 @@
 }
 
 .sortable-ghost {
-  opacity: .25;
+  opacity: 0.25;
 }
-
-
 
 // Invite People to project modal
 

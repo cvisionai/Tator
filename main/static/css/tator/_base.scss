@@ -1,23 +1,23 @@
 @font-face {
-  font-family: 'Inter var';
+  font-family: "Inter var";
   font-weight: 100 900;
   font-style: normal;
-  font-named-instance: 'Regular';
+  font-named-instance: "Regular";
   src: url("/static/webfonts/Inter-upright.var.woff2") format("woff2");
 }
 
 @font-face {
-  font-family: 'Cabin';
+  font-family: "Cabin";
   font-weight: 100 900;
   font-style: bold;
-  font-named-instance: 'Bold';
+  font-named-instance: "Bold";
   src: url("/static/webfonts/cabin-v13-latin-700.woff2") format("woff2");
 }
 
 body {
   background-color: $color-charcoal--dark;
   color: $color-white;
-  font-family: 'Inter var', sans-serif;
+  font-family: "Inter var", sans-serif;
   padding-bottom: 120px;
   padding-top: 62px; // Height of header
   &.no-padding-bottom {
@@ -46,6 +46,10 @@ p svg {
 
 svg {
   fill: currentColor;
+
+  &.no-fill {
+    fill: none;
+  }
 }
 
 summary {
@@ -54,11 +58,10 @@ summary {
   &:focus {
     outline: none;
   }
-  &::-webkit-details-marker {
+  &::marker {
     display: none;
   }
 }
-
 
 // 544px
 .layout-sm {
@@ -102,7 +105,7 @@ summary {
   pointer-events: none;
   position: fixed;
   opacity: 0;
-  transition-duration: .15s;
+  transition-duration: 0.15s;
   transition-property: opacity;
   z-index: 1;
   &.has-open-modal {

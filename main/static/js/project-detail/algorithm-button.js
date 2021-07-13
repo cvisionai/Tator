@@ -3,17 +3,16 @@ class AlgorithmButton extends TatorElement {
     super();
 
     const details = document.createElement("details");
-    details.setAttribute("class", "main__header px-2 position-relative");
+    details.setAttribute("class", "px-2 position-relative");
     this._shadow.appendChild(details);
 
     const summary = document.createElement("summary");
-    summary.setAttribute("class", "btn btn-clear btn-outline");
+    summary.setAttribute("class", "btn btn-clear btn-outline f2");
+    summary.textContent = "Run Algorithm";
     details.appendChild(summary);
 
-    const span = document.createElement("span");
-    span.setAttribute("class", "d-flex flex-items-center flex-justify-center height-full");
-    span.textContent = "Run Algorithm";
-    summary.appendChild(span);
+    summary.style.height = "32px";
+    summary.style.width = "120px";
 
     const div = document.createElement("div");
     div.setAttribute("class", "more d-flex flex-column f2");
@@ -48,6 +47,10 @@ class AlgorithmButton extends TatorElement {
 
   set algorithms(val) {
     this._algorithmMenu.algorithms = val;
+  }
+
+  hideNewAlgorithm() {
+    this._algorithmMenu.hideNewAlgorithm();
   }
 }
 

@@ -342,7 +342,7 @@ def make_resources():
         if media.file:
             paths.append(media.file.path)
         if media.media_files:
-            for key in ['streaming', 'archival', 'audio', 'image', 'thumbnail', 'thumbnail_gif']:
+            for key in ['streaming', 'archival', 'audio', 'image', 'thumbnail', 'thumbnail_gif', 'attachment']:
                 if key in media.media_files:
                     paths += [f['path'] for f in media.media_files[key]]
                     if key == 'streaming':

@@ -11,7 +11,7 @@ class AnnotationPage extends TatorPage {
 
     const header = document.createElement("div");
     this._headerDiv = this._header._shadow.querySelector("header");
-    header.setAttribute("class", "annotation__header d-flex flex-items-center flex-justify-between px-6 f3");
+    header.setAttribute("class", "annotation__header d-flex flex-items-center flex-justify-between px-2 f3");
     const user = this._header._shadow.querySelector("header-user");
     user.parentNode.insertBefore(header, user);
 
@@ -19,15 +19,34 @@ class AnnotationPage extends TatorPage {
     div.setAttribute("class", "d-flex flex-items-center");
     header.appendChild(div);
 
+    this._prev = document.createElement("media-prev-button");
+    div.appendChild(this._prev);
+
+    this._next = document.createElement("media-next-button");
+    div.appendChild(this._next);
+
     this._breadcrumbs = document.createElement("annotation-breadcrumbs");
     div.appendChild(this._breadcrumbs);
 
+    const settingsDiv = document.createElement("div");
+    settingsDiv.setAttribute("class", "d-flex");
+    header.appendChild(settingsDiv);
+
+    this._lightSpacer = document.createElement("span");
+    this._lightSpacer.style.width = "32px";
+    settingsDiv.appendChild(this._lightSpacer);
+
+    this._success = document.createElement("success-light");
+    this._lightSpacer.appendChild(this._success);
+
+    this._warning = document.createElement("warning-light");
+    this._lightSpacer.appendChild(this._warning);
+
     this._versionButton = document.createElement("version-button");
-    this._versionButton.setAttribute("class", "px-2");
-    div.appendChild(this._versionButton);
+    settingsDiv.appendChild(this._versionButton);
 
     this._settings = document.createElement("annotation-settings");
-    header.appendChild(this._settings);
+    settingsDiv.appendChild(this._settings);
 
     this._main = document.createElement("main");
     this._main.setAttribute("class", "d-flex");
@@ -91,6 +110,7 @@ class AnnotationPage extends TatorPage {
 
   connectedCallback() {
     this.setAttribute("has-open-modal", "");
+    TatorPage.prototype.connectedCallback.call(this);
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
@@ -100,12 +120,10 @@ class AnnotationPage extends TatorPage {
         this._breadcrumbs.setAttribute("project-name", newValue);
         break;
       case "project-id":
-        this._settings.setAttribute("project-id", newValue);
         this._undo.setAttribute("project-id", newValue);
         this._updateLastVisitedBookmark();
         break;
       case "media-id":
-        this._settings.setAttribute("media-id", newValue);
         const searchParams = new URLSearchParams(window.location.search);
         fetch(`/rest/Media/${newValue}?presigned=28800`, {
           method: "GET",
@@ -122,7 +140,8 @@ class AnnotationPage extends TatorPage {
               (data.media_files &&
                !('streaming' in data.media_files) &&
                !('layout' in data.media_files) &&
-               !('image' in data.media_files)))
+               !('image' in data.media_files) &&
+               !('live' in data.media_files)))
           {
             this._loading.style.display = "none";
             Utilities.sendNotification(`Unplayable file ${data.id}`);
@@ -134,7 +153,6 @@ class AnnotationPage extends TatorPage {
           this._breadcrumbs.setAttribute("media-name", data.name);
           this._browser.mediaInfo = data;
           this._undo.mediaInfo = data;
-          this._settings.mediaInfo = data;
 
           fetch("/rest/MediaType/" + data.meta, {
             method: "GET",
@@ -178,7 +196,7 @@ class AnnotationPage extends TatorPage {
               player = document.createElement("annotation-image");
               this._player = player;
               this._player.mediaType = type_data;
-              player.style.minWidth="70%";
+              //player.style.minWidth="63%";
               player.addDomParent({"object": this._headerDiv,
                                    "alignTo":  this._browser});
               player.mediaInfo = data;
@@ -202,53 +220,150 @@ class AnnotationPage extends TatorPage {
 
               // Note: The player itself will set the metadatatypes and canvas info with this
               player.mediaInfo = data;
-              this._main.insertBefore(player, this._browser);
-              this._setupInitHandlers(player);
-
               var mediaIdCount = 0;
               for (const index of data.media_files.ids.keys()) {
                 this._mediaIds.push(data.media_files.ids[index]);
                 mediaIdCount += 1;
               }
               this._numberOfMedia = mediaIdCount;
+              this._main.insertBefore(player, this._browser);
+              this._setupInitHandlers(player);
+              this._player.addEventListener(
+                "primaryVideoLoaded", () => {
+                  /* #TODO Figure out a capture frame capability for multiview
+                  this._settings._capture.addEventListener(
+                    'captureFrame',
+                    (e) =>
+                      {
+                        player._video.captureFrame(e.detail.localizations);
+                      });
+                  */
+                  this._settings._capture.setAttribute("disabled", "");
+
+                  // Set the quality control based on the prime video
+                  fetch(`/rest/Media/${this._mediaIds[0]}?presigned=28800`, {
+                    method: "GET",
+                    credentials: "same-origin",
+                    headers: {
+                      "X-CSRFToken": getCookie("csrftoken"),
+                      "Accept": "application/json",
+                      "Content-Type": "application/json"
+                    }
+                  })
+                  .then(response => response.json())
+                  .then(primeMediaData => {
+                    this._videoSettingsDialog.mode("multiview", [primeMediaData]);
+                    this._settings.mediaInfo = primeMediaData;
+                    var playbackQuality = data.media_files.quality;
+                    if (playbackQuality == undefined)
+                    {
+                      playbackQuality = 360; // Default to something sensible
+                    }
+                    if (searchParams.has("quality"))
+                    {
+                      playbackQuality = Number(searchParams.get("quality"));
+                    }
+                    this._settings.quality = playbackQuality;
+                    this._player.setQuality(playbackQuality, null, true);
+                    this._player.setAvailableQualities(primeMediaData);
+                  });
+                }
+              );
+            } else if (type_data.dtype == "live") {
+              player = document.createElement("annotation-live");
+              this._player = player;
+              this._player.mediaType = type_data;
+              player.addDomParent({"object": this._headerDiv,
+                                   "alignTo":  this._browser});
+              this._setupInitHandlers(player);
+              player.mediaInfo = data;
+              this._main.insertBefore(player, this._browser);
+
+              for (let live of player._videos)
+              {
+                this._getMetadataTypes(player, live._canvas);
+              }
+              //this._browser.canvas = player._video;
+              this._videoSettingsDialog.mode("live", [data]);
               this._settings._capture.addEventListener(
                 'captureFrame',
                 (e) =>
                   {
                     player._video.captureFrame(e.detail.localizations);
                   });
-
-              // Set the quality control based on the prime video
-              fetch(`/rest/Media/${this._mediaIds[0]}?presigned=28800`, {
-                method: "GET",
-                credentials: "same-origin",
-                headers: {
-                  "X-CSRFToken": getCookie("csrftoken"),
-                  "Accept": "application/json",
-                  "Content-Type": "application/json"
-                }
-              })
-              .then(response => response.json())
-              .then(primeMediaData => {
-                this._videoSettingsDialog.mode("multiview", [primeMediaData]);
-                this._settings.mediaInfo = primeMediaData;
-                var playbackQuality = data.media_files.quality;
-                if (playbackQuality == undefined)
-                {
-                  playbackQuality = 360; // Default to something sensible
-                }
-                if (searchParams.has("quality"))
-                {
-                  playbackQuality = Number(searchParams.get("quality"));
-                }
-                this._settings.quality = playbackQuality;
-                this._player.setQuality(playbackQuality, null, true);
+              this._videoSettingsDialog.addEventListener("apply", (evt) => {
+                player.apply
               });
-
-            } else {
+              } else {
               window.alert(`Unknown media type ${type_data.dtype}`)
             }
           });
+          const nextPromise = fetch(`/rest/MediaNext/${newValue}${window.location.search}`, {
+            method: "GET",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+            }
+          });
+          const prevPromise = fetch(`/rest/MediaPrev/${newValue}${window.location.search}`, {
+            method: "GET",
+            headers: {
+              "X-CSRFToken": getCookie("csrftoken"),
+              "Accept": "application/json",
+              "Content-Type": "application/json",
+            }
+          });
+          Promise.all([nextPromise, prevPromise])
+          .then(responses => Promise.all(responses.map(resp => resp.json())))
+          .then(([nextData, prevData]) => {
+            const baseUrl = `/${data.project}/annotation/`;
+            const searchParams = this._settings._queryParams();
+            const media_id = parseInt(newValue);
+
+            // Turn disable selected_type.
+            searchParams.delete("selected_type");
+
+            // Only enable next/prev if there is a next/prev
+            if (prevData.prev == -1) {
+              this._prev.disabled = true;
+            }
+            else {
+              this._prev.addEventListener("click", () => {
+                let url = baseUrl + prevData.prev;
+                const searchParams = this._settings._queryParams();
+                searchParams.delete("selected_type");
+                searchParams.delete("selected_entity");
+                searchParams.delete("frame");
+                const typeParams = this._settings._typeParams();
+                if (typeParams) {
+                  searchParams.append("selected_type",typeParams)
+                }
+                url += "?" + searchParams.toString();
+                window.location.href = url;
+              });
+            }
+
+            if (nextData.next == -1) {
+              this._next.disabled = true;
+            }
+            else {
+              this._next.addEventListener("click", () => {
+                let url = baseUrl + nextData.next;
+                const searchParams = this._settings._queryParams();
+                searchParams.delete("selected_type");
+                searchParams.delete("selected_entity");
+                searchParams.delete("frame");
+                const typeParams = this._settings._typeParams();
+                if (typeParams) {
+                  searchParams.append("selected_type", typeParams)
+                }
+                url += "?" + searchParams.toString();
+                window.location.href = url;
+              });
+            }
+          })
+          .catch(err => console.log("Failed to fetch adjacent media! " + err));
           fetch("/rest/Project/" + data.project, {
             method: "GET",
             credentials: "same-origin",
@@ -294,7 +409,6 @@ class AnnotationPage extends TatorPage {
             });
           });
         })
-        .catch(err => console.error("Failed to retrieve media data: " + err));
         break;
     }
   }
@@ -305,30 +419,18 @@ class AnnotationPage extends TatorPage {
       if (this._dataInitialized && this._canvasInitialized) {
         const searchParams = new URLSearchParams(window.location.search);
         const haveEntity = searchParams.has("selected_entity");
-        const haveEntityType = searchParams.has("selected_entity_type");
         const haveType = searchParams.has("selected_type");
         const haveFrame = searchParams.has("frame");
         const haveVersion = searchParams.has("version");
         const haveLock = searchParams.has("lock");
         const haveFillBoxes = searchParams.has("fill_boxes");
         const haveToggleText = searchParams.has("toggle_text");
-        if (haveEntity && haveEntityType) {
-          const typeId = Number(searchParams.get("selected_entity_type"));
+        if (haveEntity && haveType) {
+          const typeId = searchParams.get("selected_type");
           const entityId = Number(searchParams.get("selected_entity"));
-          this._settings.setAttribute("entity-type", typeId);
+          this._settings.setAttribute("type-id", typeId);
           this._settings.setAttribute("entity-id", entityId);
-          for (const dtype of ['state', 'box', 'line', 'dot']) {
-            let modifiedTypeId = dtype + "_" + typeId;
-            if (this._data._dataByType.has(modifiedTypeId)) {
-              const data = this._data._dataByType.get(modifiedTypeId);
-              for (const elem of data) {
-                if (elem.id == entityId) {
-                  this._browser.selectEntity(elem);
-                  break;
-                }
-              }
-            }
-          }
+          this._browser.selectEntityOnUpdate(entityId, typeId);
         } else if (haveType) {
           const typeId = Number(searchParams.get("selected_type"));
           this._settings.setAttribute("type-id", typeId);
@@ -416,12 +518,12 @@ class AnnotationPage extends TatorPage {
     });
 
     canvas.addEventListener("playing", () => {
-      this._settings.disableRateChange();
-      this._settings.disableQualityChange();
+      this._player.disableRateChange();
+      this._player.disableQualityChange();
     });
     canvas.addEventListener("paused", () => {
-      this._settings.enableRateChange();
-      this._settings.enableQualityChange();
+      this._player.enableRateChange();
+      this._player.enableQualityChange();
     });
 
     canvas.addEventListener("canvasReady", () => {
@@ -448,17 +550,21 @@ class AnnotationPage extends TatorPage {
       canvas.refresh();
     })
 
-    this._settings.addEventListener("rateChange", evt => {
-      if ("setRate" in canvas) {
-        canvas.setRate(evt.detail.rate);
-      }
-    });
+    if (this._player._rateControl) {
+      this._player._rateControl.addEventListener("rateChange", evt => {
+        if ("setRate" in canvas) {
+          canvas.setRate(evt.detail.rate);
+        }
+      });
+    }
 
-    this._settings.addEventListener("qualityChange", evt => {
-      if ("setQuality" in canvas) {
-        canvas.setQuality(evt.detail.quality);
-      }
-    });
+    if (this._player._qualityControl) {
+      this._player._qualityControl.addEventListener("qualityChange", evt => {
+        if ("setQuality" in canvas) {
+          canvas.setQuality(evt.detail.quality);
+        }
+      });
+    }
 
     canvas.addEventListener("zoomChange", evt => {
       this._settings.setAttribute("zoom", evt.detail.zoom);
@@ -537,7 +643,7 @@ class AnnotationPage extends TatorPage {
           canvas.setQuality(source.quality, source.name);
 
           if (source.name == "play") {
-            this._settings.quality = source.quality;
+            this._player.quality = source.quality;
           }
         }
       }
@@ -547,7 +653,11 @@ class AnnotationPage extends TatorPage {
       canvas.displayVideoDiagnosticOverlay(evt.detail.displayDiagnostic);
     });
 
-    this._settings.addEventListener("openVideoSettings", () => {
+    this._videoSettingsDialog.addEventListener("allowSafeMode", evt => {
+      canvas.allowSafeMode(evt.detail.allowSafeMode);
+    });
+
+    this._player.addEventListener("openVideoSettings", () => {
       var videoSettings = canvas.getVideoSettings();
       this._videoSettingsDialog.applySettings(videoSettings);
       this._videoSettingsDialog.setAttribute("is-open", "");
@@ -1463,7 +1573,7 @@ class AnnotationPage extends TatorPage {
         });
       }
     });
-      
+
   }
 }
 

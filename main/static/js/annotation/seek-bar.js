@@ -11,6 +11,7 @@ class SeekBar extends TatorElement {
     this.handle.style.cursor = "pointer";
     this.bar.appendChild(this.handle);
     this._loadedPercentage = 0;
+    this._visualType = "";
 
     var that = this;
     var clickHandler=function(evt)
@@ -23,9 +24,7 @@ class SeekBar extends TatorElement {
       }
       const percentage = (evt.offsetX/
                           width);
-      that.value =
-        Math.round((percentage*that._max)
-                   +that._min);
+      that.value = Math.round((percentage * (that._max - that._min) + that._min));
       that.dispatchEvent(
         new CustomEvent("change",
                         {composed: true,
@@ -49,8 +48,7 @@ class SeekBar extends TatorElement {
                      width);
         const percentage = Math.min(relativeX/width,
                                     that._loadedPercentage);
-        that.value =
-          Math.round((percentage*that._max)+that._min);
+        that.value = Math.round((percentage * (that._max - that._min) + that._min));
       }
       that.dispatchEvent(
         new CustomEvent(evt_type,
@@ -105,10 +103,24 @@ class SeekBar extends TatorElement {
     this._value = 0;
   }
 
+  changeVisualType(visualType) {
+    if (visualType == "zoom") {
+      this.visualType = "zoom";
+      this.bar.setAttribute("class", "zoom-range-div select-pointer");
+      this.loadProgress.setAttribute("class", "zoom-range-loaded");
+    }
+  }
+
   updateVisuals()
   {
-    const percentage = ((this._value-this._min)/this._max)*100;
-    this.handle.style.left = `${percentage}%`;
+    const percentage = ((this._value-this._min)/(this._max - this._min))*100;
+    if (percentage > 100 || percentage < 0) {
+      this.handle.style.display = "none";
+    }
+    else {
+      this.handle.style.display = "block";
+      this.handle.style.left = `${percentage}%`;
+    }
   }
 
   attributeChangedCallback(name, oldValue, newValue)
@@ -141,6 +153,22 @@ class SeekBar extends TatorElement {
     this._loadedPercentage = evt.detail['percent_complete'];
     const percent_complete = evt.detail['percent_complete']*100;
     this.loadProgress.style.width=`${percent_complete}%`;
+  }
+
+  /**
+   * Alternative to onBufferLoaded. Uses a passed in frame
+   */
+  setLoadProgress(frame) {
+    const percentage = ((frame-this._min)/(this._max - this._min));
+    if (percentage > 1) {
+      this.onBufferLoaded({detail: {percent_complete: 1.0}});
+    }
+    else if (percentage < 0) {
+      this.onBufferLoaded({detail: {percent_complete: 0.0}});
+    }
+    else {
+      this.onBufferLoaded({detail: {percent_complete: percentage}});
+    }
   }
 
   static get observedAttributes() { return ['min', 'max']; }

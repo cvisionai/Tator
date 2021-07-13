@@ -1,3 +1,5 @@
+import os
+
 from rest_framework.exceptions import PermissionDenied
 from django.db import transaction
 
@@ -28,6 +30,9 @@ class OrganizationListAPI(BaseListView):
         return _serialize_organizations(organizations, self.request.user.pk)
 
     def _post(self, params):
+        if not (os.getenv('ALLOW_ORGANIZATION_POST') or self.request.user.is_staff):
+            raise PermissionDenied("Only system administrators can create an organization.")
+
         if Organization.objects.filter(
             affiliation__user=self.request.user).filter(name__iexact=params['name']).exists():
             raise Exception("Organization with this name already exists!")

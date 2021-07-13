@@ -4,14 +4,8 @@ class RateControl extends TatorElement {
 
     const summary = document.createElement("summary");
     summary.style.cursor = "pointer";
-    summary.setAttribute("class", "annotation__setting d-flex flex-items-center px-3 rounded-1");
+    summary.setAttribute("class", "d-flex flex-items-center rounded-1");
     this._shadow.appendChild(summary);
-
-    const rateSpan = document.createElement("div");
-    rateSpan.style.cursor="default";
-    rateSpan.setAttribute("class", "text-gray");
-    rateSpan.textContent = "Rate:";
-    summary.appendChild(rateSpan);
 
     const div = document.createElement("div");
     div.setAttribute("class", "px-1");

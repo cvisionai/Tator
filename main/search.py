@@ -57,6 +57,12 @@ def _get_mapping_values(entity_type, attributes):
     """
     mapping_values = {}
 
+    # Handle tator_user_sections
+    name = "tator_user_sections"
+    value = attributes.get(name)
+    if value is not None:
+        mapping_values[name] = str(value).replace("\\", "\\\\")
+
     if entity_type.attribute_types is None:
         return mapping_values
 
@@ -64,7 +70,6 @@ def _get_mapping_values(entity_type, attributes):
         name = attribute_type['name']
         value = attributes.get(name)
         if value is not None:
-            dtype = attribute_type['dtype']
             uuid = entity_type.project.attribute_type_uuids[name]
             mapping_type = _get_alias_type(attribute_type)
             mapping_name = f'{uuid}_{mapping_type}'
@@ -519,7 +524,7 @@ class TatorSearch:
         tzinfo = entity.created_datetime.tzinfo
         aux['_indexed_datetime'] = datetime.datetime.now(tzinfo).isoformat()
         duplicates = []
-        if entity.meta.dtype in ['image', 'video', 'multi']:
+        if entity.meta.dtype in ['image', 'video', 'multi', 'live']:
             aux['_media_relation'] = 'media'
             aux['filename'] = entity.name
             aux['_exact_name'] = entity.name
@@ -684,17 +689,27 @@ class TatorSearch:
                     scroll_id=scroll_id,
                     scroll='1m',
                 )
+                if len(result['hits']['hits']) == 0:
+                    break
                 ids += drop_dupes([int(obj['_id'].split('_')[1]) & id_mask for obj in result['hits']['hits']])
             ids = ids[:count]
             self.es.clear_scroll(scroll_id=scroll_id)
         else:
-            # TODO: This will NOT return the requested number of results if there are
-            # duplicates in the dataset.
             result = self.search_raw(project, query)
             result = result['hits']
             data = result['hits']
             count = result['total']['value']
             ids = drop_dupes([int(obj['_id'].split('_')[1]) & id_mask for obj in data])
+            if len(ids) != count:
+                # We must have dupes + pagination. Do the search again without pagination, 
+                # and return a slice.
+                offset = query.get('from', 0)
+                limit = query.get('size', 10000)
+                query['size'] = 10000
+                query['from'] = 0
+                ids, count = self.search(project, query)
+                ids = ids[offset:(offset+limit)]
+                count = len(ids)
         return ids, count
 
     def count(self, project, query):

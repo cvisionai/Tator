@@ -78,14 +78,6 @@ redis:
   # Enable this to use the Redis helm chart installed as a dependency
   # instead of AWS Elasticache.
   enabled: false
-metrics-server:
-  # AWS has its own metrics for monitoring but this is still needed for
-  # the horizontal pod autoscaler (HPA).
-  enabled: true
-  args:
-    - --v=2
-    - --kubelet-insecure-tls=true
-    - --kubelet-preferred-address-types=InternalIP
 elasticsearch:
   # Enable this to use the Elasticsearch helm chart installed as a
   # dependency instead of AWS Elasticsearch Service.
@@ -121,7 +113,88 @@ kibana:
 minio:
   enabled: false
 kube-prometheus-stack:
-  enabled: false
+  enabled: true
+  prometheusOperator:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+  prometheus:
+    server:
+      extraArgs:
+        web.external-url: /prometheus/
+        web.route-prefix: "/"
+    prometheusSpec:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 500m
+          memory: 2Gi
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: gp2
+            resources:
+              requests:
+                storage: 1Gi
+      additionalScrapeConfigs:
+        - job_name: node_exporter
+          scrape_interval: 10s
+          metrics_path: "/metrics"
+          static_configs:
+            - targets: ["tator-prometheus-node-exporter:9100"]
+        - job_name: statsd_exporter
+          scrape_interval: 10s
+          metrics_path: "/metrics"
+          static_configs:
+            - targets: ["tator-prometheus-statsd-exporter:9102"]
+        - job_name: nginx_status
+          scrape_interval: 10s
+          metrics_path: "/metrics"
+          static_configs:
+            - targets: ["nginx-svc:9113"]
+  grafana:
+    grafana.ini:
+      server:
+        domain: *domain
+        root_url: "%(protocol)s://%(domain)s/grafana/"
+        serve_from_sub_path: true
+      auth.anonymous:
+        enabled: true
+        org_role: Admin
+prometheus-adapter:
+  enabled: true
+  prometheus:
+    url: http://prometheus-operated
+    port: 9090
+  rules:
+    default: false
+    resource:
+      cpu:
+        containerQuery: sum(rate(container_cpu_usage_seconds_total{<<.LabelMatchers>>, container!=""}[3m])) by (<<.GroupBy>>)
+        nodeQuery: sum(rate(container_cpu_usage_seconds_total{<<.LabelMatchers>>, id='/'}[3m])) by (<<.GroupBy>>)
+        resources:
+          overrides:
+            node:
+              resource: node
+            namespace:
+              resource: namespace
+            pod:
+              resource: pod
+        containerLabel: container
+      memory:
+        containerQuery: sum(container_memory_working_set_bytes{<<.LabelMatchers>>, container!=""}) by (<<.GroupBy>>)
+        nodeQuery: sum(container_memory_working_set_bytes{<<.LabelMatchers>>,id='/'}) by (<<.GroupBy>>)
+        resources:
+          overrides:
+            node:
+              resource: node
+            namespace:
+              resource: namespace
+            pod:
+              resource: pod
+        containerLabel: container
+      window: 3m
 remoteTranscodes:
   # Enable this if you would like to do transcodes with a different
   # Kubernetes cluster, such as an on-premises cluster. Follow instructions

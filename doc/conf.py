@@ -24,9 +24,9 @@ copyright = '2020, CVision AI'
 author = 'CVision AI'
 
 # The short X.Y version
-version = '0.0.4'
+version = '0.1.0'
 # The full version, including alpha/beta/rc tags
-release = 'beta'
+release = ''
 
 
 # -- General configuration ---------------------------------------------------

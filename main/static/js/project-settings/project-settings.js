@@ -7,6 +7,20 @@ class ProjectSettings extends TatorPage {
     this._shadow.appendChild( this.loading.getImg());
     this.loading.showSpinner();
 
+    // header
+    const header = document.createElement("div");
+    this._headerDiv = this._header._shadow.querySelector("header");
+    header.setAttribute("class", "annotation__header d-flex flex-items-center flex-justify-between px-2 f3");
+    const user = this._header._shadow.querySelector("header-user");
+    user.parentNode.insertBefore(header, user);
+
+    const div = document.createElement("div");
+    div.setAttribute("class", "d-flex flex-items-center");
+    header.appendChild(div);
+
+    this._breadcrumbs = document.createElement("settings-breadcrumbs");
+    div.appendChild(this._breadcrumbs);
+
     // main element
     this.main = document.createElement("main");
     this.main.setAttribute("class", "position-relative");
@@ -61,6 +75,7 @@ class ProjectSettings extends TatorPage {
     .then( (data) => {
       return data.json();
     }).then( (objData) => {
+      this._breadcrumbs.setAttribute("project-name", objData.name);
       const formView = this.projectView;
 
       this.loading.hideSpinner();

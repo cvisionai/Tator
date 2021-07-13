@@ -68,7 +68,7 @@ def _presign(expiration, medias, fields=None):
     """ Replaces specified media fields with presigned urls.
     """
     # First get resources referenced by the given media.
-    fields = fields or ["archival", "streaming", "audio", "image", "thumbnail", "thumbnail_gif"]
+    fields = fields or ["archival", "streaming", "audio", "image", "thumbnail", "thumbnail_gif", "attachment"]
     media_ids = [media['id'] for media in medias]
     resources = Resource.objects.filter(media__in=media_ids)
     store_lookup = get_storage_lookup(resources)
@@ -195,6 +195,10 @@ class MediaListAPI(BaseListView):
             media_types = MediaType.objects.filter(project=project)
             if media_types.count() > 0:
                 mime, _ = mimetypes.guess_type(name)
+                if mime is None:
+                    ext = os.path.splitext(name)[1].lower()
+                    if ext in ['.mts', '.m2ts']:
+                        mime = 'video/MP2T'
                 if mime.startswith('image'):
                     for media_type in media_types:
                         if media_type.dtype == 'image':
@@ -561,7 +565,6 @@ class MediaDetailAPI(BaseDetailView):
             _presign(presigned, response_data)
         return response_data[0]
 
-    @transaction.atomic
     def _patch(self, params):
         """ Update individual media.
 
@@ -603,7 +606,7 @@ class MediaDetailAPI(BaseDetailView):
                 media_files = qs[0].media_files
                 # If this object already contains non-multi media definitions, raise an exception.
                 if media_files:
-                    for role in ['streaming', 'archival', 'image']:
+                    for role in ['streaming', 'archival', 'image', 'live']:
                         items = media_files.get(role, [])
                         if len(items) > 0:
                             raise ValueError(f"Cannot set a multi definition on a Media that contains "
@@ -618,6 +621,21 @@ class MediaDetailAPI(BaseDetailView):
                 for key in ['ids', 'layout', 'quality']:
                     if params['multi'].get(key):
                         media_files[key] = params['multi'][key]
+                qs.update(media_files=media_files)
+
+            if 'live' in params:
+                media_files = qs[0].media_files
+                # If this object already contains non-live media definitions, raise an exception.
+                if media_files:
+                    for role in ['streaming', 'archival', 'image', 'ids']:
+                        items = media_files.get(role, [])
+                        if len(items) > 0:
+                            raise ValueError(f"Cannot set a multi definition on a Media that contains "
+                                              "individual media!")
+                if media_files is None:
+                    media_files = {}
+                media_files['layout'] = params['live']['layout']
+                media_files['live'] = params['live']['streams']
                 qs.update(media_files=media_files)
 
             if "archive_state" in params:

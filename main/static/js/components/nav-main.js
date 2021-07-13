@@ -37,6 +37,12 @@ class NavMain extends TatorElement {
     this._token.textContent = "API Token";
     this._primary.appendChild(this._token);
 
+    this._rest = document.createElement("a");
+    this._rest.setAttribute("class", "nav__link");
+    this._rest.setAttribute("href", "/rest");
+    this._rest.textContent = "REST Interface";
+    this._primary.appendChild(this._rest);
+
     const logout = document.createElement("a");
     logout.setAttribute("class", "nav__link");
     logout.setAttribute("href", "/accounts/logout/");

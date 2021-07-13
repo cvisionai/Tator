@@ -14,7 +14,10 @@ class CheckboxSet extends TatorElement {
 
       this._inputDiv = document.createElement("div");
       this._inputDiv.setAttribute("class", "d-flex flex-row flex-wrap flex-justify-between col-8");
-      div.appendChild(this._inputDiv);
+     div.appendChild(this._inputDiv);
+
+     // default 2 columns
+     this._colSize = "col-6";
     }
   
     static get observedAttributes() {
@@ -78,7 +81,7 @@ class CheckboxSet extends TatorElement {
   
     _addInput(checkbox) {
       const wrapper = document.createElement("div");
-      wrapper.setAttribute("class", "col-6");
+      wrapper.setAttribute("class", this._colSize);
       wrapper.appendChild(checkbox);
 
       // keep track of text inputs

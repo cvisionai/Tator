@@ -103,9 +103,28 @@ class ProjectDetail extends TatorPage {
     header.setAttribute("class", "main__header d-flex flex-justify-between");
     div.appendChild(header);
 
+    const nameDiv = document.createElement("div");
+    nameDiv.setAttribute("class", "d-flex flex-row flex-items-center");
+    header.appendChild(nameDiv);
+
     const h1 = document.createElement("h1");
     h1.setAttribute("class", "h1");
-    header.appendChild(h1);
+    nameDiv.appendChild(h1);
+
+    this._settingsButton = document.createElement("a");
+    this._settingsButton.setAttribute("class", "px-2 h2 text-gray hover-text-white");
+    this._settingsButton.style.marginTop = "6px";
+    nameDiv.appendChild(this._settingsButton);
+
+    const settingsSvg = document.createElementNS(svgNamespace, "svg");
+    settingsSvg.setAttribute("viewBox", "0 0 24 24");
+    settingsSvg.setAttribute("height", "1em");
+    settingsSvg.setAttribute("width", "1em");
+    this._settingsButton.appendChild(settingsSvg);
+
+    const settingsPath = document.createElementNS(svgNamespace, "use");
+    settingsPath.setAttribute("href", "/static/images/svg/gear.svg#path");
+    settingsSvg.appendChild(settingsPath);
 
     this._projectText = document.createTextNode("");
     h1.appendChild(this._projectText);
@@ -114,8 +133,9 @@ class ProjectDetail extends TatorPage {
     buttons.setAttribute("class", "d-flex");
     header.appendChild(buttons);
 
-    this._algorithmButton = document.createElement("algorithm-button");
-    buttons.appendChild(this._algorithmButton);
+    this._analyticsButton = document.createElement("analytics-button");
+    this._analyticsButton.style.marginRight = "10px";
+    buttons.appendChild(this._analyticsButton);
 
     this._activityButton = document.createElement("activity-button");
     buttons.appendChild(this._activityButton);
@@ -161,6 +181,9 @@ class ProjectDetail extends TatorPage {
 
     const uploadDialog = document.createElement("upload-dialog");
     this._projects.appendChild(uploadDialog);
+
+    const attachmentDialog = document.createElement("attachment-dialog");
+    this._projects.appendChild(attachmentDialog);
 
     this._activityNav = document.createElement("activity-nav");
     main.appendChild(this._activityNav);
@@ -325,6 +348,16 @@ class ProjectDetail extends TatorPage {
       }
     });
 
+    this._mediaSection.addEventListener("attachments", evt => {
+      attachmentDialog.init(evt.detail);
+      attachmentDialog.setAttribute("is-open", "");
+      this.setAttribute("has-open-modal", "");
+    });
+
+    attachmentDialog.addEventListener("close", evt => {
+      this.removeAttribute("has-open-modal");
+    });
+
     this._mediaSection.addEventListener("newName", evt => {
       for (const child of this._allSections()) {
         if (child._section) {
@@ -405,8 +438,6 @@ class ProjectDetail extends TatorPage {
         this._projects.removeChild(evt.target);
       });
     };
-
-    this._algorithmButton.addEventListener("newAlgorithm", this._newAlgorithmCallback);
 
     cancelJob.addEventListener("confirmGroupCancel", () => {
       cancelJob.removeAttribute("is-open");
@@ -492,6 +523,7 @@ class ProjectDetail extends TatorPage {
 
   _init() {
     const projectId = this.getAttribute("project-id");
+    this._settingsButton.setAttribute("href", `/${projectId}/project-settings`);
     this._activityNav.init(projectId);
     // Get info about the project.
     const projectPromise = fetch("/rest/Project/" + projectId, {
@@ -549,12 +581,12 @@ class ProjectDetail extends TatorPage {
         const parsedAlgos = algos.filter(function(alg) {
           return !hiddenAlgos.includes(alg.name);
         });
+        if (!hasPermission(project.permission, "Full Control")) {
+          this._settingsButton.style.display = "none";
+        }
         this._algorithms = parsedAlgos;
         this._mediaSection.project = project;
         this._mediaSection.algorithms = this._algorithms;
-        if (!hasPermission(project.permission, "Can Execute")) {
-          this._algorithmButton.style.display = "none";
-        }
         this._projectText.nodeValue = project.name;
         this._search.setAttribute("project-name", project.name);
         this._description.setAttribute("text", project.summary);
@@ -606,7 +638,7 @@ class ProjectDetail extends TatorPage {
         }
         // Put "Last visited" bookmark on top
         const first = "Last visited";
-        bookmarks.sort((a, b) => {return a.name == first ? -1 : b.name == first ? 1 : 0;}); 
+        bookmarks.sort((a, b) => {return a.name == first ? -1 : b.name == first ? 1 : 0;});
         for (const bookmark of bookmarks) {
           const card = document.createElement("section-card");
           card.init(bookmark, "bookmark");
@@ -641,7 +673,7 @@ class ProjectDetail extends TatorPage {
       case "username":
         break;
       case "project-id":
-        this._algorithmButton.setAttribute("project-id", newValue);
+        this._analyticsButton.setAttribute("project-id", newValue);
         this._init();
         break;
       case "token":

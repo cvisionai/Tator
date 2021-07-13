@@ -576,17 +576,31 @@ class TextOverlay extends TatorElement {
    * @param {boolean} display - True to display the text, false to hide it.
    */
   toggleTextDisplay(idx, display) {
-    this._enabledTexts[idx] = display;
+
+    var enabled;
+    if (display === true || display === false) {
+      this._enabledTexts[idx] = display;
+      enabled = display;
+    }
+    else {
+      enabled = this._enabledTexts[idx];
+    }
+
     const text = this._texts[idx]
     const div = text.element;
 
-    if (!this._enabledTexts[idx]) {
+    if (!enabled) {
       div.style.display = "none";
     }
     else {
       if (div.style.display == "none") {
         if (this._display) {
           div.style.display = "block";
+        }
+      }
+      else {
+        if (!this._display) {
+          div.style.display = "none";
         }
       }
     }
@@ -617,7 +631,7 @@ class TextOverlay extends TatorElement {
       `${Math.round(y*this.clientHeight)-div.clientHeight/2}px`;
   }
 
-  modifyText(idx,delta)
+  modifyText(idx,delta,display)
   {
     if (idx >= this._texts.length)
     {
@@ -658,6 +672,7 @@ class TextOverlay extends TatorElement {
       text.y = delta.y;
     }
     this._setPosition(text.x,text.y,div);
+    this.toggleTextDisplay(idx, display);
   }
 
   clearAll()
@@ -740,6 +755,8 @@ class AnnotationCanvas extends TatorElement
     this._gridRows = 0;
     this._stretch = false;
 
+    this._shortcutsDisabled = false;
+
     // Context menu (right-click): Tracks
     this._contextMenuTrack = document.createElement("canvas-context-menu");
     this._contextMenuTrack.style.zIndex = 2;
@@ -820,6 +837,13 @@ class AnnotationCanvas extends TatorElement
     return this._contextMenuNone;
   }
 
+  enableShortcuts() {
+    this._shortcutsDisabled = false;
+  }
+
+  disableShortcuts() {
+    this._shortcutsDisabled = true;
+  }
 
   setupOverlay(overlay_config)
   {
@@ -1391,6 +1415,10 @@ class AnnotationCanvas extends TatorElement
 
   keyupHandler(event)
   {
+    if (this._shortcutsDisabled) {
+      return;
+    }
+
     this._keydownFired = false;
     if (this._mouseMode == MouseMode.MOVE)
     {
@@ -1411,6 +1439,11 @@ class AnnotationCanvas extends TatorElement
 
   keydownHandler(event)
   {
+    console.log(`this._shortcutsDisabled: ${this._shortcutsDisabled}`)
+    if (this._shortcutsDisabled) {
+      return;
+    }
+
     if (document.body.classList.contains("tab-disabled") && event.key == "Tab") {
       return;
     }
@@ -1587,7 +1620,7 @@ class AnnotationCanvas extends TatorElement
           line = this.boundsCheck(line);
 
           // Update localization based on motion
-          var expLine=this.scaleToRelative(this.explodeLine(line));
+          var expLine=this.scaleToRelative(this.explodeLine(line), true);
           this.activeLocalization.x0 = expLine[0];
           this.activeLocalization.y0 = expLine[1];
           this.activeLocalization.x1 = expLine[2];
@@ -2509,6 +2542,7 @@ class AnnotationCanvas extends TatorElement
     return this.refresh();
   }
 
+  // Note: skipAnimation is ignored for now.
   selectLocalization(localization, skipAnimation, muteOthers, skipGoToFrame)
   {
     // Seek to a frame if we aren't actually there but trying to display
@@ -2659,6 +2693,9 @@ class AnnotationCanvas extends TatorElement
       muteOthers = false;
     }
     listOfLocalizations.forEach(pair => {
+      console.log("listOfLocalizations... pair:");
+      console.log(pair);
+
       var localization = pair.obj;
       var userColor = pair.color;
       var meta = this.getObjectDescription(localization);
@@ -2831,6 +2868,7 @@ class AnnotationCanvas extends TatorElement
     var getAlphaForFrame = function(frame)
     {
 
+
       var alpha = 0;
       var fill_alpha = 0;
       if (Math.floor(frame / rampLength) % 2 == 0)
@@ -2866,7 +2904,6 @@ class AnnotationCanvas extends TatorElement
           let alpha = alphaInfo.alpha;
           let fillAlpha = alphaInfo.fillAlpha;
           var colorInfo = that.computeLocalizationColor(localization,meta);
-
 
           if (meta.dtype == 'box')
           {
@@ -2904,9 +2941,7 @@ class AnnotationCanvas extends TatorElement
           }
           that._draw.dispImage(true);
         }
-        that.refresh().then(() => {
-          animator();
-        });
+        animator();
       });
     return promise;
   }
@@ -3034,7 +3069,7 @@ class AnnotationCanvas extends TatorElement
         // We are creating a track.
         type = objDescription.localizationType.dtype;
       }
-      
+
       if (type=="box")
       {
         localization=this.scaleToRelative(boxInfo);
@@ -3705,7 +3740,7 @@ class AnnotationCanvas extends TatorElement
           else if (objType.dtype == 'line')
           {
             var line=translatedLine(dragEvent.start, dragEvent.end);
-            var lineScaled=this.scaleToRelative([line[0][0], line[0][1], line[1][0], line[1][1]]);
+            var lineScaled=this.scaleToRelative([line[0][0], line[0][1], line[1][0], line[1][1]], true);
             this.activeLocalization.x0 = lineScaled[0];
             this.activeLocalization.y0 = lineScaled[1];
             this.activeLocalization.x1 = lineScaled[2];
@@ -3790,7 +3825,7 @@ class AnnotationCanvas extends TatorElement
           }
           else if (type == 'line')
           {
-            var localization=this.scaleToRelative(this.explodeLine(translatedLine(dragEvent.start, dragEvent.end)));
+            var localization=this.scaleToRelative(this.explodeLine(translatedLine(dragEvent.start, dragEvent.end)), true);
             this.activeLocalization.x0 = localization[0];
             this.activeLocalization.y0 = localization[1];
             this.activeLocalization.x1 = localization[2];
@@ -3980,7 +4015,6 @@ class AnnotationCanvas extends TatorElement
   onPlay()
   {
     this._clipboard.clear();
-    this.activeLocalization = null;
     this._emphasis = null;
     this._mouseMode = MouseMode.QUERY;
   }

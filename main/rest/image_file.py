@@ -49,8 +49,8 @@ class ImageFileListAPI(BaseListView):
                 media_files[role].insert(index, body)
             qs.update(media_files=media_files)
         media = Media.objects.get(pk=params['id'])
-        TatorSearch().create_document(media)
         Resource.add_resource(body['path'], media)
+        TatorSearch().create_document(media)
         return {'message': f"Media file in media object {media.id} created!"}
 
     def get_queryset(self):
@@ -96,11 +96,11 @@ class ImageFileDetailAPI(BaseDetailView):
             media_files[role][index] = body
             qs.update(media_files=media_files)
         media = Media.objects.get(pk=params['id'])
-        TatorSearch().create_document(media)
         if old_path != new_path:
             drop_media_from_resource(old_path, media)
             safe_delete(old_path)
             Resource.add_resource(new_path, media)
+        TatorSearch().create_document(media)
         return {'message': f"Media file in media object {media.id} successfully updated!"}
 
     def _delete(self, params):
@@ -121,9 +121,9 @@ class ImageFileDetailAPI(BaseDetailView):
             deleted = media_files[role].pop(index)
             qs.update(media_files=media_files)
         media = Media.objects.get(pk=params['id'])
-        TatorSearch().create_document(media)
         drop_media_from_resource(deleted['path'], media)
         safe_delete(deleted['path'])
+        TatorSearch().create_document(media)
         return {'message': f'Media file in media object {params["id"]} successfully deleted!'}
 
     def get_queryset(self):

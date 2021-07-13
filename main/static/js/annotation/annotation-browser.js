@@ -11,6 +11,7 @@ class AnnotationBrowser extends TatorElement {
 
     this._framePanels = {};
     this._entityPanels = {};
+    this._selectEntity = null;
 
     this._media.addEventListener("open", evt => {
       const typeId = evt.detail.typeId;
@@ -45,6 +46,10 @@ class AnnotationBrowser extends TatorElement {
         entity.addEventListener("goToTrack", evt => {
           this.selectEntity(evt.detail.track, true);
         });
+
+        entity.addEventListener("goToLocalization", evt => {
+          this.selectLocalizationFromTrack(evt.detail.track, evt.detail.frame);
+        });
       }
     }
     for (const dataType of dataTypes) {
@@ -69,6 +74,14 @@ class AnnotationBrowser extends TatorElement {
           this._panels.appendChild(frame);
           this._framePanels[dataType.id] = frame;
         }
+      }
+    }
+  }
+
+  selectEntityOnUpdate(entityId, entityTypeId) {
+    for (const typeId in this._entityPanels) {
+      if (typeId == entityTypeId) {
+        this._entityPanels[typeId].selectEntityOnUpdate(entityId);
       }
     }
   }
@@ -141,7 +154,31 @@ class AnnotationBrowser extends TatorElement {
     }
   }
 
-  selectEntity(obj, forceOpen = false) {
+  selectLocalizationFromTrack(track, frame) {
+    for (const dataTypeId in this._data._dataTypes) {
+      const dataType = this._data._dataTypes[dataTypeId];
+      if (!dataType.isTrack) {
+        const data = this._data._dataByType.get(dataTypeId);
+
+        // Note: This is a candidate for optimization in the future.
+        for (const loc of data) {
+          if (track.localizations.includes(loc.id)) {
+            if (loc.frame == frame) {
+              this.selectEntity(loc, true, true);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {Object} obj
+   * @param {bool} forceOpen
+   * @param {bool} forceLocalization - only valid if forceOpen is true
+   */
+  selectEntity(obj, forceOpen = false, forceLocalization = false) {
 
     var typeId = obj.meta;
     var objDataType = this._data._dataTypes[typeId];
@@ -156,7 +193,7 @@ class AnnotationBrowser extends TatorElement {
 
     // This variable can be changed in the future if there's a project setting to
     // force a default behavior when selecting a track
-    var selectTrackInstead = true;
+    var selectTrackInstead = !forceLocalization;
     if (!forceOpen)
     {
       // If the user has a state panel open and a track's localization was selected,

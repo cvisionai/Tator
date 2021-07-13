@@ -1,3 +1,8 @@
+body.analysis-annotations-body {
+  //background-color: $color-charcoal--light !important;
+  padding-bottom: 0px;
+}
+
 .analysis__panel-group {
   border-top: 1px solid $color-charcoal--light;
 }
@@ -13,47 +18,20 @@
 }
 
 .analysis {
-  background-color: $color-charcoal--light;
+  //background-color: $color-charcoal--light;
   bottom: 0;
   box-sizing: border-box;
   overflow-y: auto;
   position: fixed;
   left: 100%;
   top: 0;
-  transition-duration: .25s;
+  transition-duration: 0.25s;
   transition-property: transform;
   width: calc(100% - 400px);
   z-index: 2;
   &.is-open {
     transform: translateX(calc(-100% - 400px));
   }
-}
-
-.analysis__parameters {
-  overflow: hidden;
-}
-
-.analysis__parameters input {
-  background-color: $color-charcoal--medium;
-  color: transparent;
-}
-
-.analysis__parameters input:focus {
-  color: $color-white;
-}
-
-.analysis__parameters input:focus + div {
-  opacity: 0;
-}
-
-.analysis__parameters div {
-  border: 1px solid transparent;
-  opacity: .6;
-  pointer-events: none;
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  white-space: nowrap;
 }
 
 .analysis__nav-wrap {
@@ -100,11 +78,13 @@
 .analysis__annotations {
   display: grid;
   grid-gap: 20px 10px;
-  grid-template-columns: repeat(auto-fill,minmax(87px,1fr));
+  grid-template-columns: repeat(auto-fill, minmax(87px, 1fr));
 }
 
+
+.analysis__collection,
 .analysis__annotation {
-  background-color: $color-charcoal--medium;
+  //background-color: $color-charcoal--light;
   overflow: hidden;
   position: relative;
   &:hover,
@@ -117,7 +97,7 @@
     &:before {
       content: "";
       background-color: $color-purple;
-      opacity: .3;
+      opacity: 0.3;
       position: absolute;
       top: 0;
       left: 0;
@@ -127,9 +107,19 @@
   }
 
   img {
-    height: 87px;
+    background-color: $color-charcoal--medium;
+    height: 130px;
     object-fit: cover;
+    margin: 5px auto;
     width: 100%;
+    background-image: linear-gradient(
+        to right,
+        $color-charcoal--light 1px,
+        transparent 1px
+      ),
+      linear-gradient(to bottom, $color-charcoal--light 1px, transparent 1px);
+    background-size: 10px 10px;
+    transition: all 300ms linear;
   }
 
   & > span {
@@ -139,54 +129,129 @@
   }
 }
 
-.analysis__search_wrapper {
-  width: 100vw;
-}
+.analysis__collection {
+  border: 2px solid transparent;
+  &:hover,
+  &:focus {
+    box-shadow: 0 0 0 3px $color-charcoal--light;
+  }
 
-.analysis__search {
-  flex-grow: 1;
-  margin-right: 100px;
-  input {
-    -webkit-appearance: none;
-    background-color: transparent;
-    border: 1px solid $color-charcoal--light;
-    font-family: inherit;
-    & + .more {
-      display: none;
+  &.is-selected {
+    border-color: $color-white;
+    box-shadow: 0 0 0 3px $color-charcoal--light;
+    &:before {
+      //background-color: $color-charcoal--light;
     }
-    & + .more:hover {
-      display: block;
-    }
-    &:focus {
-      border-color: $color-purple;
-      outline: none;
-
-      & + .more {
-        display: block;
-      }
+    .entity-gallery-card__attribute {
+      color: $color-white !important;
     }
   }
 }
 
+// .analysis__parameters aren't used.
+// These are used here as a reference from MM
+// #TODO remove later
+.analysis__parameters {
+  overflow: hidden;
+}
+
+.analysis__parameters input {
+  background-color: $color-charcoal--medium;
+  color: transparent;
+}
+
+.analysis__parameters input:focus {
+  color: $color-white;
+}
+
+.analysis__parameters input:focus + div {
+  opacity: 0;
+}
+
+.analysis__parameters div {
+  border: 1px solid transparent;
+  opacity: 0.6;
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
 .analysis__filter {
-  background-color: $color-charcoal--dark;
-  border-bottom: 1px solid $color-gray--dark50;
   box-sizing: border-box;
-  height: 100px;
-  position: fixed;
-  width: 100%;
 }
 
-.analysis__filter_attribute_border {
+.analysis__filter_interface {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: stretch;
+  background: $color-charcoal--medium;
+}
+
+.analysis__filter_main {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.analysis__filter_nav {
+  display: flex;
+  align-items: center;
+}
+
+.analysis__filter_string {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.analysis__filter_string div {
+  display: flex;
+  flex-wrap: wrap;
+  white-space: nowrap;
+  align-items: center;
+}
+
+.analysis__filter_conditions_interface {
+  background: $color-charcoal--medium;
+}
+
+.analysis__filter_condition_group {
+  border-top: 1px solid $color-gray--dark50;
+  border-bottom: 1px solid $color-gray--dark50;
+}
+
+.analysis__filter_conditions {
   border: 1px solid $color-gray--dark50;
+  background: $color-charcoal--dark;
 }
 
-.analysis__filter_types_list {
+.analysis__filter_conditions_list {
   overflow-y: auto;
   max-height: 500px;
+  width: 100%;
 }
 
 .analysis__filter_field_border {
   border: 1px solid $color-charcoal--light;
   margin: 3px;
+}
+
+.analysis__dashboard-box {
+  background: $color-charcoal--medium;
+  width: 250px;
+  height: 250px;
+  margin: 100px 25px;
+  border: 2px solid transparent;
+  transition: all 300ms linear;
+
+  svg {
+    color: $color-white;
+  }
+
+  &:hover{
+    border-color: $color-charcoal--light;
+    background-color: $color-charcoal--medium70;
+  }
 }

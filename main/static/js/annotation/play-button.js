@@ -5,6 +5,7 @@ class PlayButton extends TatorElement {
     const button = document.createElement("button");
     button.setAttribute("class", "video__play-wrap d-flex flex-justify-center btn-clear circle text-white flex-items-center");
     this._shadow.appendChild(button);
+    this._button = button;
 
     this._play = document.createElementNS(svgNamespace, "svg");
     this._play.setAttribute("id", "icon-play");

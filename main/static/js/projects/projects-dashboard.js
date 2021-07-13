@@ -84,6 +84,7 @@ class ProjectsDashboard extends TatorPage {
   }
 
   connectedCallback() {
+    TatorPage.prototype.connectedCallback.call(this);
     // Get projects
     fetch("/rest/Projects", {
       method: "GET",

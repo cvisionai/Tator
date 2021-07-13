@@ -83,7 +83,7 @@ class CloneMediaListAPI(BaseListView):
         for media in medias:
             if media.media_files:
                 for key in ['streaming', 'archival', 'audio', 'image', 'thumbnail',
-                            'thumbnail_gif']:
+                            'thumbnail_gif', 'attachment']:
                     for f in media.media_files.get(key, []):
                         Resource.add_resource(f['path'], media)
                         if key == 'streaming':

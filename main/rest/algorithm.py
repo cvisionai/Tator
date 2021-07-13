@@ -115,6 +115,8 @@ class AlgorithmListAPI(BaseListView):
         # Get the optional fields and set to null if need be.
         description = params.get(fields.description, None)
         cluster = params.get(fields.cluster, None)
+        categories = params.get(fields.categories, None)
+        parameters = params.get(fields.parameters, None)
 
         # Register the algorithm workflow
         alg_obj = Algorithm(
@@ -124,7 +126,9 @@ class AlgorithmListAPI(BaseListView):
             manifest=manifest_url,
             description=description,
             cluster=cluster,
-            files_per_job=files_per_job)
+            files_per_job=files_per_job,
+            categories=categories,
+            parameters=parameters)
         alg_obj.save()
 
         return {'message': 'Successfully registered algorithm argo workflow.', 'id': alg_obj.id}
@@ -197,6 +201,14 @@ class AlgorithmDetailAPI(BaseDetailView):
         description = params.get(fields.description, None)
         if description is not None:
             obj.description = description
+
+        categories = params.get(fields.categories, None)
+        if categories is not None:
+            obj.categories = categories
+
+        parameters = params.get(fields.parameters, None)
+        if parameters is not None:
+            obj.parameters = parameters
 
         #TODO Should this delete the manifest if it's not registered to anything else?
         manifest = params.get(fields.manifest, None)

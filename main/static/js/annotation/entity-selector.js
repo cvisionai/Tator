@@ -283,6 +283,27 @@ class EntitySelector extends TatorElement {
     this._emitSelection(false, true, false);
   }
 
+  /**
+   * Potentially could condense with selectEntity
+   */
+  selectEntityWithId(id, emitSelectEvent) {
+    var selectedObject = false;
+    for (const [index, data] of this._data.entries()) {
+      if (data.id == id) {
+        this._div.classList.add("is-open");
+        this.dispatchEvent(new Event("open"));
+        this._current.textContent = String(index + 1);
+        this._slider.value = index;
+        selectedObject = true;
+        break;
+      }
+    }
+
+    if (emitSelectEvent && selectedObject) {
+      this._emitSelection(true, true, true);
+    }
+  }
+
   selectEntity(obj, attemptPrevSelect) {
     var selectedObject = false;
     for (const [index, data] of this._data.entries()) {

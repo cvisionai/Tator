@@ -304,11 +304,17 @@ def user_save(sender, instance, created, **kwargs):
             TatorCognito().update_attributes(instance)
     if created:
         invites = Invitation.objects.filter(email=instance.email, status='Pending')
-        if invites.count() == 0:
+        if (invites.count() == 0) and (os.getenv('AUTOCREATE_ORGANIZATIONS')):
             organization = Organization.objects.create(name=f"{instance}'s Team")
             Affiliation.objects.create(organization=organization,
                                        user=instance,
                                        permission='Admin')
+
+class PasswordReset(Model):
+    user = ForeignKey(User, on_delete=CASCADE)
+    reset_token = UUIDField(primary_key=False, db_index=True, editable=False,
+                            default=uuid.uuid1)
+    created_datetime = DateTimeField(auto_now_add=True, null=True, blank=True)
 
 class Invitation(Model):
     email = EmailField()
@@ -591,6 +597,8 @@ class Algorithm(Model):
         default=1,
         validators=[MinValueValidator(1),]
     )
+    categories = ArrayField(CharField(max_length=128), default=list, null=True)
+    parameters = JSONField(default=list, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -652,7 +660,7 @@ def temporary_file_delete(sender, instance, **kwargs):
 # Entity types
 
 class MediaType(Model):
-    dtype = CharField(max_length=16, choices=[('image', 'image'), ('video', 'video'), ('multi','multi')])
+    dtype = CharField(max_length=16, choices=[('image', 'image'), ('video', 'video'), ('multi','multi'), ('live','live')])
     project = ForeignKey(Project, on_delete=CASCADE, null=True, blank=True, db_column='project')
     name = CharField(max_length=64)
     description = CharField(max_length=256, blank=True)
@@ -987,7 +995,7 @@ class Media(Model, ModelDiffMixin):
         store_lookup = get_storage_lookup(resources)
         store_default = get_tator_store(self.project.bucket)
 
-        for key in ["archival", "streaming", "image", "audio", "thumbnail", "thumbnail_gif"]:
+        for key in ["archival", "streaming", "image", "audio", "thumbnail", "thumbnail_gif", "attachment"]:
             if key not in self.media_files:
                 continue
 
@@ -1094,7 +1102,7 @@ class Resource(Model):
 def media_save(sender, instance, created, **kwargs):
     TatorSearch().create_document(instance)
     if instance.media_files and created:
-        for key in ['streaming', 'archival', 'audio', 'image', 'thumbnail', 'thumbnail_gif']:
+        for key in ['streaming', 'archival', 'audio', 'image', 'thumbnail', 'thumbnail_gif', 'attachment']:
             for fp in instance.media_files.get(key, []):
                 Resource.add_resource(fp['path'], instance)
                 if key == 'streaming':
@@ -1130,7 +1138,7 @@ def media_delete(sender, instance, **kwargs):
 def media_post_delete(sender, instance, **kwargs):
     # Delete all the files referenced in media_files
     if not instance.media_files is None:
-        for key in ['streaming', 'archival', 'audio', 'image', 'thumbnail', 'thumbnail_gif']:
+        for key in ['streaming', 'archival', 'audio', 'image', 'thumbnail', 'thumbnail_gif', 'attachment']:
             files = instance.media_files.get(key, [])
             if files is None:
                 files = []
@@ -1419,6 +1427,21 @@ class ChangeToObject(Model):
     """ The id of the changed object """
     change_id = ForeignKey(ChangeLog, on_delete=SET_NULL, null=True)
     """ The change that affected the object """
+
+class Announcement(Model):
+    """ Message that may be displayed to users.
+    """
+    markdown = CharField(max_length=2048)
+    """ This text will be displayed using a markdown parser. """
+    created_datetime = DateTimeField(auto_now_add=True)
+    eol_datetime = DateTimeField()
+
+class AnnouncementToUser(Model):
+    """ Mapping between announcement and user. The presence of a row in this table
+        means an announcement should be displayed to the user.
+    """
+    announcement = ForeignKey(Announcement, on_delete=CASCADE)
+    user = ForeignKey(User, on_delete=CASCADE)
 
 def type_to_obj(typeObj):
     """Returns a data object for a given type object"""

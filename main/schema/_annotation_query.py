@@ -37,4 +37,14 @@ annotation_filter_parameter_schema = [
                        'parameters are relative to this modified range.',
         'schema': {'type': 'integer'},
     },
+    {
+        'name': 'media_search',
+        'in': 'query',
+        'required': False,
+        'description': 'Lucene query syntax string for use with Elasticsearch. '
+                       'See <a href=https://www.elastic.co/guide/en/elasticsearch/'
+                       'reference/7.10/query-dsl-query-string-query.html#query-string-syntax>reference</a>. '
+                       'This search is applied to parent media of annotations only.',
+        'schema': {'type': 'string'},
+    },
 ]

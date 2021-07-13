@@ -33,6 +33,10 @@ class AlgorithmMenu extends TatorElement {
       });
     }
   }
+
+  hideNewAlgorithm() {
+    this._newAlgorithm.hidden = true;
+  }
 }
 
 customElements.define("algorithm-menu", AlgorithmMenu);

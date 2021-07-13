@@ -49,10 +49,10 @@ class VideoFileListAPI(BaseListView):
                 media_files[role].insert(index, body)
             qs.update(media_files=media_files)
         media = Media.objects.get(pk=params['id'])
-        TatorSearch().create_document(media)
         Resource.add_resource(body['path'], media)
         if role == 'streaming':
             Resource.add_resource(body['segment_info'], media)
+        TatorSearch().create_document(media)
         return {'message': f"Media file in media object {media.id} created!"}
 
     def get_queryset(self):
@@ -105,7 +105,6 @@ class VideoFileDetailAPI(BaseDetailView):
             media_files[role][index] = body
             qs.update(media_files=media_files)
         media = Media.objects.get(pk=params['id'])
-        TatorSearch().create_document(media)
         if old_path != new_path:
             drop_media_from_resource(old_path, media)
             safe_delete(old_path)
@@ -115,6 +114,7 @@ class VideoFileDetailAPI(BaseDetailView):
                 drop_media_from_resource(old_segments, media)
                 safe_delete(old_segments)
                 Resource.add_resource(new_segments, media)
+        TatorSearch().create_document(media)
         return {'message': f"Media file in media object {media.id} successfully updated!"}
 
     def _delete(self, params):
@@ -135,12 +135,12 @@ class VideoFileDetailAPI(BaseDetailView):
             deleted = media_files[role].pop(index)
             qs.update(media_files=media_files)
         media = Media.objects.get(pk=params['id'])
-        TatorSearch().create_document(media)
         drop_media_from_resource(deleted['path'], media)
         safe_delete(deleted['path'])
         if role == 'streaming':
             drop_media_from_resource(deleted['segment_info'], media)
             safe_delete(deleted['segment_info'])
+        TatorSearch().create_document(media)
         return {'message': f'Media file in media object {params["id"]} successfully deleted!'}
 
     def get_queryset(self):

@@ -2,6 +2,8 @@ class AnalyticsBreadcrumbs extends TatorElement {
   constructor() {
     super();
 
+    this.projectId = window.location.pathname.split("/")[1];
+
     const div = document.createElement("div");
     div.setAttribute("class", "annotation__breadcrumbs d-flex flex-items-center px-2 f3 text-gray");
     this._shadow.appendChild(div);
@@ -13,6 +15,16 @@ class AnalyticsBreadcrumbs extends TatorElement {
     const chevron1 = document.createElement("chevron-right");
     chevron1.setAttribute("class", "px-2");
     div.appendChild(chevron1);
+
+    this.analyticsText = document.createElement("a");
+    this.analyticsText.setAttribute("class", "text-gray");
+    this.analyticsText.setAttribute("href", `/${this.projectId}/analytics/`);
+    this.analyticsText.textContent = "Analytics";
+    div.appendChild(this.analyticsText);
+
+    this.chevron2 = document.createElement("chevron-right");
+    this.chevron2.setAttribute("class", "px-2");
+    div.appendChild(this.chevron2);
 
     this._analyticsText = document.createElement("a");
     this._analyticsText.setAttribute("class", "text-gray");
@@ -26,18 +38,24 @@ class AnalyticsBreadcrumbs extends TatorElement {
   attributeChangedCallback(name, oldValue, newValue) {
     switch (name) {
       case "project-name":
+
         this._projectText.textContent = newValue;
         this._projectText.setAttribute("href", this._detailUrl());
+
+
         break;
       case "analytics-name":
-        this._analyticsText.textContent = newValue;
+        if (newValue != "Dashboard") {
+          this._analyticsText.textContent = newValue;
+        } else {
+          this.chevron2.hidden = true;
+        }
         break;
     }
   }
 
   _detailUrl() {
-    const project = window.location.pathname.split("/")[1];
-    return `${window.location.origin}/${project}/project-detail`;
+    return `${window.location.origin}/${this.projectId}/project-detail`;
   }
 }
 

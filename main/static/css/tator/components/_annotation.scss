@@ -52,14 +52,27 @@
   position: absolute;
   top: 28px;
   width: 4px;
-  transition-duration: .25s;
+  transition-duration: 0.25s;
   transition-property: transform;
 
-  box-button.is-selected + line-button + point-button + track-button + zoom-in-button + zoom-out-button + pan-button + & {
+  box-button.is-selected
+    + line-button
+    + point-button
+    + track-button
+    + zoom-in-button
+    + zoom-out-button
+    + pan-button
+    + & {
     transform: translateY(62px);
   }
 
-  line-button.is-selected + point-button + track-button + zoom-in-button + zoom-out-button + pan-button + & {
+  line-button.is-selected
+    + point-button
+    + track-button
+    + zoom-in-button
+    + zoom-out-button
+    + pan-button
+    + & {
     transform: translateY(124px);
   }
 
@@ -82,7 +95,7 @@
 
 .annotation__panels {
   flex-shrink: 0;
-  width: 334px;
+  width: 400px;
 }
 
 .annotation__panel {
@@ -98,8 +111,8 @@ save-dialog {
   overflow: initial;
   pointer-events: none;
   position: absolute;
-  transform: scale(.95);
-  transition-duration: .25s;
+  transform: scale(0.95);
+  transition-duration: 0.25s;
   transition-property: transform, opacity;
   z-index: 2;
   &.is-open {
@@ -115,8 +128,8 @@ modify-track-dialog {
   overflow: initial;
   pointer-events: none;
   position: absolute;
-  transform: scale(.95);
-  transition-duration: .25s;
+  transform: scale(0.95);
+  transition-duration: 0.25s;
   transition-property: transform, opacity;
   z-index: 2;
   &.is-open {
@@ -127,10 +140,10 @@ modify-track-dialog {
 }
 
 .annotation__panel-group {
-  max-height: calc(100vh - 307px);
-  overflow-y: auto;
-  border-top: 1px solid $color-charcoal--light;
-  padding-bottom: $spacing-3;
+  //   max-height: calc(100vh - 307px);
+  //   overflow-y: auto;
+  //   border-top: 1px solid $color-charcoal--light;
+  //   padding-bottom: $spacing-3;
 
   button {
     justify-content: space-between;
@@ -180,7 +193,11 @@ modify-track-dialog {
 }
 
 .annotation__entity-count {
-  background-image: linear-gradient(to right, rgba($color-charcoal--light, 0%), $color-charcoal--light 15%); // Safari bug on transparent
+  background-image: linear-gradient(
+    to right,
+    rgba($color-charcoal--light, 0%),
+    $color-charcoal--light 15%
+  ); // Safari bug on transparent
   opacity: 0;
   position: absolute;
   right: 0;
@@ -188,7 +205,7 @@ modify-track-dialog {
 
 .entity__button {
   background-color: $color-charcoal--medium;
-  transition-duration: .25s;
+  transition-duration: 0.25s;
   transition-property: background-color, color;
   &:hover,
   &:focus {
@@ -221,7 +238,7 @@ favorite-button {
 }
 
 .annotation__multi-grid {
-    display: grid;
+  display: grid;
 }
 
 .annotation__multi-grid-entry {
@@ -259,6 +276,15 @@ favorite-button {
   max-height: 240px;
 }
 
+.annotation__announcement-list {
+  overflow-y: auto;
+  max-height: 240px;
+}
+
+.annotation__announcement {
+  border-bottom: 1px solid $color-charcoal--light;
+}
+
 .annotation__video-player {
   flex-grow: 1;
   overflow: hidden;
@@ -285,11 +311,9 @@ favorite-button {
   display: none;
 }
 
+video-canvas,
+annotation-image,
 annotation-player {
-  width: 100%;
-}
-
-video-canvas {
   width: 100%;
 }
 
@@ -300,11 +324,29 @@ video-canvas {
 
 .video__controls {
   background-color: $color-charcoal--medium;
-  min-height: 76px;
+  min-height: 64px;
 }
 
-.video__rewind,
+.scrub__bar {
+  background-color: $color-charcoal--medium;
+  padding-bottom: 16px;
+}
+
+.video__rewind { 
+  &:hover,
+  &:focus {
+    color: $color-purple;
+  }
+
+  &:disabled,
+  [disabled] {
+    color: $color-gray--dark;
+    cursor: not-allowed;
+  }
+}
+
 .video__fast-forward {
+  margin-right: 16px;
   &:hover,
   &:focus {
     color: $color-purple;
@@ -338,6 +380,12 @@ video-canvas {
       display: block;
     }
   }
+
+  &:disabled,
+  [disabled] {
+    color: $color-gray--dark;
+    cursor: not-allowed;
+  }
 }
 
 .video__pause {
@@ -345,66 +393,57 @@ video-canvas {
 }
 
 .select-crosshair {
-    cursor: crosshair;
+  cursor: crosshair;
 }
 
 .select-pointer {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 .select-grabbing {
-    cursor: grabbing;
+  cursor: grabbing;
 }
 
 .select-grab {
-    cursor: grab;
+  cursor: grab;
 }
 
 .select-move {
-    cursor: move;
+  cursor: move;
 }
-.select-vertical-resize
-{
-    cursor: ns-resize;
-}
-
-.select-horizontal-resize
-{
-    cursor: ew-resize;
+.select-vertical-resize {
+  cursor: ns-resize;
 }
 
-.select-ne-resize
-{
-    cursor: ne-resize;
+.select-horizontal-resize {
+  cursor: ew-resize;
 }
 
-.select-se-resize
-{
-    cursor: se-resize;
+.select-ne-resize {
+  cursor: ne-resize;
 }
 
-.select-nw-resize
-{
-    cursor: nw-resize;
+.select-se-resize {
+  cursor: se-resize;
 }
 
-.select-sw-resize
-{
-    cursor: sw-resize;
+.select-nw-resize {
+  cursor: nw-resize;
 }
 
-.select-zoom-roi
-{
-    cursor: zoom-in;
+.select-sw-resize {
+  cursor: sw-resize;
 }
 
-.select-not-allowed
-{
-    cursor: not-allowed;
+.select-zoom-roi {
+  cursor: zoom-in;
 }
 
-.video__settings
-{
+.select-not-allowed {
+  cursor: not-allowed;
+}
+
+.video__settings {
   display: grid;
   grid-column-gap: 20px;
   grid-row-gap: 20px;

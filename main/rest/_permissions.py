@@ -147,6 +147,17 @@ class UserPermission(BasePermission):
     """
     def has_permission(self, request, view):
         if isinstance(request.user, AnonymousUser):
+            # If user is anonymous but request contains a reset token and password, allow it.
+            has_password = 'password' in request.data 
+            logger.info(f"HAS PASSWORD: {has_password}")
+            has_token = 'reset_token' in request.data
+            logger.info(f"HAS TOKEN: {has_token}")
+            has_two = len(list(request.data.values())) == 2
+            logger.info(f"HAS TWO: {has_two}")
+            is_patch = request.method == 'PATCH'
+            logger.info(f"IS PATCH: {is_patch}")
+            if has_password and has_token and has_two and is_patch:
+                return True
             return False
 
         if _for_schema_view(request, view):

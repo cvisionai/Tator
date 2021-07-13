@@ -235,7 +235,7 @@ def _get_media_psql_queryset(project, section_uuid, filter_ops, params):
     return qs
 
 def _use_es(project, params):
-    ES_ONLY_PARAMS = ['search']
+    ES_ONLY_PARAMS = ['search', 'annotation_search']
     use_es = False
     for es_param in ES_ONLY_PARAMS:
         if es_param in params:

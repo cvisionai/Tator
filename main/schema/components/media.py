@@ -207,6 +207,7 @@ media_update = {
             'type': 'integer',
         },
         'multi': {'$ref': '#/components/schemas/MultiDefinition'},
+        'live': {'$ref': '#/components/schemas/LiveUpdateDefinition'},
         'archive_state': {
             'type': 'string',
             'description': 'Marks media for archival or retrieval. Media may not be set directly '

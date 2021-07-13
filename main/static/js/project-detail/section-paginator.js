@@ -29,6 +29,7 @@ class SectionPaginator extends TatorElement {
       this._pages.push(document.createElement("a"));
       this._pages[idx].addEventListener("click", evt => {
         this._setPage(Number(evt.target.textContent) - 1);
+        console.log("Clicked "+  evt.target.textContent );
         this._emit();
       });
       this._pages[idx].style.cursor = "pointer";
@@ -134,6 +135,7 @@ class SectionPaginator extends TatorElement {
 
   _setPage(page) {
     this._page = page;
+    console.log(page);
 
     // Update appearance to reflect new page.
     if (this._numPages == 1) {

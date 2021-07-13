@@ -56,7 +56,8 @@ class ProjectListAPI(BaseListView):
 
     def _post(self, params):
         # If user does not have admin privileges within the organization, raise a 403.
-        affiliation = Affiliation.objects.filter(organization=params['organization'])
+        affiliation = Affiliation.objects.filter(organization=params['organization'],
+                                                 user=self.request.user)
         if affiliation.exists():
             if affiliation[0].permission != 'Admin':
                 raise PermissionDenied

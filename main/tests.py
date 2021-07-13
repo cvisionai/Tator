@@ -79,6 +79,9 @@ def create_test_algorithm(user, name, project):
         project=project,
         user=user,
         files_per_job=1,
+        description="test description",
+        categories=["categoryA", "categoryB"],
+        parameters=[{"name": "param-name", "value": "param-dtype"}]
     )
     obj.manifest.save(
         name='asdf.yaml',
@@ -2325,6 +2328,29 @@ class AudioFileTestCase(APITestCase, FileMixin):
     def test_audio(self):
         self._test_methods('audio')
 
+class FileTestCase(APITestCase, FileMixin):
+    def setUp(self):
+        self.user = create_test_user()
+        self.client.force_authenticate(self.user)
+        self.organization = create_test_organization()
+        self.affiliation = create_test_affiliation(self.user, self.organization)
+        self.project = create_test_project(self.user, self.organization)
+        self.membership = create_test_membership(self.user, self.project)
+        self.entity_type = MediaType.objects.create(
+            name="video",
+            dtype='video',
+            project=self.project,
+            attribute_types=create_test_attribute_types(),
+        )
+        self.media = create_test_video(self.user, f'asdf', self.entity_type, self.project)
+        self.list_uri = 'Files'
+        self.detail_uri = 'File'
+        self.create_json = {'path': 'asdf', 'name': 'asdf1'}
+        self.patch_json = {'path': 'asdf', 'name': 'asdf'}
+
+    def test_attachment(self):
+        self._test_methods('attachment')
+
 class ResourceTestCase(APITestCase):
 
     MEDIA_ROLES = {'streaming': 'VideoFiles',
@@ -2332,7 +2358,8 @@ class ResourceTestCase(APITestCase):
                    'audio': 'AudioFiles',
                    'image': 'ImageFiles',
                    'thumbnail': 'ImageFiles',
-                   'thumbnail_gif': 'ImageFiles'}
+                   'thumbnail_gif': 'ImageFiles',
+                   'attachment': 'Files'}
 
     def setUp(self):
         self.user = create_test_user()

@@ -36,7 +36,8 @@ class ConfirmRunAlgorithm extends ModalDialog {
              projectId: this._projectId,
              mediaIds: this._mediaIds,
              mediaQuery: this._mediaQuery,
-             algorithmName: this._algorithmName}}));
+             algorithmName: this._algorithmName,
+             extraParameters: this._extraParameters}}));
     });
   }
 
@@ -48,8 +49,9 @@ class ConfirmRunAlgorithm extends ModalDialog {
    * @param {string} algorithmName Name of algorithm to run
    * @param {array} mediaIds List of media IDs to process
    * @param {string} mediaQuery Media query string when launching algorithm
+   * @param {array} extraParameters #TODO add useful info
    */
-  init(algorithmName, projectId, mediaIds, mediaQuery)
+  init(algorithmName, projectId, mediaIds, mediaQuery, extraParameters)
   {
     this._title.nodeValue = "Run Algorithm";
     this._message.textContent = "Do you want to run " + algorithmName + "?";
@@ -57,6 +59,7 @@ class ConfirmRunAlgorithm extends ModalDialog {
     this._projectId = projectId;
     this._mediaIds = mediaIds;
     this._mediaQuery = mediaQuery;
+    this._extraParameters = extraParameters;
   }
 
   static get observedAttributes() {
